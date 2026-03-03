@@ -1,0 +1,217 @@
+{
+  "projectType": "saas",
+  "projectName": "UTMStack",
+  "projectDescription": "Enterprise-ready SIEM and XDR platform powered by real-time correlation and threat intelligence",
+  "theme": "aspen",
+  "primaryColor": "#1e3a8a",
+  "lightColor": "#3b82f6",
+  "darkColor": "#0f172a",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation",
+              "system-requirements"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/log-management",
+              "features/threat-detection",
+              "features/threat-intelligence",
+              "features/alert-investigation",
+              "features/file-classification",
+              "features/soc-ai",
+              "features/compliance"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/overview",
+              "deployment/ubuntu-installation",
+              "deployment/iso-installation",
+              "deployment/network-configuration",
+              "deployment/ports-firewall"
+            ]
+          },
+          {
+            "group": "Agent Management",
+            "pages": [
+              "agents/overview",
+              "agents/windows-agent",
+              "agents/linux-agent",
+              "agents/agent-configuration",
+              "agents/agent-commands"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/overview",
+              "integrations/aws",
+              "integrations/azure",
+              "integrations/gcp",
+              "integrations/office365",
+              "integrations/crowdstrike",
+              "integrations/sophos",
+              "integrations/bitdefender"
+            ]
+          },
+          {
+            "group": "Data Sources",
+            "pages": [
+              "data-sources/overview",
+              "data-sources/log-collection",
+              "data-sources/syslog",
+              "data-sources/filebeat",
+              "data-sources/netflow",
+              "data-sources/custom-parsers"
+            ]
+          },
+          {
+            "group": "Compliance",
+            "pages": [
+              "compliance/overview",
+              "compliance/hipaa",
+              "compliance/soc2",
+              "compliance/cmmc",
+              "compliance/custom-standards"
+            ]
+          },
+          {
+            "group": "Security Operations",
+            "pages": [
+              "operations/dashboards",
+              "operations/alerts",
+              "operations/incidents",
+              "operations/threat-hunting",
+              "operations/soar"
+            ]
+          },
+          {
+            "group": "Administration",
+            "pages": [
+              "admin/user-management",
+              "admin/roles-permissions",
+              "admin/authentication",
+              "admin/two-factor-auth",
+              "admin/saml-sso"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/introduction",
+              "api/authentication",
+              "api/rate-limits"
+            ]
+          },
+          {
+            "group": "Alerts",
+            "pages": [
+              "api/alerts/list-alerts",
+              "api/alerts/get-alert",
+              "api/alerts/update-alert",
+              "api/alerts/alert-tags"
+            ]
+          },
+          {
+            "group": "Data Sources",
+            "pages": [
+              "api/data-sources/list-sources",
+              "api/data-sources/configure-source",
+              "api/data-sources/source-status"
+            ]
+          },
+          {
+            "group": "Users",
+            "pages": [
+              "api/users/list-users",
+              "api/users/create-user",
+              "api/users/update-user",
+              "api/users/delete-user"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "api/integrations/list-integrations",
+              "api/integrations/configure-integration",
+              "api/integrations/integration-status"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Architecture",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "architecture/system-architecture",
+              "architecture/components",
+              "architecture/data-flow"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "architecture/backend-api",
+              "architecture/frontend-ui",
+              "architecture/agent-system",
+              "architecture/correlation-engine",
+              "architecture/data-storage"
+            ]
+          },
+          {
+            "group": "Scalability",
+            "pages": [
+              "architecture/horizontal-scaling",
+              "architecture/performance-tuning",
+              "architecture/high-availability"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Real-time log correlation and analysis",
+    "Threat detection with AI-powered analysis",
+    "Integrated threat intelligence feeds",
+    "Security compliance monitoring (HIPAA, SOC2, CMMC)",
+    "SOAR automation and incident response",
+    "Multi-cloud integrations (AWS, Azure, GCP)",
+    "Agent-based data collection for Windows and Linux",
+    "Custom log parsing and data normalization"
+  ],
+  "publicApiSurface": [
+    "POST /api/authenticate - JWT authentication",
+    "GET /api/alerts - List security alerts",
+    "GET /api/alerts/{id} - Get alert details",
+    "PUT /api/alerts/{id} - Update alert status",
+    "GET /api/utm-clients - List connected agents",
+    "POST /api/utm-integration-conf - Configure integrations",
+    "GET /api/utm-data-input-status - Get data source status",
+    "GET /api/users - List users",
+    "POST /api/users - Create user",
+    "GET /api/account - Get current user account",
+    "POST /api/account/change-password - Change password",
+    "UTMStackAgent install - Install agent on endpoints",
+    "UTMStackAgent enable-integration - Enable log collection",
+    "UTMStackAgent disable-integration - Disable log collection"
+  ]
+}
