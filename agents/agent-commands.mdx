@@ -44,7 +44,7 @@ Install the UTMStack Agent service.
     - Log Auth Proxy Port
     - Dependencies Port
 
-    ```
+    ```text
     Checking server connection ... [OK]
     ```
   </Step>
@@ -52,7 +52,7 @@ Install the UTMStack Agent service.
   <Step title="Download Dependencies">
     Downloads required components from the server:
 
-    ```
+    ```text
     Downloading dependencies ... [OK]
     ```
   </Step>
@@ -64,7 +64,7 @@ Install the UTMStack Agent service.
     - Installs Beat collectors
     - Sets default data retention
 
-    ```
+    ```text
     Configuring agent ... [OK]
     ```
   </Step>
@@ -72,7 +72,7 @@ Install the UTMStack Agent service.
   <Step title="Create Service">
     Installs the system service:
 
-    ```
+    ```text
     Creating service ... [OK]
     UTMStackAgent service installed correctly
     ```
@@ -151,13 +151,13 @@ Enable syslog over TCP with TLS:
 
 **Output:**
 
-```
+```text
 Changing integration status ...
 Integration syslog tcp enabled on port 5140
 ```
 
 With TLS:
-```
+```text
 Integration syslog tcp enabled with TLS on port 6514
 ```
 
@@ -185,7 +185,7 @@ Disabling an integration automatically disables TLS if it was enabled.
 
 **Output:**
 
-```
+```text
 Changing integration status ...
 Integration syslog tcp disabled (port 6514 freed)
 ```
@@ -225,7 +225,7 @@ Without CA certificate:
 
 **Output:**
 
-```
+```text
 Loading user TLS certificates ...
 Validating certificate files ... [OK]
 Installing certificates ... [OK]
@@ -263,7 +263,7 @@ Change the listening port for a specific integration.
 
 **Output:**
 
-```
+```text
 Changing integration port ...
 Port changed correctly from 514 to 5140
 ```
@@ -290,7 +290,7 @@ Set retention to 100 MB:
 
 **Output:**
 
-```
+```text
 Changing log retention ...
 Retention changed correctly to 100
 ```
@@ -311,7 +311,7 @@ Manually clean old logs based on the retention policy.
 
 **Output:**
 
-```
+```text
 Cleaning old logs ...
 Logs cleaned correctly
 ```
