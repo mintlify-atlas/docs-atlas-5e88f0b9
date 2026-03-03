@@ -1,0 +1,181 @@
+---
+title: Windows Agent
+description: Install and manage the UTMStack Agent on Windows systems
+---
+
+The UTMStack Windows Agent enables comprehensive security monitoring and log collection on Windows servers and workstations.
+
+## Prerequisites
+
+Before installing the Windows agent, ensure you have:
+
+- Administrative privileges on the Windows system
+- Network connectivity to the UTMStack server
+- UTMStack server hostname or IP address
+- Agent registration key from your UTMStack deployment
+
+## Installation
+
+<Steps>
+  <Step title="Download the Agent">
+    Download the Windows agent executable (`utmstack_agent.exe`) from your UTMStack server or deployment package.
+  </Step>
+
+  <Step title="Open Command Prompt as Administrator">
+    Right-click Command Prompt and select "Run as administrator".
+  </Step>
+
+  <Step title="Run the Installation Command">
+    Navigate to the directory containing the agent executable and run:
+
+    ```bash
+    utmstack_agent.exe install
+    ```
+
+    The installer will prompt you for:
+    - UTMStack server address
+    - Agent registration key
+  </Step>
+
+  <Step title="Installation Process">
+    The agent will automatically:
+
+    - Check server connection and verify port accessibility
+    - Download required dependencies from the server
+    - Register the agent with the UTMStack server
+    - Configure collectors and log retention settings
+    - Install the Windows service
+
+    You'll see output like:
+
+    ```bash
+    Installing UTMStackAgent service ...
+    Checking server connection ... [OK]
+    Downloading dependencies ... [OK]
+    Configuring agent ... [OK]
+    Creating service ... [OK]
+    UTMStackAgent service installed correctly
+    ```
+  </Step>
+
+  <Step title="Verify Installation">
+    Check that the UTMStackAgent service is running:
+
+    ```bash
+    sc query UTMStackAgent
+    ```
+  </Step>
+</Steps>
+
+## Service Management
+
+### Start the Service
+
+```bash
+net start UTMStackAgent
+```
+
+### Stop the Service
+
+```bash
+net stop UTMStackAgent
+```
+
+### Restart the Service
+
+```bash
+net stop UTMStackAgent && net start UTMStackAgent
+```
+
+### Check Service Status
+
+```bash
+sc query UTMStackAgent
+```
+
+## Common Tasks
+
+### Enable Syslog Integration
+
+Enable syslog over TCP:
+
+```bash
+utmstack_agent.exe enable-integration syslog tcp
+```
+
+Enable syslog over TCP with TLS:
+
+```bash
+utmstack_agent.exe enable-integration syslog tcp --tls
+```
+
+### Load Custom TLS Certificates
+
+For production environments, load your own TLS certificates:
+
+```bash
+utmstack_agent.exe load-tls-certs C:\path\to\server.crt C:\path\to\server.key C:\path\to\ca.crt
+```
+
+### Change Log Retention
+
+Set log retention to 50 MB:
+
+```bash
+utmstack_agent.exe change-retention 50
+```
+
+## Uninstalling the Agent
+
+To completely remove the agent:
+
+```bash
+utmstack_agent.exe uninstall
+```
+
+This will:
+- Stop the service
+- Uninstall collectors
+- Delete the agent from the server
+- Remove the Windows service
+- Clean up configuration files
+
+## Troubleshooting
+
+### Installation Fails
+
+If installation fails, check:
+
+1. **Network connectivity**: Ensure the server is reachable
+   ```bash
+   ping your-utmstack-server
+   ```
+
+2. **Firewall rules**: Verify required ports are open
+
+3. **Permissions**: Ensure you're running as administrator
+
+### Service Won't Start
+
+Check the service log file at `C:\Program Files\UTMStack\Agent\logs\service.log` for detailed error messages.
+
+### Agent Not Appearing in Console
+
+Verify the agent is registered:
+- Check network connectivity to the server
+- Ensure the correct server address and key were used during installation
+- Review the agent log files
+
+## Log Files
+
+Agent logs are stored at:
+
+```
+C:\Program Files\UTMStack\Agent\logs\service.log
+```
+
+## Next Steps
+
+<Card title="Agent Commands" icon="terminal" href="/agents/agent-commands">
+  Explore all available CLI commands
+</Card>

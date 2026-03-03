@@ -1,0 +1,205 @@
+---
+title: User Management
+description: Manage user accounts, profiles, and access in UTMStack
+---
+
+## Overview
+
+UTMStack provides comprehensive user account management capabilities to control access to your security infrastructure. User data is encrypted in the database and protected by multiple security layers including fail2ban mechanisms and two-factor authentication.
+
+## Creating Users
+
+<Steps>
+  <Step title="Navigate to User Management">
+    Go to **Settings > Users** in the UTMStack interface.
+  </Step>
+  
+  <Step title="Add New User">
+    Click the **Add User** button and fill in the required information:
+    - Username
+    - Email address
+    - Full name
+    - Initial password
+  </Step>
+  
+  <Step title="Assign Role">
+    Select the appropriate role for the user. See [Roles and Permissions](/admin/roles-permissions) for available roles.
+  </Step>
+  
+  <Step title="Configure Settings">
+    Set additional user preferences:
+    - Time zone
+    - Language
+    - Email notifications
+  </Step>
+  
+  <Step title="Save and Notify">
+    Save the user account. The user will receive an email with login instructions.
+  </Step>
+</Steps>
+
+<Warning>
+Always enforce strong password requirements. UTMStack encrypts user credentials in the database, but initial password strength is critical for security.
+</Warning>
+
+## Managing Existing Users
+
+### Viewing User Details
+
+Click on any user in the user list to view:
+- Account status (active/inactive)
+- Last login timestamp
+- Assigned roles and permissions
+- Session history
+- Two-factor authentication status
+
+### Editing User Accounts
+
+You can modify user properties including:
+- Name and contact information
+- Email address
+- Role assignments
+- Account status
+
+<Warning>
+Changing a user's role immediately affects their access permissions. Ensure proper authorization before modifying user roles.
+</Warning>
+
+### Resetting Passwords
+
+<Steps>
+  <Step title="Select User">
+    Locate the user account in the user management interface.
+  </Step>
+  
+  <Step title="Initiate Password Reset">
+    Click **Reset Password** from the user actions menu.
+  </Step>
+  
+  <Step title="Choose Reset Method">
+    - **Email Reset Link**: Send a secure reset link to the user's email
+    - **Generate Temporary Password**: Create a one-time password for immediate use
+  </Step>
+  
+  <Step title="Verify Reset">
+    Confirm the password reset action. The user must change the temporary password on first login.
+  </Step>
+</Steps>
+
+## User Account Security
+
+### Password Policies
+
+UTMStack enforces secure password requirements:
+- Minimum 12 characters
+- Mix of uppercase, lowercase, numbers, and special characters
+- Password history tracking (prevents reuse of last 5 passwords)
+- Maximum password age: 90 days (configurable)
+
+### Account Lockout
+
+UTMStack includes fail2ban integration to protect against brute force attacks:
+- Accounts lock after 5 failed login attempts
+- Lockout duration: 30 minutes (configurable)
+- Administrators can manually unlock accounts
+
+<Warning>
+Account lockout policies apply to all users including administrators. Ensure you have multiple admin accounts to prevent complete lockout.
+</Warning>
+
+### Session Management
+
+User sessions are managed using JWT (JSON Web Tokens):
+- Session timeout: 24 hours of inactivity
+- Concurrent session limit: 3 sessions per user
+- Session revocation on password change
+- Administrators can terminate active sessions
+
+## Disabling and Deleting Users
+
+### Disabling User Accounts
+
+To temporarily disable a user without deleting their account:
+1. Select the user from the user list
+2. Click **Disable Account**
+3. Confirm the action
+
+Disabled accounts:
+- Cannot log in
+- Retain all historical data
+- Can be re-enabled at any time
+
+### Deleting User Accounts
+
+<Warning>
+Deleting a user account is permanent and cannot be undone. All user-specific data and configurations will be removed.
+</Warning>
+
+<Steps>
+  <Step title="Disable First">
+    Best practice: Disable the account for 30 days before permanent deletion.
+  </Step>
+  
+  <Step title="Backup Data">
+    Export any reports or configurations created by the user if needed.
+  </Step>
+  
+  <Step title="Delete Account">
+    Select the user and click **Delete Account**. Confirm the deletion.
+  </Step>
+  
+  <Step title="Audit Trail">
+    The deletion is logged in the audit trail for compliance purposes.
+  </Step>
+</Steps>
+
+## Bulk User Operations
+
+For organizations managing many users:
+
+### Importing Users
+
+Import multiple users from CSV:
+- Download the CSV template
+- Fill in user details
+- Upload and validate
+- Review and confirm import
+
+### Exporting User Data
+
+Export user lists for reporting:
+- Select users or export all
+- Choose export format (CSV, JSON)
+- Include/exclude sensitive data
+- Download the export file
+
+## User Audit Trail
+
+All user management actions are logged:
+- User creation and deletion
+- Role changes
+- Password resets
+- Account status changes
+- Failed login attempts
+
+Access the audit trail at **Settings > Audit Logs**.
+
+## Best Practices
+
+<Warning>
+Follow these security best practices for user management:
+
+- Enable two-factor authentication for all users (see [Two-Factor Authentication](/admin/two-factor-auth))
+- Regularly review user accounts and remove inactive users
+- Implement the principle of least privilege when assigning roles
+- Conduct quarterly user access reviews
+- Monitor the audit trail for suspicious activity
+- Use SAML SSO for enterprise deployments (see [SAML SSO Configuration](/admin/saml-sso))
+</Warning>
+
+## Related Topics
+
+- [Roles and Permissions](/admin/roles-permissions) - Configure user roles and access control
+- [Authentication Configuration](/admin/authentication) - Set up authentication methods
+- [Two-Factor Authentication](/admin/two-factor-auth) - Enable TOTP-based 2FA
+- [SAML SSO Configuration](/admin/saml-sso) - Configure enterprise single sign-on

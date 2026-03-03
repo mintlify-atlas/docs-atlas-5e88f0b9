@@ -1,0 +1,401 @@
+---
+title: Update User
+description: PUT endpoint to update an existing user
+icon: "user-pen"
+---
+
+## Update User
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>PUT</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/users</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Update an existing user account.
+
+<Note>
+This endpoint requires `ROLE_ADMIN` permissions.
+</Note>
+
+### Request Body
+
+<ParamField body="id" type="integer" required>
+  User ID to update
+</ParamField>
+
+<ParamField body="login" type="string" required>
+  Username (must match existing or be unique)
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Email address (must match existing or be unique)
+</ParamField>
+
+<ParamField body="firstName" type="string" required>
+  User's first name
+</ParamField>
+
+<ParamField body="lastName" type="string" required>
+  User's last name
+</ParamField>
+
+<ParamField body="authorities" type="array" required>
+  Array of role names
+</ParamField>
+
+<ParamField body="activated" type="boolean" required>
+  Whether the account is activated
+</ParamField>
+
+<ParamField body="langKey" type="string">
+  Language preference
+</ParamField>
+
+<ParamField body="imageUrl" type="string">
+  Profile image URL
+</ParamField>
+
+### Response
+
+<ResponseField name="id" type="integer">
+  User ID
+</ResponseField>
+
+<ResponseField name="login" type="string">
+  Username
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Email address
+</ResponseField>
+
+<ResponseField name="firstName" type="string">
+  First name
+</ResponseField>
+
+<ResponseField name="lastName" type="string">
+  Last name
+</ResponseField>
+
+<ResponseField name="activated" type="boolean">
+  Activation status
+</ResponseField>
+
+<ResponseField name="authorities" type="array">
+  Assigned roles
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT https://your-utmstack-instance.com/api/users \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 5,
+    "login": "jdoe",
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "authorities": ["ROLE_USER", "ROLE_ANALYST"],
+    "activated": true,
+    "langKey": "en"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/users"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "id": 5,
+    "login": "jdoe",
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "authorities": ["ROLE_USER", "ROLE_ANALYST"],
+    "activated": True,
+    "langKey": "en"
+}
+
+response = requests.put(url, headers=headers, json=data)
+user = response.json()
+print(f"Updated user: {user['login']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 5,
+  "login": "jdoe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "activated": true,
+  "langKey": "en",
+  "authorities": ["ROLE_USER", "ROLE_ANALYST"],
+  "imageUrl": null
+}
+```
+
+```json 400 Bad Request - Email Exists
+{
+  "type": "https://www.jhipster.tech/problem/email-already-used",
+  "title": "Email is already in use!",
+  "status": 400,
+  "detail": "Email already in use"
+}
+```
+
+```json 400 Bad Request - Login Exists
+{
+  "type": "https://www.jhipster.tech/problem/login-already-used",
+  "title": "Login name already used!",
+  "status": 400,
+  "detail": "Login already in use"
+}
+```
+
+```json 400 Bad Request - Last Admin
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Cannot update roles for the last remaining admin user."
+}
+```
+
+```json 404 Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "User 5 not found"
+}
+```
+</ResponseExample>
+
+## Update Current User Account
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/account</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Update the currently authenticated user's own account information.
+
+<Note>
+Users can only update their own account through this endpoint. Roles cannot be changed.
+</Note>
+
+### Request Body
+
+<ParamField body="firstName" type="string" required>
+  First name
+</ParamField>
+
+<ParamField body="lastName" type="string" required>
+  Last name
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Email address
+</ParamField>
+
+<ParamField body="langKey" type="string">
+  Language preference
+</ParamField>
+
+<ParamField body="imageUrl" type="string">
+  Profile image URL
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/account \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane.doe@example.com",
+    "langKey": "en"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/account"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane.doe@example.com",
+    "langKey": "en"
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(f"Account updated: {response.status_code}")
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+
+```json 400 Bad Request
+{
+  "type": "https://www.jhipster.tech/problem/email-already-used",
+  "title": "Email is already in use!",
+  "status": 400
+}
+```
+</ResponseExample>
+
+## Change Password
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/account/change-password</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Change the current user's password.
+
+### Request Body
+
+<ParamField body="currentPassword" type="string" required>
+  Current password
+</ParamField>
+
+<ParamField body="newPassword" type="string" required>
+  New password (4-100 characters)
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/account/change-password \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "currentPassword": "old-password",
+    "newPassword": "new-secure-password-123"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/account/change-password"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "currentPassword": "old-password",
+    "newPassword": "new-secure-password-123"
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(f"Password changed: {response.status_code}")
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+
+```json 400 Bad Request
+{
+  "type": "https://www.jhipster.tech/problem/invalid-password",
+  "title": "Incorrect password",
+  "status": 400
+}
+```
+</ResponseExample>
+
+## Validation Rules
+
+### Email Uniqueness
+Email addresses must be unique across all users. The check is case-insensitive.
+
+### Login Uniqueness
+Usernames must be unique. The check is case-sensitive.
+
+### Admin Protection
+The system prevents removing `ROLE_ADMIN` from the last remaining admin user.
+
+### Password Requirements
+- Minimum length: 4 characters
+- Maximum length: 100 characters
+
+## Update Examples
+
+### Add Analyst Role
+
+```python Python
+import requests
+
+def add_analyst_role(api_url, token, user_id):
+    # Get current user
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{api_url}/users/{user_id}", headers=headers)
+    user = response.json()
+    
+    # Add ROLE_ANALYST if not present
+    if "ROLE_ANALYST" not in user["authorities"]:
+        user["authorities"].append("ROLE_ANALYST")
+        
+        # Update user
+        headers["Content-Type"] = "application/json"
+        response = requests.put(f"{api_url}/users", headers=headers, json=user)
+        
+        if response.status_code == 200:
+            print(f"Added ROLE_ANALYST to user {user['login']}")
+        else:
+            print(f"Failed to update user: {response.text}")
+```
+
+### Deactivate User
+
+```python Python
+import requests
+
+def deactivate_user(api_url, token, user_id):
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    # Get user
+    response = requests.get(f"{api_url}/users/{user_id}", headers=headers)
+    user = response.json()
+    
+    # Set activated to false
+    user["activated"] = False
+    
+    # Update
+    response = requests.put(f"{api_url}/users", headers=headers, json=user)
+    return response.status_code == 200
+```
+
+## Best Practices
+
+1. **Verify Before Update**: Get current user data before updating
+2. **Preserve Roles**: Don't accidentally remove important roles
+3. **Admin Protection**: Always maintain at least one admin user
+4. **Email Validation**: Ensure email addresses are valid before updating
+5. **Audit Changes**: Log all user modifications for compliance

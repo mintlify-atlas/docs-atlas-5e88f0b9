@@ -1,0 +1,371 @@
+---
+title: 'Alert Management'
+description: 'Manage security alerts, configure alerting rules, and optimize alert workflows'
+icon: 'bell'
+---
+
+## Overview
+
+UTMStack's alert management system provides comprehensive capabilities for detecting, triaging, and responding to security events. The alert system helps SOC analysts identify threats quickly and take appropriate action. Alerts are managed through `/iframe` (alert management interface) and `/alerting-rules` (rule configuration).
+
+<CardGroup cols={2}>
+  <Card title="Real-time Alerts" icon="bell-on">
+    Receive instant notifications when security rules are triggered
+  </Card>
+  <Card title="Alert Rules" icon="gavel">
+    Configure custom detection rules at `/alerting-rules`
+  </Card>
+  <Card title="Alert Triage" icon="filter-list">
+    Prioritize and classify alerts by severity and category
+  </Card>
+  <Card title="Alert Workflows" icon="diagram-project">
+    Automate alert enrichment and response actions
+  </Card>
+</CardGroup>
+
+## Alert Components
+
+### Alert Attributes
+
+Each alert in UTMStack contains:
+
+- **Alert ID** - Unique identifier for tracking and reference
+- **Severity** - Critical, High, Medium, Low, Informational
+- **Status** - New, Acknowledged, In Progress, Resolved, False Positive
+- **Category** - Malware, Intrusion, Data Exfiltration, Policy Violation, etc.
+- **Source** - Originating data source or integration
+- **Timestamp** - When the alert was triggered
+- **Description** - Detailed alert information and context
+- **Related Events** - Associated log events and indicators
+- **Assigned To** - User responsible for alert investigation
+
+### Alert Severities
+
+<CardGroup cols={3}>
+  <Card title="Critical" icon="circle-exclamation">
+    Immediate threat requiring urgent response (e.g., active breach)
+  </Card>
+  <Card title="High" icon="triangle-exclamation">
+    Serious security event requiring prompt investigation
+  </Card>
+  <Card title="Medium" icon="circle-info">
+    Notable security event requiring timely review
+  </Card>
+  <Card title="Low" icon="circle-dot">
+    Minor security event or policy violation
+  </Card>
+  <Card title="Informational" icon="circle">
+    Contextual information or baseline activity
+  </Card>
+</CardGroup>
+
+## Alert Management Workflow
+
+### For SOC Analysts
+
+<Steps>
+  <Step title="Monitor Alert Queue">
+    Navigate to `/iframe` to view the alert management dashboard and active alerts
+  </Step>
+  <Step title="Review New Alerts">
+    Sort alerts by severity and review new unacknowledged alerts
+  </Step>
+  <Step title="Acknowledge Alert">
+    Acknowledge the alert to indicate you are investigating it
+  </Step>
+  <Step title="Gather Context">
+    Review alert details, related events, and threat intelligence from `/threat-intelligence`
+  </Step>
+  <Step title="Investigate Events">
+    Use `/discover` to query logs and gather additional evidence
+  </Step>
+  <Step title="Determine Disposition">
+    Classify the alert as True Positive, False Positive, or Benign Positive
+  </Step>
+  <Step title="Take Action">
+    - If True Positive: Create incident at `/incident` or trigger SOAR playbook at `/soar`
+    - If False Positive: Update alerting rule at `/alerting-rules` to reduce noise
+    - If Benign Positive: Document and resolve with notes
+  </Step>
+  <Step title="Close Alert">
+    Update alert status to Resolved with appropriate disposition and notes
+  </Step>
+</Steps>
+
+## Alerting Rules
+
+### Rule Types
+
+UTMStack supports multiple types of detection rules accessible at `/alerting-rules`:
+
+<CardGroup cols={2}>
+  <Card title="Signature-based Rules" icon="fingerprint">
+    Match known attack patterns and indicators of compromise (IOCs)
+  </Card>
+  <Card title="Anomaly Detection" icon="chart-line-up">
+    Detect statistical deviations from baseline behavior
+  </Card>
+  <Card title="Correlation Rules" icon="link">
+    Identify patterns across multiple events or data sources
+  </Card>
+  <Card title="Threshold Rules" icon="gauge-high">
+    Trigger alerts when metrics exceed defined thresholds
+  </Card>
+  <Card title="Behavioral Rules" icon="user-shield">
+    Detect suspicious user or entity behavior patterns
+  </Card>
+  <Card title="Compliance Rules" icon="scale-balanced">
+    Monitor compliance violations and policy breaches
+  </Card>
+</CardGroup>
+
+### Creating Alert Rules
+
+<Steps>
+  <Step title="Navigate to Rule Management">
+    Go to `/alerting-rules` to access the rule configuration interface
+  </Step>
+  <Step title="Select Rule Type">
+    Choose the appropriate rule type for your detection logic
+  </Step>
+  <Step title="Define Trigger Conditions">
+    Specify the conditions that will trigger the alert (query, threshold, correlation)
+  </Step>
+  <Step title="Set Alert Properties">
+    Configure severity, category, description, and recommended actions
+  </Step>
+  <Step title="Configure Enrichment">
+    Add threat intelligence lookups or asset context enrichment
+  </Step>
+  <Step title="Define Actions">
+    Set notification methods and automated response actions from `/soar`
+  </Step>
+  <Step title="Test Rule">
+    Validate the rule against historical data before enabling
+  </Step>
+  <Step title="Enable and Monitor">
+    Activate the rule and monitor its effectiveness over time
+  </Step>
+</Steps>
+
+## Alert Triage and Prioritization
+
+### Triage Criteria
+
+Effective alert triage considers multiple factors:
+
+1. **Severity Level** - Critical and High alerts take priority
+2. **Asset Criticality** - Alerts affecting critical assets (from `/data-sources`) rank higher
+3. **Threat Context** - Alerts with threat intelligence matches require attention
+4. **Alert Frequency** - Recurring alerts may indicate persistent threat
+5. **Business Impact** - Potential impact on business operations
+6. **Compliance Requirements** - Regulatory obligations may mandate response times
+
+### Prioritization Matrix
+
+| Alert Severity | Critical Asset | Non-Critical Asset |
+|----------------|----------------|--------------------|
+| Critical       | P1 (Immediate) | P2 (Urgent)        |
+| High           | P2 (Urgent)    | P3 (High)          |
+| Medium         | P3 (High)      | P4 (Medium)        |
+| Low            | P4 (Medium)    | P5 (Low)           |
+
+## Alert Enrichment
+
+### Automatic Enrichment
+
+UTMStack automatically enriches alerts with:
+
+<CardGroup cols={2}>
+  <Card title="Asset Information" icon="server">
+    Asset details from `/data-sources` including owner, location, and criticality
+  </Card>
+  <Card title="Threat Intelligence" icon="shield-virus">
+    IOC matches and reputation data from `/threat-intelligence`
+  </Card>
+  <Card title="User Context" icon="user">
+    User details from Active Directory integration at `/active-directory`
+  </Card>
+  <Card title="Historical Data" icon="clock-rotate-left">
+    Related historical alerts and incidents
+  </Card>
+  <Card title="Geolocation" icon="location-dot">
+    Geographic information for IP addresses
+  </Card>
+  <Card title="Related Events" icon="diagram-project">
+    Correlated log events from `/discover`
+  </Card>
+</CardGroup>
+
+### Manual Enrichment
+
+Analysts can add enrichment through:
+
+- Investigation notes and analyst comments
+- External threat intelligence lookups
+- Contact with asset owners for context
+- Links to related incidents and tickets
+
+## Alert Response Actions
+
+### Manual Actions
+
+<CardGroup cols={2}>
+  <Card title="Create Incident" icon="triangle-exclamation">
+    Escalate alert to formal incident at `/incident`
+  </Card>
+  <Card title="Block IOC" icon="ban">
+    Add indicators to blocklists via integrations
+  </Card>
+  <Card title="Isolate Asset" icon="network-wired">
+    Quarantine affected systems through network controls
+  </Card>
+  <Card title="Reset Credentials" icon="key">
+    Force password reset via `/active-directory`
+  </Card>
+</CardGroup>
+
+### Automated Actions (SOAR)
+
+Configure automated responses through `/soar`:
+
+- Automatic ticket creation in external systems
+- IOC enrichment via threat intelligence feeds
+- Email notifications to stakeholders
+- Webhook triggers to external security tools
+- Asset isolation through firewall rules
+- User account suspension for compromised credentials
+
+## Alert Metrics and Reporting
+
+### Key Performance Indicators
+
+Track alert effectiveness with these metrics:
+
+- **Alert Volume** - Total alerts per day/week
+- **Mean Time to Acknowledge (MTTA)** - Average time to acknowledge alerts
+- **Mean Time to Resolve (MTTR)** - Average time to resolve alerts
+- **False Positive Rate** - Percentage of alerts marked as false positives
+- **True Positive Rate** - Percentage of alerts representing real threats
+- **Alert Coverage** - Percentage of MITRE ATT&CK techniques covered
+- **Rule Effectiveness** - Alerts triggered per rule and disposition
+
+### Alert Reporting
+
+<Steps>
+  <Step title="Access Dashboard">
+    Navigate to `/dashboard` to view alert metrics
+  </Step>
+  <Step title="Select Time Period">
+    Choose the reporting period (daily, weekly, monthly)
+  </Step>
+  <Step title="Analyze Trends">
+    Review alert volume trends and identify spikes or anomalies
+  </Step>
+  <Step title="Review Disposition">
+    Analyze true positive vs false positive rates
+  </Step>
+  <Step title="Identify Tuning Needs">
+    Determine which rules need adjustment at `/alerting-rules`
+  </Step>
+  <Step title="Generate Report">
+    Export metrics for management reporting
+  </Step>
+</Steps>
+
+## Alert Tuning and Optimization
+
+### Reducing False Positives
+
+<Warning>
+  High false positive rates lead to alert fatigue. Regular rule tuning is essential for maintaining analyst effectiveness.
+</Warning>
+
+Strategies for reducing false positives:
+
+1. **Whitelist Known Good** - Exclude legitimate business activity
+2. **Adjust Thresholds** - Fine-tune numeric thresholds based on baseline
+3. **Add Context Filters** - Include additional conditions (time, user, asset)
+4. **Correlation Over Single Events** - Require multiple indicators
+5. **Severity Adjustment** - Lower severity for noisy but important alerts
+
+### Rule Maintenance Workflow
+
+<Steps>
+  <Step title="Review Alert Statistics">
+    Analyze false positive rates by rule at `/alerting-rules`
+  </Step>
+  <Step title="Identify Problematic Rules">
+    Find rules with high volume and low true positive rate
+  </Step>
+  <Step title="Analyze False Positives">
+    Review common characteristics of false positive alerts
+  </Step>
+  <Step title="Update Rule Logic">
+    Modify rule conditions to exclude false positive patterns
+  </Step>
+  <Step title="Test Changes">
+    Validate updated rule against historical data
+  </Step>
+  <Step title="Monitor Impact">
+    Track changes in false positive rate after tuning
+  </Step>
+</Steps>
+
+## Alert Integration
+
+### Data Sources
+
+Alerts can be generated from various sources configured at `/integrations`:
+
+- Network security devices (firewalls, IDS/IPS)
+- Endpoint detection and response (EDR) solutions
+- Cloud security platforms (AWS, Azure, GCP)
+- Email security gateways
+- Web proxies and DNS logs
+- Authentication systems and Active Directory
+- Application logs and custom integrations
+
+### External Systems
+
+Integrate alerts with external platforms:
+
+- **Ticketing Systems** - ServiceNow, Jira, Zendesk
+- **Communication Platforms** - Slack, Microsoft Teams, Email
+- **Threat Intelligence** - MISP, ThreatConnect, feeds at `/threat-intelligence`
+- **SOAR Platforms** - Trigger playbooks at `/soar`
+
+## Best Practices
+
+### Alert Management
+
+1. **Acknowledge Promptly** - Acknowledge alerts within SLA timeframes
+2. **Document Thoroughly** - Add detailed notes during investigation
+3. **Update Status Regularly** - Keep alert status current for team visibility
+4. **Communicate Escalations** - Notify team when escalating to incidents
+5. **Track Metrics** - Monitor MTTA and MTTR for continuous improvement
+
+### Rule Development
+
+1. **Start Conservative** - Begin with higher thresholds and refine over time
+2. **Test Before Deploying** - Validate rules against historical data
+3. **Version Control** - Document rule changes and rationale
+4. **Peer Review** - Have rules reviewed by other analysts
+5. **Regular Audits** - Quarterly review of all active rules
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Alerting Rules" icon="gavel" href="/alerting-rules">
+    Configure and manage detection rules
+  </Card>
+  <Card title="Incident Management" icon="fire" href="/incident">
+    Escalate alerts to formal incidents
+  </Card>
+  <Card title="SOAR Automation" icon="robot" href="/soar">
+    Automate alert response actions
+  </Card>
+  <Card title="Threat Intelligence" icon="shield-halved" href="/threat-intelligence">
+    Enrich alerts with threat intel
+  </Card>
+</CardGroup>

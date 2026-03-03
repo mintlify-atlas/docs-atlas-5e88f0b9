@@ -1,0 +1,472 @@
+---
+title: Configure Integration
+description: Endpoints to create and update integration configurations
+icon: "gear"
+---
+
+## Create Integration
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integrations</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Create a new integration.
+
+### Request Body
+
+<ParamField body="name" type="string" required>
+  Integration display name
+</ParamField>
+
+<ParamField body="shortName" type="string" required>
+  Short identifier for the integration
+</ParamField>
+
+<ParamField body="description" type="string">
+  Description of what the integration does
+</ParamField>
+
+<ParamField body="integrationType" type="string" required>
+  Type: COLLECTOR, FORWARDER, SCANNER, CLOUD, WEBHOOK, API
+</ParamField>
+
+<ParamField body="active" type="boolean" default="true">
+  Whether integration is active
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/utm-integrations \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Office 365 Logs",
+    "shortName": "office365",
+    "description": "Collects Office 365 audit logs",
+    "integrationType": "CLOUD",
+    "active": true
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integrations"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "name": "Office 365 Logs",
+    "shortName": "office365",
+    "description": "Collects Office 365 audit logs",
+    "integrationType": "CLOUD",
+    "active": True
+}
+
+response = requests.post(url, headers=headers, json=data)
+integration = response.json()
+print(f"Created integration ID: {integration['id']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201 Created
+{
+  "id": 15,
+  "name": "Office 365 Logs",
+  "shortName": "office365",
+  "description": "Collects Office 365 audit logs",
+  "integrationType": "CLOUD",
+  "active": true,
+  "module": null
+}
+```
+
+```json 400 Bad Request
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "A new utmIntegration cannot already have an ID"
+}
+```
+</ResponseExample>
+
+## Update Integration
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>PUT</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integrations</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Update an existing integration.
+
+### Request Body
+
+<ParamField body="id" type="integer" required>
+  Integration ID to update
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Integration name
+</ParamField>
+
+<ParamField body="shortName" type="string" required>
+  Short identifier
+</ParamField>
+
+<ParamField body="description" type="string">
+  Description
+</ParamField>
+
+<ParamField body="integrationType" type="string" required>
+  Integration type
+</ParamField>
+
+<ParamField body="active" type="boolean" required>
+  Active status
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT https://your-utmstack-instance.com/api/utm-integrations \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 15,
+    "name": "Microsoft 365 Audit Logs",
+    "shortName": "office365",
+    "description": "Collects Microsoft 365 audit and security logs",
+    "integrationType": "CLOUD",
+    "active": true
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integrations"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "id": 15,
+    "name": "Microsoft 365 Audit Logs",
+    "shortName": "office365",
+    "description": "Collects Microsoft 365 audit and security logs",
+    "integrationType": "CLOUD",
+    "active": True
+}
+
+response = requests.put(url, headers=headers, json=data)
+integration = response.json()
+print(f"Updated integration: {integration['name']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 15,
+  "name": "Microsoft 365 Audit Logs",
+  "shortName": "office365",
+  "description": "Collects Microsoft 365 audit and security logs",
+  "integrationType": "CLOUD",
+  "active": true
+}
+```
+
+```json 400 Bad Request
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Invalid id"
+}
+```
+</ResponseExample>
+
+## Delete Integration
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>DELETE</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integrations/{id}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Delete an integration.
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  Integration ID to delete
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE https://your-utmstack-instance.com/api/utm-integrations/15 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integrations/15"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.delete(url, headers=headers)
+print(f"Deleted: {response.status_code == 200}")
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+</ResponseExample>
+
+## Configure Integration Parameters
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integration-confs</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Create configuration parameters for an integration.
+
+### Request Body
+
+<ParamField body="integration" type="object" required>
+  Integration object with ID
+</ParamField>
+
+<ParamField body="confName" type="string" required>
+  Configuration parameter name
+</ParamField>
+
+<ParamField body="confValue" type="string" required>
+  Configuration parameter value
+</ParamField>
+
+<ParamField body="confDescription" type="string">
+  Description of the parameter
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/utm-integration-confs \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "integration": {"id": 15},
+    "confName": "tenant_id",
+    "confValue": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "confDescription": "Microsoft 365 Tenant ID"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integration-confs"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "integration": {"id": 15},
+    "confName": "tenant_id",
+    "confValue": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "confDescription": "Microsoft 365 Tenant ID"
+}
+
+response = requests.post(url, headers=headers, json=data)
+conf = response.json()
+print(f"Created config ID: {conf['id']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201 Created
+{
+  "id": 50,
+  "integration": {
+    "id": 15,
+    "name": "Office 365 Logs"
+  },
+  "confName": "tenant_id",
+  "confValue": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "confDescription": "Microsoft 365 Tenant ID"
+}
+```
+</ResponseExample>
+
+## Update Integration Configuration
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>PUT</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integration-confs</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Update an integration configuration parameter. This will mark the associated module as needing a restart.
+
+### Request Body
+
+<ParamField body="id" type="integer" required>
+  Configuration ID to update
+</ParamField>
+
+<ParamField body="integration" type="object" required>
+  Integration object with ID
+</ParamField>
+
+<ParamField body="confName" type="string" required>
+  Parameter name
+</ParamField>
+
+<ParamField body="confValue" type="string" required>
+  New parameter value
+</ParamField>
+
+<ParamField body="confDescription" type="string">
+  Description
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT https://your-utmstack-instance.com/api/utm-integration-confs \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 50,
+    "integration": {"id": 15},
+    "confName": "tenant_id",
+    "confValue": "new-tenant-id",
+    "confDescription": "Updated Microsoft 365 Tenant ID"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 50,
+  "integration": {
+    "id": 15,
+    "name": "Office 365 Logs",
+    "module": {
+      "needsRestart": true
+    }
+  },
+  "confName": "tenant_id",
+  "confValue": "new-tenant-id",
+  "confDescription": "Updated Microsoft 365 Tenant ID"
+}
+```
+</ResponseExample>
+
+## Complete Integration Setup Example
+
+```python Python
+import requests
+
+def setup_integration(api_url, token, integration_data, configs):
+    """
+    Create an integration and configure its parameters.
+    """
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    # Step 1: Create integration
+    response = requests.post(
+        f"{api_url}/utm-integrations",
+        headers=headers,
+        json=integration_data
+    )
+    
+    if response.status_code != 201:
+        return {"success": False, "error": "Failed to create integration"}
+    
+    integration = response.json()
+    integration_id = integration["id"]
+    print(f"Created integration ID: {integration_id}")
+    
+    # Step 2: Add configuration parameters
+    created_configs = []
+    for config in configs:
+        config_data = {
+            "integration": {"id": integration_id},
+            "confName": config["name"],
+            "confValue": config["value"],
+            "confDescription": config.get("description", "")
+        }
+        
+        response = requests.post(
+            f"{api_url}/utm-integration-confs",
+            headers=headers,
+            json=config_data
+        )
+        
+        if response.status_code == 201:
+            created_configs.append(response.json())
+            print(f"  + Added config: {config['name']}")
+        else:
+            print(f"  - Failed to add config: {config['name']}")
+    
+    return {
+        "success": True,
+        "integration": integration,
+        "configs": created_configs
+    }
+
+# Example: Setup Office 365 integration
+integration_data = {
+    "name": "Office 365 Logs",
+    "shortName": "office365",
+    "description": "Collects Office 365 audit logs",
+    "integrationType": "CLOUD",
+    "active": True
+}
+
+configs = [
+    {
+        "name": "tenant_id",
+        "value": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "description": "Microsoft 365 Tenant ID"
+    },
+    {
+        "name": "client_id",
+        "value": "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+        "description": "Application Client ID"
+    },
+    {
+        "name": "client_secret",
+        "value": "secret-value-here",
+        "description": "Application Client Secret"
+    }
+]
+
+result = setup_integration(
+    "https://your-utmstack-instance.com/api",
+    "YOUR_TOKEN",
+    integration_data,
+    configs
+)
+
+if result["success"]:
+    print(f"\nIntegration setup complete!")
+    print(f"Integration ID: {result['integration']['id']}")
+    print(f"Configs created: {len(result['configs'])}")
+```

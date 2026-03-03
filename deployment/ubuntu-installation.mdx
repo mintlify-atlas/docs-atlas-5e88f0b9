@@ -1,0 +1,107 @@
+---
+title: Ubuntu Installation
+description: Install UTMStack on Ubuntu 22.04 LTS using the installer script
+---
+
+This guide provides step-by-step instructions for installing UTMStack on Ubuntu 22.04 LTS using the installer script.
+
+## Prerequisites
+
+- Ubuntu 22.04 LTS server
+- Root or sudo access
+- Internet connectivity
+- System resources meeting [deployment requirements](/deployment/overview#required-resources)
+
+## Installation Steps
+
+<Steps>
+  <Step title="Prepare the System">
+    Update the package list and install required dependencies:
+
+    ```bash
+    sudo apt update
+    ```
+
+    Install WGET to download the installer:
+
+    ```bash
+    sudo apt install wget
+    ```
+  </Step>
+
+  <Step title="Download the Installer">
+    Download the latest version of the UTMStack installer:
+
+    ```bash
+    wget http://github.com/utmstack/UTMStack/releases/latest/download/installer
+    ```
+  </Step>
+
+  <Step title="Switch to Root User">
+    Change to the root user:
+
+    ```bash
+    sudo su
+    ```
+  </Step>
+
+  <Step title="Set Execution Permissions">
+    Make the installer executable:
+
+    ```bash
+    chmod +x installer
+    ```
+  </Step>
+
+  <Step title="Run the Installer">
+    Execute the installer without parameters:
+
+    ```bash
+    ./installer
+    ```
+
+    The installer will guide you through the installation process and generate the necessary configurations.
+  </Step>
+</Steps>
+
+## Post-Installation
+
+### Default Credentials
+
+Once UTMStack is installed:
+
+- **Username**: `admin`
+- **Password**: Generated during installation
+
+<Warning>
+The default password and other generated configurations are stored in `/root/utmstack.yml`. Make sure to secure this file and change the default password after your first login.
+</Warning>
+
+### Accessing UTMStack
+
+Access the UTMStack web interface using HTTPS:
+
+```
+https://your-server-ip-or-hostname
+```
+
+<Note>
+Always use HTTPS (not HTTP) to access the login page for secure communication.
+</Note>
+
+### Configuration File Location
+
+You can find the password and other generated configurations in:
+
+```
+/root/utmstack.yml
+```
+
+## Next Steps
+
+After successful installation:
+
+1. [Configure network settings](/deployment/network-configuration)
+2. [Set up firewall rules](/deployment/ports-firewall)
+3. Change the default admin password
+4. Configure your first data sources

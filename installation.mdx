@@ -1,0 +1,257 @@
+---
+title: Installation
+description: Detailed installation guide for UTMStack covering both installer file and ISO options
+---
+
+This guide provides comprehensive instructions for installing UTMStack on Ubuntu 22.04 LTS using either the installer file or ISO image method.
+
+## Recommended Operating System
+
+This installation guide provides instructions to perform the UTMStack installation on **Ubuntu 22.04 LTS**.
+
+<Note>
+  Before proceeding with installation, review the [System Requirements](/system-requirements) to ensure your server has adequate resources.
+</Note>
+
+## Installation Methods
+
+UTMStack can be installed using two methods:
+
+<CardGroup cols={2}>
+  <Card title="Installer File" icon="file-code">
+    Download and run the installer script on Ubuntu 22.04 LTS
+  </Card>
+  <Card title="ISO Image" icon="compact-disc" href="https://utmstack.com/install">
+    Boot from UTMStack ISO for a streamlined installation experience
+  </Card>
+</CardGroup>
+
+## Method 1: Installer File Installation
+
+This method involves downloading and executing the UTMStack installer on an existing Ubuntu 22.04 LTS installation.
+
+### Preparing for Installation
+
+<Steps>
+  <Step title="Update Package List">
+    Ensure your system has the latest package information:
+    
+    ```bash
+    sudo apt update
+    ```
+  </Step>
+
+  <Step title="Install WGET">
+    Install wget if it's not already available:
+    
+    ```bash
+    sudo apt install wget
+    ```
+  </Step>
+
+  <Step title="Download the Installer">
+    Download the latest version of the UTMStack installer from GitHub:
+    
+    ```bash
+    wget http://github.com/utmstack/UTMStack/releases/latest/download/installer
+    ```
+    
+    This will download the installer to your current directory.
+  </Step>
+
+  <Step title="Switch to Root User">
+    Change to the root user for installation:
+    
+    ```bash
+    sudo su
+    ```
+  </Step>
+
+  <Step title="Set Execute Permissions">
+    Make the installer executable:
+    
+    ```bash
+    chmod +x installer
+    ```
+  </Step>
+</Steps>
+
+### Running the Installation
+
+<Steps>
+  <Step title="Execute the Installer">
+    Run the installer without parameters:
+    
+    ```bash
+    ./installer
+    ```
+    
+    The installer will automatically configure and deploy UTMStack components.
+  </Step>
+
+  <Step title="Wait for Completion">
+    The installation process may take several minutes. The installer will:
+    - Download required Docker images
+    - Configure system services
+    - Set up networking and databases
+    - Generate secure credentials
+    - Initialize the UTMStack platform
+  </Step>
+</Steps>
+
+### Post-Installation
+
+Once UTMStack is installed:
+
+<Note>
+  Use `admin` as the username and the password generated during the installation to login. You can find the password and other generated configurations in `/root/utmstack.yml`
+</Note>
+
+**Access the Platform:**
+
+```
+https://your-server-ip-or-hostname
+```
+
+<Warning>
+  Always use HTTPS (not HTTP) in front of your server name or IP to access the login page.
+</Warning>
+
+## Method 2: ISO Image Installation
+
+For a streamlined installation experience, you can use the UTMStack ISO image.
+
+<Card title="Download UTMStack ISO" icon="download" href="https://utmstack.com/install">
+  Download the latest UTMStack ISO image for installation
+</Card>
+
+<Steps>
+  <Step title="Download ISO">
+    Visit [utmstack.com/install](https://utmstack.com/install) to download the ISO image.
+  </Step>
+
+  <Step title="Create Bootable Media">
+    Burn the ISO to a DVD or create a bootable USB drive using tools like:
+    - Rufus (Windows)
+    - dd command (Linux)
+    - balenaEtcher (Cross-platform)
+  </Step>
+
+  <Step title="Boot from ISO">
+    Boot your server from the ISO image and follow the on-screen installation wizard.
+  </Step>
+
+  <Step title="Access the System">
+    After installation, the default Ubuntu Server credentials are:
+    
+    ```
+    user: utmstack
+    password: utmstack
+    ```
+    
+    <Warning>
+      Change these default credentials immediately after first login for security.
+    </Warning>
+  </Step>
+</Steps>
+
+## Required Network Ports
+
+Ensure the following ports are accessible through your firewall:
+
+| Port | Protocol | Service | Access Restriction |
+|------|----------|---------|--------------------|
+| 22 | TCP | Secure Shell (SSH) | Admin workstations only |
+| 80 | TCP | HTTP Redirector | Admin and analyst workstations only |
+| 443 | TCP | UTMStack Web UI (HTTPS) | Admin and analyst workstations only |
+| 9090 | TCP | Cockpit Web Interface | Admin workstation only |
+
+<Warning>
+  **Security Best Practices:**
+  - Create firewall rules to restrict access to these ports based on the recommendations above
+  - Never expose port 22 (SSH) to the public internet
+  - Always use strong passwords and enable 2FA for user accounts
+</Warning>
+
+<Note>
+  Additional ports will be required during the configuration of UTMStack's integrations to receive logs. Please follow the security recommendations given in each integration guide.
+</Note>
+
+## Verifying Installation
+
+After installation, verify that UTMStack is running correctly:
+
+<Steps>
+  <Step title="Check Service Status">
+    Verify that Docker containers are running:
+    
+    ```bash
+    docker ps
+    ```
+    
+    You should see multiple UTMStack containers running.
+  </Step>
+
+  <Step title="Access Web Interface">
+    Open your browser and navigate to:
+    
+    ```
+    https://your-server-ip
+    ```
+    
+    You should see the UTMStack login page.
+  </Step>
+
+  <Step title="Review Configuration">
+    Check the generated configuration file:
+    
+    ```bash
+    cat /root/utmstack.yml
+    ```
+    
+    This file contains important credentials and configuration details.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Cannot access web interface" icon="browser">
+    - Verify firewall rules allow access to port 443
+    - Check that Docker containers are running: `docker ps`
+    - Ensure you're using HTTPS, not HTTP
+    - Verify the server IP address is correct
+  </Accordion>
+
+  <Accordion title="Installation fails" icon="triangle-exclamation">
+    - Ensure your system meets the minimum requirements
+    - Check internet connectivity for downloading Docker images
+    - Verify you have sufficient disk space
+    - Review installation logs for specific error messages
+  </Accordion>
+
+  <Accordion title="Forgot admin password" icon="key">
+    The admin password is stored in `/root/utmstack.yml`. Access this file with root privileges:
+    
+    ```bash
+    sudo cat /root/utmstack.yml
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Complete first login and initial configuration
+  </Card>
+  <Card title="Configure Integrations" icon="plug">
+    Connect your data sources and start collecting logs
+  </Card>
+  <Card title="Set Up Users" icon="users">
+    Create accounts for your security team
+  </Card>
+  <Card title="System Requirements" icon="server" href="/system-requirements">
+    Review resource requirements for scaling
+  </Card>
+</CardGroup>

@@ -1,0 +1,222 @@
+---
+title: Agent Configuration
+description: Configure UTMStack Agent settings and options
+---
+
+The UTMStack Agent uses a configuration file to manage its connection to the server, integrations, and operational settings.
+
+## Configuration File
+
+The agent configuration is stored in:
+
+- **Linux**: `/opt/utmstack/agent/config.yml`
+- **Windows**: `C:\Program Files\UTMStack\Agent\config.yml`
+
+<Warning>
+Do not manually edit the configuration file unless instructed. Use the agent CLI commands to make configuration changes.
+</Warning>
+
+## Initial Configuration
+
+During installation, you'll be prompted for:
+
+### Server Address
+
+The hostname or IP address of your UTMStack server:
+
+```
+Enter UTMStack server address: utmstack.example.com
+```
+
+### Agent Registration Key
+
+The unique key provided by your UTMStack deployment:
+
+```
+Enter agent key: your-agent-key-here
+```
+
+## Configuration Components
+
+### Server Connection
+
+The agent communicates with the server through multiple ports:
+
+- **Agent Manager Port**: Primary communication channel
+- **Log Auth Proxy Port**: Secure log transmission
+- **Dependencies Port**: Updates and dependencies
+
+During installation, the agent verifies connectivity to all required ports.
+
+### SSL/TLS Settings
+
+#### Skip Certificate Validation
+
+In test environments, you may need to skip SSL certificate validation. This is configured during installation.
+
+<Warning>
+Never disable certificate validation in production environments.
+</Warning>
+
+#### Custom TLS Certificates
+
+For integrations requiring TLS (like syslog over TLS), load custom certificates:
+
+```bash
+./utmstack_agent load-tls-certs /path/to/server.crt /path/to/server.key /path/to/ca.crt
+```
+
+Certificate locations:
+- **Certificate**: `/opt/utmstack/agent/certs/integration.crt`
+- **Private Key**: `/opt/utmstack/agent/certs/integration.key`
+- **CA Certificate**: `/opt/utmstack/agent/certs/integration-ca.crt`
+
+### Log Retention
+
+The agent stores logs locally before transmission. Configure retention to manage disk space:
+
+```bash
+./utmstack_agent change-retention 100
+```
+
+Retention value is in megabytes. When the limit is reached, older logs are automatically cleaned.
+
+### Integration Settings
+
+Integrations are enabled/disabled through CLI commands, which update the configuration automatically.
+
+## Common Configuration Tasks
+
+### Change Integration Port
+
+If the default port conflicts with another service:
+
+```bash
+./utmstack_agent change-port syslog tcp 5140
+```
+
+### Enable Integration with TLS
+
+For secure log transmission:
+
+<Steps>
+  <Step title="Load TLS Certificates">
+    First, load your TLS certificates:
+
+    ```bash
+    ./utmstack_agent load-tls-certs /path/to/cert.crt /path/to/cert.key
+    ```
+  </Step>
+
+  <Step title="Enable Integration with TLS Flag">
+    Enable the integration with TLS:
+
+    ```bash
+    ./utmstack_agent enable-integration syslog tcp --tls
+    ```
+  </Step>
+
+  <Step title="Verify Configuration">
+    The agent will display the port and confirm TLS is enabled:
+
+    ```
+    Integration syslog tcp enabled with TLS on port 6514
+    ```
+  </Step>
+</Steps>
+
+### Disable Integration
+
+Disabling an integration automatically disables TLS if it was enabled:
+
+```bash
+./utmstack_agent disable-integration syslog tcp
+```
+
+Output:
+```
+Integration syslog tcp disabled (port 6514 freed)
+```
+
+## Collector Configuration
+
+The agent uses Beat collectors (Filebeat, Metricbeat, etc.) which are configured automatically during:
+
+- Initial installation
+- Integration enable/disable operations
+- Port changes
+
+Collector configurations are stored in the agent's data directory and should not be manually edited.
+
+## Data Storage
+
+The agent maintains a local SQLite database for:
+
+- Buffering logs before transmission
+- Storing configuration metadata
+- Managing retention policies
+
+Database location:
+- **Linux**: `/opt/utmstack/agent/data/agent.db`
+- **Windows**: `C:\Program Files\UTMStack\Agent\data\agent.db`
+
+### Manual Log Cleanup
+
+To clean old logs based on retention policy:
+
+```bash
+./utmstack_agent clean-logs
+```
+
+## Best Practices
+
+### Production Environments
+
+1. **Use Custom TLS Certificates**: Load your own certificates instead of using auto-generated ones
+2. **Enable Certificate Validation**: Never skip SSL certificate validation
+3. **Set Appropriate Retention**: Balance between buffer capacity and disk space
+4. **Monitor Disk Usage**: Ensure sufficient disk space for log buffering
+
+### Security
+
+1. **Protect Configuration Files**: Restrict access to configuration files containing sensitive data
+2. **Use Strong TLS**: Enable TLS for all integrations in production
+3. **Regular Updates**: Keep the agent updated for security patches
+
+### Performance
+
+1. **Adjust Retention**: Lower retention for high-volume environments
+2. **Monitor Resources**: Watch CPU and memory usage
+3. **Clean Logs Regularly**: Use the clean-logs command if needed
+
+## Configuration Validation
+
+The agent automatically validates configuration during:
+
+- Installation
+- Configuration changes
+- Service startup
+
+If configuration is invalid, the agent will log errors and may refuse to start.
+
+## Viewing Current Configuration
+
+To check the current agent status and configuration, check the service logs or use the help command:
+
+```bash
+./utmstack_agent help
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Commands" icon="terminal" href="/agents/agent-commands">
+    Complete CLI command reference
+  </Card>
+  <Card title="Windows Agent" icon="windows" href="/agents/windows-agent">
+    Windows-specific configuration
+  </Card>
+  <Card title="Linux Agent" icon="linux" href="/agents/linux-agent">
+    Linux-specific configuration
+  </Card>
+</CardGroup>

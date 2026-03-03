@@ -1,0 +1,196 @@
+---
+title: Sophos Central Integration
+description: Integrate UTMStack with Sophos Central SIEM
+---
+
+## Overview
+
+The UTMStack Sophos Central plugin is a connector developed in Golang that synchronizes and processes logs from Sophos Central and sends them to the UTMStack processing server for comprehensive endpoint security monitoring.
+
+## How It Works
+
+The Sophos integration:
+
+- Uses the **Sophos Central SIEM API** to retrieve security events
+- Authenticates using **Client ID** and **Client Secret** headers
+- Connects to the appropriate **Data Region** endpoint
+- Forwards events to UTMStack via **GRPC** through a Unix socket
+
+<Note>
+**Prerequisites**
+
+You need a valid Sophos Central account with:
+- **Client ID**: API credentials for Sophos Central
+- **Client Secret**: API authentication secret
+- **Data Region**: The regional endpoint for your Sophos tenant
+</Note>
+
+## Configuration Steps
+
+### 1. Create API Credentials in Sophos Central
+
+1. Log in to **Sophos Central**
+2. Navigate to **Global Settings** > **API Credentials**
+3. Click **Add Credential**
+4. Select the credential type:
+   - Choose **Service Principal** for integration access
+5. Enter a name (e.g., "UTMStack Integration")
+6. Select the following permissions:
+   - **SIEM**: Read
+   - **Alerts**: Read (optional, for alert data)
+   - **Endpoints**: Read (optional, for device information)
+7. Click **Add** to create the credentials
+8. Copy the **Client ID** and **Client Secret** immediately
+
+### 2. Identify Your Data Region
+
+Sophos uses different regional endpoints. Your data region is typically displayed in Sophos Central or can be determined by your account location:
+
+- **US**: `https://api.central.sophos.com`
+- **EU**: `https://api-eu01.central.sophos.com`
+- **EU02**: `https://api-eu02.central.sophos.com`
+- **APAC**: `https://api-apac.central.sophos.com`
+
+You can also retrieve this programmatically using the whoami endpoint.
+
+### 3. Enable SIEM Integration
+
+1. In **Sophos Central**, navigate to **Logs & Reports** > **SIEM Integration**
+2. Enable **SIEM integration**
+3. Configure which event types to include:
+   - Events
+   - Alerts  
+   - Applications
+   - Data Control
+   - Web Control
+4. Save the configuration
+
+### 4. Configure in UTMStack
+
+1. Navigate to **Integrations** in the UTMStack console
+2. Select **Sophos Central**
+3. Enter the required credentials:
+   - **Client ID**: Your Sophos API client ID
+   - **Client Secret**: Your Sophos API client secret
+   - **Data Region**: Select or enter your regional endpoint
+4. Click **Test Connection** to verify credentials
+5. Click **Save** to activate the integration
+
+### 5. Verify Integration
+
+Once configured, the plugin will:
+
+1. Authenticate with Sophos Central using the provided credentials
+2. Connect to the SIEM API endpoint for your data region
+3. Begin polling for security events
+4. Forward events to UTMStack for analysis
+
+Verify the integration by:
+
+- Checking the integration status in UTMStack console
+- Viewing incoming Sophos events in the Events dashboard
+- Monitoring the plugin logs for API connection status
+
+## Event Types Collected
+
+The Sophos integration collects various security events:
+
+### Endpoint Protection Events
+- Malware detections and cleanups
+- Potentially unwanted applications (PUA)
+- Exploit prevention
+- Ransomware protection events
+- Real-time protection status
+
+### Threat Events
+- Malicious traffic detections
+- Suspicious file behavior
+- Threat intelligence matches
+- Blocked applications
+
+### Data Control Events
+- File transfers to removable media
+- Data loss prevention events
+- File type control violations
+
+### Web Control Events
+- Blocked website access
+- Category-based filtering
+- Application control
+
+### System Events
+- Endpoint status changes
+- Policy updates
+- Agent installation/uninstallation
+- Update failures
+
+## Polling Frequency
+
+The Sophos SIEM API uses a cursor-based polling mechanism:
+
+- Events are retrieved in chronological order
+- The plugin maintains cursor position to avoid duplicate events
+- Polling occurs at regular intervals (typically every minute)
+- No events are missed between polling intervals
+
+## Troubleshooting
+
+### Authentication Errors
+
+- Verify Client ID and Client Secret are correct
+- Ensure the API credentials have not expired or been revoked
+- Check that SIEM Read permission is granted
+- Confirm the credentials are for the correct Sophos tenant
+
+### No Data Received
+
+- Verify SIEM integration is enabled in Sophos Central
+- Ensure endpoints are reporting to Sophos Central
+- Check that event types are configured in SIEM settings
+- Confirm the data region endpoint is correct
+- Review plugin logs for API errors
+
+### Wrong Data Region
+
+- The data region must match your Sophos tenant location
+- Use the Sophos whoami API to verify your region
+- Incorrect region will result in authentication failures
+
+### Rate Limiting
+
+- Sophos API has rate limits (typically 100 requests per minute)
+- The plugin implements automatic retry with backoff
+- Rate limit errors are logged for monitoring
+
+## Data Retention
+
+Sophos Central retains SIEM events for:
+
+- **90 days** for most event types
+- Events older than 90 days are not available via API
+
+UTMStack stores all collected events according to your configured retention policy.
+
+## Security Best Practices
+
+- Store API credentials securely and never commit them to code
+- Rotate Client Secrets regularly (recommended every 90 days)
+- Use dedicated API credentials for each integration
+- Apply principle of least privilege (only grant SIEM Read)
+- Monitor API credential usage in Sophos Central
+- Disable or delete unused API credentials
+- Enable IP restrictions if Sophos Central supports it
+- Review audit logs for API access
+
+## Performance Considerations
+
+- Large deployments may generate high event volumes
+- The plugin automatically manages polling to avoid API limits
+- Consider filtering events at the Sophos level if needed
+- Monitor UTMStack ingestion rates for capacity planning
+
+## Additional Resources
+
+- [Sophos Central API Documentation](https://developer.sophos.com/)
+- [SIEM Integration Guide](https://support.sophos.com/)
+- [API Credentials Management](https://support.sophos.com/)

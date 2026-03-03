@@ -1,0 +1,124 @@
+---
+title: List Alerts
+description: GET endpoint to retrieve security alerts
+icon: "bell"
+---
+
+<Note>
+The UTMStack API uses Elasticsearch for alert storage. To query alerts, use the [Elasticsearch Search](/api/alerts/search-alerts) endpoint with filters and pagination.
+</Note>
+
+## Count Open Alerts
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alerts/count-open-alerts</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Get the count of currently open alerts.
+
+### Response
+
+Returns the number of open alerts as an integer.
+
+<ResponseField name="count" type="integer">
+  Number of alerts with open status (status code 2)
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/utm-alerts/count-open-alerts \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-alerts/count-open-alerts"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.get(url, headers=headers)
+open_count = response.json()
+print(f"Open alerts: {open_count}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+42
+```
+
+```json 500 Error
+{
+  "status": 500,
+  "error": "Internal Server Error",
+  "message": "UtmAlertResource.countOpenAlerts: Unable to count alerts"
+}
+```
+</ResponseExample>
+
+## Alert Status Codes
+
+Alerts in UTMStack have the following status codes:
+
+- `1` - Automatic Review
+- `2` - Open
+- `3` - In Progress  
+- `4` - Completed
+- `5` - Incident Created
+
+## Querying Alerts
+
+To retrieve detailed alert information, use the Elasticsearch endpoint:
+
+```bash
+POST /api/elasticsearch/search
+```
+
+With a query body filtering on the alerts index. See [Search Alerts](/api/alerts/search-alerts) for details.
+
+## Response Structure
+
+Alert objects contain:
+
+<ResponseField name="id" type="string">
+  Unique alert identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Alert name/title
+</ResponseField>
+
+<ResponseField name="status" type="integer">
+  Alert status code (1-5)
+</ResponseField>
+
+<ResponseField name="severity" type="integer">
+  Alert severity level (1=Low, 2=Medium, 3=High, 4=Critical)
+</ResponseField>
+
+<ResponseField name="category" type="string">
+  Alert category
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  Alert creation timestamp (ISO 8601 format)
+</ResponseField>
+
+<ResponseField name="source" type="string">
+  Source of the alert (data source, rule, etc.)
+</ResponseField>
+
+<ResponseField name="tags" type="array">
+  Array of tag names associated with the alert
+</ResponseField>
+
+<ResponseField name="notes" type="string">
+  Alert notes/observations
+</ResponseField>
+
+<ResponseField name="statusObservation" type="string">
+  Observation notes when status was updated
+</ResponseField>

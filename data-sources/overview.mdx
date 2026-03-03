@@ -1,0 +1,101 @@
+---
+title: Data sources overview
+description: Overview of data collection methods and supported data sources in UTMStack
+---
+
+UTMStack supports a wide variety of data sources for comprehensive security monitoring. The platform can collect, parse, and correlate logs from network devices, security appliances, cloud platforms, endpoints, and applications.
+
+## Data collection methods
+
+UTMStack provides multiple methods for collecting security data:
+
+<CardGroup cols={2}>
+  <Card title="Syslog" icon="server" href="/data-sources/syslog">
+    Industry-standard syslog protocol for network devices and applications
+  </Card>
+  <Card title="Filebeat" icon="file-lines" href="/data-sources/filebeat">
+    Lightweight log shipper for file-based log collection
+  </Card>
+  <Card title="NetFlow" icon="network-wired" href="/data-sources/netflow">
+    Network traffic flow data from routers and switches
+  </Card>
+  <Card title="Custom parsers" icon="code" href="/data-sources/custom-parsers">
+    Create custom parsers for proprietary log formats
+  </Card>
+</CardGroup>
+
+## Supported data sources
+
+UTMStack includes pre-built parsers and integrations for:
+
+### Security appliances
+- Antivirus solutions (Bitdefender, Sophos, etc.)
+- Firewalls (Cisco, Fortinet, Palo Alto, pfSense, SonicWall)
+- IDS/IPS (Suricata, HIDS)
+- EDR platforms (CrowdStrike)
+
+### Cloud platforms
+- AWS CloudTrail and CloudWatch
+- Microsoft Azure Activity Logs
+- Google Cloud Platform logs
+- Office 365 audit logs
+
+### Network devices
+- Cisco routers and switches
+- Mikrotik devices
+- VMware infrastructure
+- NetFlow/IPFIX sources
+
+### Endpoints
+- Windows Event Logs
+- Linux syslog
+- macOS logs
+- UTMStack agents
+
+### Applications
+- GitHub audit logs
+- IBM products
+- Generic JSON logs
+- Custom applications
+
+## Data normalization
+
+All collected data is normalized into a common schema for correlation and analysis. UTMStack's parsing engine:
+
+- Extracts key fields (source IP, destination IP, user, action, etc.)
+- Enriches events with threat intelligence
+- Maps events to MITRE ATT&CK framework
+- Applies custom tagging and classification
+
+<Info>
+  UTMStack processes over 30 different log formats out of the box. See the filters directory in the source code for the complete list.
+</Info>
+
+## Data retention
+
+Configure data retention policies based on your requirements:
+
+- **Hot storage**: Active data for real-time analysis and dashboards
+- **Warm storage**: Recent historical data for investigations
+- **Cold storage**: Archived data for compliance and long-term retention
+
+<Note>
+  Plan storage capacity based on your data sources. A typical rule is 2GB per data source per month for hot storage.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Configure syslog" href="/data-sources/syslog">
+    Set up syslog receivers for network devices
+  </Card>
+  <Card title="Deploy agents" href="/agents/overview">
+    Install UTMStack agents on endpoints
+  </Card>
+  <Card title="Cloud integrations" href="/integrations/overview">
+    Connect cloud platforms and SaaS applications
+  </Card>
+  <Card title="Custom parsers" href="/data-sources/custom-parsers">
+    Create parsers for custom log formats
+  </Card>
+</CardGroup>

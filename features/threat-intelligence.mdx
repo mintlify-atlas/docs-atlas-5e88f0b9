@@ -1,0 +1,150 @@
+---
+title: Threat Intelligence
+description: Integrated threat intelligence feeds to enrich security alerts with global threat context and IOC matching
+---
+
+## Overview
+
+UTMStack's Threat Intelligence integration provides real-time access to threat feeds that enrich security alerts with global threat context. By correlating your organization's security events with known indicators of compromise (IOCs), threat actor tactics, and emerging threats, you can make faster and more informed security decisions.
+
+<Info>
+The Enterprise version includes **frequent threat intelligence updates** with additional premium feeds and automated enrichment capabilities.
+</Info>
+
+## Key Capabilities
+
+<CardGroup cols={2}>
+  <Card title="IOC Matching" icon="bullseye">
+    Automatically match IPs, domains, file hashes, and URLs against global threat intelligence feeds.
+  </Card>
+  
+  <Card title="Threat Context" icon="circle-info">
+    Enrich alerts with threat actor attribution, campaign information, and attack methodologies.
+  </Card>
+  
+  <Card title="Real-Time Updates" icon="rotate">
+    Continuously updated threat feeds ensure you're protected against the latest threats.
+  </Card>
+  
+  <Card title="Historical Analysis" icon="clock-rotate-left">
+    Query historical threat data to understand long-term trends and emerging threat patterns.
+  </Card>
+</CardGroup>
+
+## Threat Intelligence Module
+
+Access the Threat Intelligence interface at `/threat-intelligence` to:
+
+- View recent threat intelligence updates
+- Search for specific IOCs across all feeds
+- Investigate threat actor profiles and campaigns
+- Analyze threat trends over time
+- Export threat data for sharing with partners
+
+## Supported Indicators
+
+UTMStack correlates multiple indicator types:
+
+- **IP Addresses**: Known malicious IPs, C2 servers, proxy networks
+- **Domain Names**: Malicious domains, phishing sites, DGA domains
+- **File Hashes**: MD5, SHA1, SHA256 hashes of known malware
+- **URLs**: Malicious URLs, exploit kits, phishing links
+- **Email Addresses**: Known spam senders, phishing campaigns
+
+## Alert Enrichment
+
+When an alert matches threat intelligence, it's automatically enriched with:
+
+- **Threat Classification**: Malware family, threat type, attack category
+- **Severity Adjustment**: Confirmed threats may increase alert severity
+- **Attribution**: Known threat actor groups or campaigns
+- **References**: Links to detailed threat reports and analysis
+- **First/Last Seen**: When the indicator was first and last observed globally
+
+<Tip>
+Alerts enriched with threat intelligence should be prioritized for investigation, as they represent confirmed threats rather than anomalous behavior.
+</Tip>
+
+## Threat Activity Dashboard
+
+The platform includes specialized dashboards for threat intelligence:
+
+- View threat activity correlated with your alerts
+- Track trending threats affecting your organization
+- Analyze geographic distribution of threat sources
+- Monitor threat feed coverage and match rates
+
+## Integration with Detection
+
+Threat intelligence enhances threat detection by:
+
+1. **Automatic Alert Generation**: Create alerts when IOCs are detected in logs
+2. **Reputation Scoring**: Assign risk scores to IPs, domains, and files
+3. **Watchlists**: Monitor specific indicators of interest
+4. **Correlation Rules**: Use threat intel as conditions in custom rules
+
+## Feed Management
+
+Configure and manage threat intelligence feeds:
+
+- **Built-in Feeds**: Pre-configured feeds from trusted sources
+- **Custom Feeds**: Add your own threat intelligence sources
+- **Feed Prioritization**: Configure which feeds take precedence
+- **Update Frequency**: Control how often feeds are refreshed
+
+<Info>
+Enterprise users receive more frequent updates and access to premium threat intelligence feeds with deeper context and faster indicator delivery.
+</Info>
+
+## Threat Hunting
+
+Use threat intelligence proactively for threat hunting:
+
+- Search historical logs for past occurrences of newly discovered IOCs
+- Identify potential compromises that pre-date indicator publication
+- Build custom queries combining threat intel with log data
+- Export findings for incident response activities
+
+## Best Practices
+
+<Tip>
+**Maximize Threat Intelligence Value**
+
+1. Regularly review threat intelligence matches to validate accuracy
+2. Add organization-specific IOCs to custom feeds
+3. Use threat intelligence to prioritize vulnerability patching
+4. Share relevant threat intel with your industry sector
+5. Integrate threat intel into incident response playbooks
+6. Monitor false positive rates and tune feed selection accordingly
+</Tip>
+
+## API Integration
+
+Threat intelligence can be accessed via API for:
+
+- Enriching external security tools
+- Automated threat hunting scripts
+- Integration with ticketing systems
+- Sharing IOCs with partners and MISPs
+
+## Enterprise Features
+
+The Enterprise version adds:
+
+- **Faster Updates**: More frequent feed refreshes for emerging threats
+- **Premium Feeds**: Access to commercial threat intelligence providers
+- **AI Enhancement**: Machine learning models trained on threat intelligence
+- **Advanced Correlation**: Deeper integration with correlation engine
+
+## Related Features
+
+- **[Threat Detection](/features/threat-detection)**: Use threat intel to enhance real-time detection
+- **[Alert Investigation](/features/alert-investigation)**: Investigate alerts enriched with threat context
+- **[SOC AI](/features/soc-ai)**: AI-powered analysis leveraging threat intelligence
+
+## Technical Implementation
+
+References:
+- Threat Intelligence Module: `frontend/src/app/threatwind/`
+- Threat Intelligence Route: `frontend/src/app/app-routing.module.ts:144`
+- Threat Activity Templates: `backend/src/main/resources/templates/reports/customs/threatActivityForAlerts.html`

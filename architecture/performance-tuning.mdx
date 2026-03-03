@@ -1,0 +1,791 @@
+---
+title: Performance Tuning
+description: Optimize UTMStack performance for maximum throughput and efficiency
+---
+
+This guide covers performance optimization techniques across all UTMStack components to maximize event processing throughput, minimize latency, and ensure efficient resource utilization.
+
+## Performance Metrics Overview
+
+### Key Performance Indicators
+
+**Throughput**:
+- Events per second (EPS) ingested
+- Logs indexed per second
+- Alerts generated per minute
+- API requests per second
+
+**Latency**:
+- Event processing time (collection to storage)
+- Search query response time
+- Dashboard load time
+- Alert generation time
+
+**Resource Utilization**:
+- CPU usage (target: less than 70% average)
+- Memory usage (target: less than 80%)
+- Disk I/O (IOPS and throughput)
+- Network bandwidth
+
+## Backend API Optimization
+
+### JVM Tuning
+
+**Heap Configuration** (`application.yml` or startup script):
+```bash
+# For 16 GB RAM server
+java -Xms8g \
+     -Xmx8g \
+     -XX:+UseG1GC \
+     -XX:MaxGCPauseMillis=200 \
+     -XX:InitiatingHeapOccupancyPercent=45 \
+     -XX:G1HeapRegionSize=16m \
+     -XX:+ParallelRefProcEnabled \
+     -XX:+HeapDumpOnOutOfMemoryError \
+     -XX:HeapDumpPath=/var/log/utmstack/heap_dump.hprof \
+     -jar utmstack.war
+```
+
+**Garbage Collection Monitoring**:
+```bash
+# Enable GC logging
+-Xlog:gc*:file=/var/log/utmstack/gc.log:time,uptime:filecount=10,filesize=100m
+```
+
+**Analysis**:
+```bash
+# View GC stats
+jstat -gcutil <pid> 1000
+
+# Monitor heap usage
+jmap -heap <pid>
+```
+
+### Connection Pool Tuning
+
+**HikariCP Configuration**:
+```yaml
+spring:
+  datasource:
+    hikari:
+      # Match available connections
+      maximum-pool-size: 20  # For 100 max_connections in PostgreSQL
+      minimum-idle: 5
+      
+      # Connection lifecycle
+      connection-timeout: 30000  # 30 seconds
+      idle-timeout: 600000       # 10 minutes
+      max-lifetime: 1800000      # 30 minutes
+      
+      # Validation
+      connection-test-query: "SELECT 1"
+      validation-timeout: 5000
+      
+      # Performance
+      auto-commit: false
+      
+      # Leak detection (development only)
+      leak-detection-threshold: 60000
+```
+
+**Monitoring**:
+```java
+@Component
+public class HikariMetrics {
+    @Scheduled(fixedRate = 60000)
+    public void logPoolStats() {
+        HikariPoolMXBean poolBean = hikariDataSource.getHikariPoolMXBean();
+        log.info("Pool stats - Active: {}, Idle: {}, Waiting: {}, Total: {}",
+            poolBean.getActiveConnections(),
+            poolBean.getIdleConnections(),
+            poolBean.getThreadsAwaitingConnection(),
+            poolBean.getTotalConnections()
+        );
+    }
+}
+```
+
+### API Response Caching
+
+**Cache Configuration**:
+```java
+@Configuration
+@EnableCaching
+public class CacheConfig {
+    @Bean
+    public CacheManager cacheManager() {
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+        cacheManager.setCaffeine(Caffeine.newBuilder()
+            .maximumSize(10000)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .recordStats()
+        );
+        return cacheManager;
+    }
+}
+```
+
+**Strategic Caching**:
+```java
+@Service
+public class DashboardService {
+    // Cache expensive queries
+    @Cacheable(value = "dashboard-stats", key = "#timeRange")
+    public DashboardStats getStats(String timeRange) {
+        return calculateStats(timeRange);
+    }
+    
+    // Cache user preferences
+    @Cacheable(value = "user-prefs", key = "#userId")
+    public UserPreferences getUserPreferences(Long userId) {
+        return userPrefsRepository.findByUserId(userId);
+    }
+    
+    // Evict on update
+    @CacheEvict(value = "user-prefs", key = "#userId")
+    public void updatePreferences(Long userId, UserPreferences prefs) {
+        userPrefsRepository.save(prefs);
+    }
+}
+```
+
+### Async Processing
+
+**Thread Pool Configuration**:
+```java
+@Configuration
+@EnableAsync
+public class AsyncConfig implements AsyncConfigurer {
+    @Bean(name = "taskExecutor")
+    public Executor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        
+        // Core pool size based on CPU cores
+        int cores = Runtime.getRuntime().availableProcessors();
+        executor.setCorePoolSize(cores * 2);
+        executor.setMaxPoolSize(cores * 4);
+        
+        // Queue capacity
+        executor.setQueueCapacity(500);
+        
+        // Thread naming
+        executor.setThreadNamePrefix("async-exec-");
+        
+        // Rejection policy
+        executor.setRejectedExecutionHandler(
+            new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+        
+        executor.initialize();
+        return executor;
+    }
+    
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return (ex, method, params) -> 
+            log.error("Async execution error in {}", method.getName(), ex);
+    }
+}
+```
+
+**Usage**:
+```java
+@Service
+public class AlertService {
+    @Async("taskExecutor")
+    public CompletableFuture<Void> processAlertAsync(Alert alert) {
+        // Enrich alert asynchronously
+        enrichWithThreatIntel(alert);
+        enrichWithAssetInfo(alert);
+        
+        // Save
+        alertRepository.save(alert);
+        
+        // Notify
+        notificationService.sendAlertNotification(alert);
+        
+        return CompletableFuture.completedFuture(null);
+    }
+}
+```
+
+## Database Optimization
+
+### PostgreSQL Tuning
+
+**Memory Configuration**:
+```conf
+# postgresql.conf
+
+# Memory settings (for 32 GB RAM server with dedicated PostgreSQL)
+shared_buffers = 8GB              # 25% of RAM
+effective_cache_size = 24GB       # 75% of RAM
+maintenance_work_mem = 2GB        # For VACUUM, index creation
+work_mem = 64MB                   # Per query operation
+
+# Connection settings
+max_connections = 100
+
+# Write-ahead log
+wal_buffers = 16MB
+min_wal_size = 1GB
+max_wal_size = 4GB
+checkpoint_completion_target = 0.9
+
+# Query planner
+random_page_cost = 1.1           # For SSD
+effective_io_concurrency = 200   # For SSD
+
+# Parallel query
+max_parallel_workers_per_gather = 4
+max_parallel_workers = 8
+max_worker_processes = 8
+```
+
+**Monitoring Queries**:
+```sql
+-- Find slow queries
+SELECT 
+    pid,
+    now() - query_start AS duration,
+    query,
+    state
+FROM pg_stat_activity
+WHERE state != 'idle'
+  AND now() - query_start > interval '5 seconds'
+ORDER BY duration DESC;
+
+-- Index usage
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan,
+    idx_tup_read,
+    idx_tup_fetch
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0
+  AND schemaname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY schemaname, tablename;
+
+-- Table bloat
+SELECT 
+    schemaname,
+    tablename,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size,
+    n_dead_tup,
+    n_live_tup
+FROM pg_stat_user_tables
+WHERE n_dead_tup > 1000
+ORDER BY n_dead_tup DESC;
+```
+
+**Maintenance**:
+```bash
+#!/bin/bash
+# Daily maintenance script
+
+# Analyze tables for query planner
+psql -U utmstack -d utmstack -c "ANALYZE;"
+
+# Vacuum to reclaim space
+psql -U utmstack -d utmstack -c "VACUUM (ANALYZE, VERBOSE);"
+
+# Reindex if needed (weekly)
+if [ $(date +%u) -eq 7 ]; then
+    psql -U utmstack -d utmstack -c "REINDEX DATABASE utmstack;"
+fi
+```
+
+### Query Optimization
+
+**Use EXPLAIN ANALYZE**:
+```sql
+EXPLAIN ANALYZE
+SELECT a.* 
+FROM utm_alert a
+JOIN utm_alert_category c ON a.category_id = c.id
+WHERE a.timestamp >= NOW() - INTERVAL '24 hours'
+  AND a.severity IN ('high', 'critical')
+  AND a.status = 'OPEN'
+ORDER BY a.timestamp DESC
+LIMIT 100;
+```
+
+**Add Missing Indexes**:
+```sql
+-- Composite index for common query pattern
+CREATE INDEX idx_alert_status_severity_time 
+ON utm_alert(status, severity, timestamp DESC);
+
+-- Partial index for active alerts only
+CREATE INDEX idx_alert_active 
+ON utm_alert(timestamp DESC)
+WHERE status IN ('OPEN', 'IN_PROGRESS');
+```
+
+**Optimize JOINs**:
+```java
+// BAD: N+1 query problem
+public List<AlertDTO> getAlertsWithCategory() {
+    List<Alert> alerts = alertRepository.findAll();
+    return alerts.stream()
+        .map(alert -> {
+            AlertCategory category = categoryRepository.findById(
+                alert.getCategoryId()).get();
+            return new AlertDTO(alert, category);
+        })
+        .collect(Collectors.toList());
+}
+
+// GOOD: Single query with JOIN FETCH
+@Query("SELECT a FROM Alert a JOIN FETCH a.category WHERE a.timestamp >= :start")
+List<Alert> findAlertsWithCategory(@Param("start") Instant start);
+```
+
+## Elasticsearch Optimization
+
+### Indexing Performance
+
+**Bulk Indexing**:
+```java
+public void bulkIndex(List<LogEvent> events) throws IOException {
+    BulkRequest bulkRequest = new BulkRequest();
+    
+    for (LogEvent event : events) {
+        IndexRequest request = new IndexRequest("logs-" + getCurrentDate())
+            .id(event.getId())
+            .source(event.toJson(), XContentType.JSON);
+        bulkRequest.add(request);
+    }
+    
+    // Optimize bulk request
+    bulkRequest.timeout(TimeValue.timeValueMinutes(2));
+    bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.NONE);
+    
+    BulkResponse response = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+    
+    if (response.hasFailures()) {
+        // Handle failures
+        for (BulkItemResponse item : response.getItems()) {
+            if (item.isFailed()) {
+                log.error("Indexing failed: {}", item.getFailureMessage());
+            }
+        }
+    }
+}
+```
+
+**Index Settings**:
+```json
+{
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1,
+    
+    "refresh_interval": "30s",
+    
+    "index.codec": "best_compression",
+    
+    "index.translog.durability": "async",
+    "index.translog.sync_interval": "5s",
+    "index.translog.flush_threshold_size": "512mb",
+    
+    "index.merge.scheduler.max_thread_count": 1
+  }
+}
+```
+
+### Search Performance
+
+**Query Optimization**:
+```java
+public SearchResult searchLogs(LogSearchRequest request) throws IOException {
+    SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+    
+    // Limit result window
+    sourceBuilder.from(Math.min(request.getOffset(), 10000))
+                 .size(Math.min(request.getLimit(), 100));
+    
+    // Use filter context (cacheable) instead of query context
+    BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+    
+    // Filters (cached)
+    boolQuery.filter(QueryBuilders.rangeQuery("@timestamp")
+        .gte(request.getStartTime())
+        .lte(request.getEndTime())
+    );
+    
+    if (request.getSeverity() != null) {
+        boolQuery.filter(QueryBuilders.termsQuery("severity", request.getSeverity()));
+    }
+    
+    // Query (scored)
+    if (StringUtils.isNotBlank(request.getQuery())) {
+        boolQuery.must(QueryBuilders.queryStringQuery(request.getQuery()));
+    }
+    
+    // Don't fetch source if not needed
+    if (!request.isIncludeSource()) {
+        sourceBuilder.fetchSource(false);
+        sourceBuilder.docValueField("@timestamp");
+        sourceBuilder.docValueField("severity");
+    }
+    
+    // Set timeout
+    sourceBuilder.timeout(TimeValue.timeValueSeconds(30));
+    
+    sourceBuilder.query(boolQuery);
+    
+    SearchRequest searchRequest = new SearchRequest("logs-*")
+        .source(sourceBuilder)
+        .preference("_local"); // Route to local shard if possible
+    
+    return executeSearch(searchRequest);
+}
+```
+
+**Aggregation Optimization**:
+```java
+// Use composite aggregation for pagination
+CompositeAggregationBuilder composite = AggregationBuilders
+    .composite("top_sources",
+        Arrays.asList(
+            new TermsValuesSourceBuilder("source_ip")
+                .field("source_ip")
+        )
+    )
+    .size(1000);
+
+// Add sub-aggregation
+composite.subAggregation(
+    AggregationBuilders.sum("total_bytes").field("bytes")
+);
+```
+
+### Cluster Tuning
+
+**elasticsearch.yml**:
+```yaml
+# Memory
+bootstrap.memory_lock: true
+
+# Thread pools
+thread_pool.write.queue_size: 1000
+thread_pool.search.queue_size: 1000
+
+# Circuit breakers
+indices.breaker.total.limit: 70%
+indices.breaker.request.limit: 40%
+indices.breaker.fielddata.limit: 40%
+
+# Performance
+indices.memory.index_buffer_size: 20%
+indices.queries.cache.size: 15%
+indices.requests.cache.size: 2%
+```
+
+**JVM Options** (`jvm.options`):
+```
+# Heap size (50% of RAM, max 32GB)
+-Xms16g
+-Xmx16g
+
+# GC
+-XX:+UseG1GC
+-XX:G1ReservePercent=25
+-XX:InitiatingHeapOccupancyPercent=30
+```
+
+## Agent Optimization
+
+### Collector Configuration
+
+**Filebeat Tuning**:
+```yaml
+filebeat.inputs:
+- type: log
+  paths:
+    - /var/log/*.log
+  
+  # Batch events
+  harvester_buffer_size: 65536
+  max_bytes: 10485760
+  
+  # Multiline handling
+  multiline.type: pattern
+  multiline.pattern: '^\['
+  multiline.negate: true
+  multiline.match: after
+  multiline.max_lines: 500
+  multiline.timeout: 5s
+
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 1s
+
+output.grpc:
+  hosts: ["utmstack-server:50051"]
+  bulk_max_size: 2048
+  worker: 2
+  compression_level: 3
+```
+
+**Agent Buffer Settings**:
+```go
+// config/config.go
+type AgentConfig struct {
+    BufferSize      int    `json:"buffer_size"`      // 100000
+    BatchSize       int    `json:"batch_size"`       // 1000
+    FlushInterval   int    `json:"flush_interval"`   // 5 seconds
+    WorkerThreads   int    `json:"worker_threads"`   // CPU cores
+}
+```
+
+### Network Optimization
+
+**gRPC Configuration**:
+```go
+func NewGRPCClient(config *AgentConfig) (*GRPCClient, error) {
+    conn, err := grpc.Dial(
+        config.Server,
+        grpc.WithTransportCredentials(creds),
+        
+        // Keepalive
+        grpc.WithKeepaliveParams(keepalive.ClientParameters{
+            Time:                10 * time.Second,
+            Timeout:             3 * time.Second,
+            PermitWithoutStream: true,
+        }),
+        
+        // Message size limits
+        grpc.WithDefaultCallOptions(
+            grpc.MaxCallRecvMsgSize(50*1024*1024),
+            grpc.MaxCallSendMsgSize(50*1024*1024),
+        ),
+        
+        // Connection pool
+        grpc.WithInitialWindowSize(1024*1024),
+        grpc.WithInitialConnWindowSize(1024*1024),
+    )
+    
+    return &GRPCClient{conn: conn}, nil
+}
+```
+
+## Frontend Optimization
+
+### Bundle Size Reduction
+
+**Lazy Loading**:
+```typescript
+// app-routing.module.ts
+const routes: Routes = [
+  {
+    path: 'dashboards',
+    loadChildren: () => import('./dashboards/dashboards.module')
+      .then(m => m.DashboardsModule)
+  },
+  {
+    path: 'alerts',
+    loadChildren: () => import('./alerts/alerts.module')
+      .then(m => m.AlertsModule)
+  }
+];
+```
+
+**Tree Shaking**:
+```typescript
+// Import only what you need
+import { map, filter } from 'rxjs/operators';
+
+// Don't import entire library
+// import * as _ from 'lodash';  // BAD
+import { debounce } from 'lodash';  // GOOD
+```
+
+### Runtime Performance
+
+**Change Detection**:
+```typescript
+@Component({
+  selector: 'app-alert-list',
+  changeDetection: ChangeDetectionStrategy.OnPush  // Only check on input changes
+})
+export class AlertListComponent {
+  @Input() alerts: Alert[];
+}
+```
+
+**Virtual Scrolling**:
+```html
+<cdk-virtual-scroll-viewport itemSize="50" style="height: 600px;">
+  <div *cdkVirtualFor="let log of logs" class="log-item">
+    {{ log.message }}
+  </div>
+</cdk-virtual-scroll-viewport>
+```
+
+**Debouncing**:
+```typescript
+export class SearchComponent {
+  searchControl = new FormControl();
+  
+  ngOnInit() {
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(query => this.searchService.search(query))
+      )
+      .subscribe(results => this.results = results);
+  }
+}
+```
+
+## Monitoring Performance
+
+### Metrics Collection
+
+**Spring Boot Actuator**:
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: utmstack-backend
+```
+
+**Custom Metrics**:
+```java
+@Component
+public class CorrelationMetrics {
+    private final Counter alertsGenerated;
+    private final Timer correlationTime;
+    
+    public CorrelationMetrics(MeterRegistry registry) {
+        this.alertsGenerated = Counter.builder("utmstack.alerts.generated")
+            .description("Number of alerts generated")
+            .tag("component", "correlation")
+            .register(registry);
+        
+        this.correlationTime = Timer.builder("utmstack.correlation.time")
+            .description("Time spent in correlation")
+            .register(registry);
+    }
+    
+    public void recordAlert() {
+        alertsGenerated.increment();
+    }
+    
+    public void recordCorrelationTime(Runnable task) {
+        correlationTime.record(task);
+    }
+}
+```
+
+### Performance Dashboards
+
+**Grafana Dashboard** (Prometheus queries):
+```promql
+# Request rate
+rate(http_server_requests_seconds_count[5m])
+
+# Average response time
+rate(http_server_requests_seconds_sum[5m]) / rate(http_server_requests_seconds_count[5m])
+
+# Error rate
+rate(http_server_requests_seconds_count{status=~"5.."}[5m])
+
+# JVM heap usage
+jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}
+
+# Database connection pool
+hikaricp_connections_active
+hikaricp_connections_idle
+
+# Elasticsearch query rate
+rate(elasticsearch_indices_search_query_total[5m])
+```
+
+## Troubleshooting Performance Issues
+
+### High CPU Usage
+
+1. **Identify the cause**:
+   ```bash
+   # Top processes
+   top -H -p <java_pid>
+   
+   # Thread dump
+   jstack <pid> > thread_dump.txt
+   ```
+
+2. **Common causes**:
+   - Too many correlation rules
+   - Inefficient queries
+   - GC pressure
+   - Tight loops
+
+### High Memory Usage
+
+1. **Heap dump**:
+   ```bash
+   jmap -dump:live,format=b,file=heap_dump.hprof <pid>
+   ```
+
+2. **Analyze with MAT** (Eclipse Memory Analyzer)
+
+3. **Common causes**:
+   - Memory leaks
+   - Large cache sizes
+   - Unbounded collections
+
+### Slow Queries
+
+1. **Enable query logging**:
+   ```yaml
+   spring:
+     jpa:
+       show-sql: true
+       properties:
+         hibernate:
+           format_sql: true
+           use_sql_comments: true
+   logging:
+     level:
+       org.hibernate.SQL: DEBUG
+       org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+   ```
+
+2. **Identify slow queries** in PostgreSQL:
+   ```sql
+   SELECT query, calls, total_time, mean_time
+   FROM pg_stat_statements
+   ORDER BY mean_time DESC
+   LIMIT 10;
+   ```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Horizontal Scaling" icon="arrows-left-right" href="/architecture/horizontal-scaling">
+    Scale out for higher capacity
+  </Card>
+  <Card title="High Availability" icon="server" href="/architecture/high-availability">
+    Ensure continuous uptime
+  </Card>
+  <Card title="Data Storage" icon="database" href="/architecture/data-storage">
+    Optimize storage systems
+  </Card>
+  <Card title="System Architecture" icon="sitemap" href="/architecture/system-architecture">
+    Understand the full architecture
+  </Card>
+</CardGroup>

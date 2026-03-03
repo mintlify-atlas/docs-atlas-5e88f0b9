@@ -1,0 +1,262 @@
+---
+title: SOC 2 Compliance Monitoring
+description: Achieve and maintain SOC 2 compliance with UTMStack's automated monitoring and reporting for Trust Services Criteria
+---
+
+# SOC 2 Compliance Monitoring
+
+Service Organization Control 2 (SOC 2) is an auditing standard for service providers that store customer data in the cloud. UTMStack helps organizations achieve and maintain SOC 2 compliance by continuously monitoring controls aligned with the Trust Services Criteria.
+
+## SOC 2 Trust Services Criteria
+
+SOC 2 compliance is based on five Trust Services Criteria:
+
+### Security (Common Criteria)
+
+The system is protected against unauthorized access:
+
+- Access controls and authentication
+- System security monitoring
+- Security incident management
+- Change management processes
+
+### Availability
+
+The system is available for operation and use as committed:
+
+- System uptime and performance monitoring
+- Disaster recovery capabilities
+- Incident response procedures
+- Capacity planning and monitoring
+
+### Processing Integrity
+
+System processing is complete, valid, accurate, timely, and authorized:
+
+- Data validation and verification
+- Error detection and correction
+- Processing accuracy monitoring
+- Quality assurance controls
+
+### Confidentiality
+
+Information designated as confidential is protected:
+
+- Data classification and handling
+- Encryption controls
+- Secure data disposal
+- Non-disclosure agreements
+
+### Privacy
+
+Personal information is collected, used, retained, disclosed, and disposed of properly:
+
+- Privacy notice and consent
+- Data subject rights
+- Data retention and disposal
+- Privacy breach notification
+
+<Info>
+  **Compliance Tip**: SOC 2 Type I examines controls at a point in time, while Type II examines operating effectiveness over time (typically 6-12 months). UTMStack's continuous monitoring supports both.
+</Info>
+
+## UTMStack SOC 2 Monitoring Approach
+
+### Control Environment Monitoring
+
+UTMStack monitors the effectiveness of security controls across your environment:
+
+- **Automated control testing**: Continuous validation of control effectiveness
+- **Control evidence collection**: Automatic gathering of audit evidence
+- **Exception tracking**: Identification and tracking of control failures
+- **Remediation workflows**: Coordinated response to control gaps
+
+### Common Criteria (CC) Mapping
+
+UTMStack maps security events to SOC 2 Common Criteria:
+
+| Common Criteria | UTMStack Monitoring Capabilities |
+|-----------------|----------------------------------|
+| CC1 - Control Environment | User access reviews, policy enforcement monitoring |
+| CC2 - Communication | Security awareness tracking, policy acknowledgment |
+| CC3 - Risk Assessment | Vulnerability scanning, threat detection |
+| CC4 - Monitoring Activities | SIEM correlation, anomaly detection |
+| CC5 - Control Activities | Access control, change management tracking |
+| CC6 - Logical/Physical Access | Authentication monitoring, facility access logs |
+| CC7 - System Operations | Backup monitoring, capacity alerts |
+| CC8 - Change Management | Configuration change detection, approval tracking |
+| CC9 - Risk Mitigation | Incident response, security patching |
+
+### Access Control Monitoring (CC6)
+
+Comprehensive monitoring of logical and physical access controls:
+
+```json
+{
+  "control": "CC6.1",
+  "description": "Logical access controls restrict access to information assets",
+  "evidence": [
+    {
+      "type": "authentication_log",
+      "timestamp": "2026-03-03T09:15:32Z",
+      "user": "admin@company.com",
+      "action": "MFA_SUCCESS",
+      "resource": "production_database"
+    },
+    {
+      "type": "authorization_check",
+      "timestamp": "2026-03-03T09:15:34Z",
+      "user": "admin@company.com",
+      "role": "database_admin",
+      "permission": "READ_WRITE",
+      "result": "GRANTED"
+    }
+  ]
+}
+```
+
+### Change Management Monitoring (CC8)
+
+Track all changes to systems and infrastructure:
+
+- **Authorized changes**: Changes with proper approval and documentation
+- **Emergency changes**: Tracking and post-implementation review
+- **Change success/failure**: Monitoring change outcomes
+- **Configuration drift**: Detection of unauthorized configuration changes
+
+<Info>
+  **Best Practice**: Implement automated change approval workflows that integrate with UTMStack for complete change management audit trails.
+</Info>
+
+### Security Incident Management (CC7)
+
+Comprehensive incident detection, response, and documentation:
+
+- Incident detection and alerting
+- Investigation and analysis workflows
+- Containment and remediation tracking
+- Post-incident review documentation
+- Lessons learned and process improvements
+
+## SOC 2 Compliance Rules
+
+Pre-built rules aligned with Trust Services Criteria:
+
+| Rule | Common Criteria | Description | Severity |
+|------|-----------------|-------------|----------|
+| Privileged Access Without MFA | CC6.1 | Administrative access without multi-factor authentication | High |
+| Unauthorized Configuration Change | CC8.1 | System configuration modified without approval | High |
+| Failed Backup Detection | CC7.2 | Backup process failure or incomplete backup | Critical |
+| Excessive Failed Login Attempts | CC6.1 | Potential brute force attack or account compromise | Medium |
+| Unpatched Critical Vulnerability | CC9.1 | Critical security vulnerability not patched within SLA | High |
+| Encryption Disabled | CC6.7 | Data encryption disabled on production systems | Critical |
+| Inactive User Account Activity | CC6.2 | Activity from accounts that should be disabled | High |
+| Anomalous Data Access | CC6.6 | Unusual data access patterns indicating potential breach | Medium |
+
+## SOC 2 Compliance Reports
+
+UTMStack generates audit-ready SOC 2 compliance reports:
+
+### Trust Services Criteria Report
+
+- Control objectives and implementation status
+- Evidence of control operation
+- Exception reports and remediation
+- Testing results and effectiveness metrics
+
+### Security Monitoring Report
+
+- Security event summary and trends
+- Incident response activities
+- Threat detection and mitigation
+- Vulnerability management activities
+
+### Access Control Report
+
+- User access provisioning and deprovisioning
+- Privileged access management
+- Access review and recertification
+- Authentication and authorization events
+
+### Change Management Report
+
+- All system and application changes
+- Change approval documentation
+- Change success/failure rates
+- Emergency change procedures
+
+<Info>
+  **Audit Preparation**: Export SOC 2 reports monthly to build a continuous evidence package. Auditors typically review 12 months of evidence for Type II reports.
+</Info>
+
+## Required Data Sources
+
+Integrate these data sources for comprehensive SOC 2 monitoring:
+
+- **Cloud Infrastructure**: AWS CloudTrail, Azure Activity Logs, GCP Audit Logs
+- **Identity Management**: Okta, Azure AD, Auth0 authentication logs
+- **Source Control**: GitHub, GitLab, Bitbucket for change tracking
+- **CI/CD Systems**: Jenkins, CircleCI, GitLab CI for deployment monitoring
+- **Container Platforms**: Kubernetes, Docker for containerized workloads
+- **Databases**: PostgreSQL, MySQL, MongoDB audit logs
+- **Application Logs**: Custom application security events
+- **Network Devices**: Firewalls, load balancers, VPN gateways
+- **Endpoint Security**: EDR solutions for workstation monitoring
+- **Backup Systems**: Backup success/failure logs
+
+## Implementation Steps
+
+1. **Gap Assessment**: Identify which Trust Services Criteria apply to your services
+2. **Control Mapping**: Map existing security controls to SOC 2 requirements
+3. **Data Source Integration**: Connect all systems that provide control evidence
+4. **Enable SOC 2 Rules**: Activate pre-built SOC 2 compliance rules
+5. **Baseline Controls**: Establish baseline metrics for control effectiveness
+6. **Configure Dashboards**: Set up SOC 2 compliance dashboards for stakeholders
+7. **Evidence Collection**: Begin automated evidence collection process
+8. **Schedule Reports**: Configure monthly compliance reporting
+
+## SOC 2 Report Types
+
+### Type I Report
+
+Describes service organization's systems and suitability of control design:
+
+- Point-in-time assessment
+- Control design evaluation
+- Typically faster to achieve
+- Good for initial compliance demonstration
+
+UTMStack provides current state assessment and control design evidence for Type I audits.
+
+### Type II Report
+
+Includes Type I information plus operating effectiveness over time:
+
+- Typically 6-12 month observation period
+- Control operating effectiveness testing
+- More comprehensive and valuable to customers
+- Required by most enterprise customers
+
+UTMStack's continuous monitoring and evidence collection directly supports Type II reporting requirements.
+
+<Info>
+  **Planning Tip**: Start evidence collection 12 months before your planned Type II audit date. This ensures you have sufficient historical data for the observation period.
+</Info>
+
+## Continuous Compliance
+
+Maintaining SOC 2 compliance requires ongoing effort:
+
+- **Quarterly Control Testing**: Regular validation of control effectiveness
+- **Annual Policy Review**: Update security policies and procedures
+- **Access Reviews**: Quarterly user access recertification
+- **Vendor Assessments**: Annual review of third-party service providers
+- **Penetration Testing**: Annual security assessments
+- **Security Training**: Ongoing security awareness for all employees
+- **Audit Readiness**: Continuous evidence collection and documentation
+
+## Related Topics
+
+- [Compliance Overview](/compliance/overview)
+- [HIPAA Compliance](/compliance/hipaa)
+- [Custom Compliance Standards](/compliance/custom-standards)

@@ -1,0 +1,80 @@
+---
+title: Deployment Overview
+description: Overview of UTMStack deployment options and installation methods
+---
+
+UTMStack provides two primary deployment methods to suit different installation preferences and requirements.
+
+## Deployment Methods
+
+### Installer Script
+
+The installer script method provides a flexible installation on Ubuntu 22.04 LTS. This approach is ideal for:
+
+- Deploying on existing Ubuntu infrastructure
+- Custom server configurations
+- Automated deployments
+- Integration with existing provisioning systems
+
+Learn more in the [Ubuntu Installation Guide](/deployment/ubuntu-installation).
+
+### ISO Image
+
+The ISO image provides a pre-configured Ubuntu Server installation with UTMStack. This approach is ideal for:
+
+- Fresh server deployments
+- Standardized installations
+- Quick setup with minimal configuration
+- Physical or virtual machine deployments
+
+Learn more in the [ISO Installation Guide](/deployment/iso-installation).
+
+## System Requirements
+
+Before deploying UTMStack, ensure your system meets the resource requirements based on your expected data volume:
+
+### Resource Planning
+
+Assumptions: 60 data sources (devices) generate approximately 100 GB of monthly data.
+
+**Definitions:**
+- **Hot log storage**: Not archived data that can be accessed for analysis at any time
+- **Cold log storage**: Archived data that should be restored before accessing it
+- **Data source**: Any individual source of logs (devices, agents, SaaS integrations)
+
+### Required Resources
+
+For one month of hot log storage:
+
+| Data Sources | Monthly Data | CPU Cores | RAM | Disk Space |
+|--------------|--------------|-----------|-----|------------|
+| 50 | 120 GB | 4 | 16 GB | 150 GB |
+| 120 | 250 GB | 8 | 16 GB | 250 GB |
+| 240 | 500 GB | 16 | 32 GB | 500 GB |
+| 500 | 1000 GB | 32 | 64 GB | 1000 GB |
+
+<Warning>
+**Important**: Going above 500 data sources/devices requires adding secondary nodes for horizontal scaling.
+</Warning>
+
+<Note>
+You may combine these tiers to allocate resources based on the number of devices and desired hot log storage retention.
+</Note>
+
+## Next Steps
+
+Choose your deployment method:
+
+<CardGroup cols={2}>
+  <Card title="Ubuntu Installation" icon="ubuntu" href="/deployment/ubuntu-installation">
+    Install UTMStack on Ubuntu 22.04 LTS using the installer script
+  </Card>
+  <Card title="ISO Installation" icon="disc-drive" href="/deployment/iso-installation">
+    Deploy using the pre-configured ISO image
+  </Card>
+</CardGroup>
+
+After installation, configure:
+
+- [Network Configuration](/deployment/network-configuration)
+- [Ports and Firewall](/deployment/ports-firewall)

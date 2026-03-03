@@ -1,0 +1,154 @@
+---
+title: GCP Integration
+description: Integrate UTMStack with Google Cloud Platform
+---
+
+## Overview
+
+The UTMStack GCP plugin is an integration module for collecting logs from Google Cloud Platform services. It allows UTMStack to aggregate and analyze log data from GCP sources, supporting comprehensive cloud security monitoring.
+
+## How It Works
+
+The GCP integration:
+
+- Connects to Google Cloud Platform logging services
+- Uses Google Cloud SDKs for authentication and log retrieval
+- Forwards collected logs to UTMStack via **GRPC** over Unix sockets
+- Provides real-time security monitoring for your GCP environment
+
+<Note>
+**Prerequisites**
+
+You need a valid Google Cloud Platform account with:
+- A GCP project with logging enabled
+- A service account with appropriate permissions
+- The service account JSON key file
+</Note>
+
+## Configuration Steps
+
+### 1. Create a Service Account
+
+1. Navigate to the **GCP Console**
+2. Go to **IAM & Admin** > **Service Accounts**
+3. Click **Create Service Account**
+4. Enter a name and description (e.g., "UTMStack Integration")
+5. Click **Create and Continue**
+
+### 2. Assign Roles to Service Account
+
+Grant the following roles to the service account:
+
+- **Logging Admin** or **Logs Viewer**: To read log entries
+- **Monitoring Viewer**: To access monitoring data
+- **Security Reviewer**: For security-related logs
+
+Click **Continue** and then **Done**.
+
+### 3. Create and Download Service Account Key
+
+1. Click on the newly created service account
+2. Go to the **Keys** tab
+3. Click **Add Key** > **Create new key**
+4. Select **JSON** as the key type
+5. Click **Create** - the JSON key file will download automatically
+6. Store this file securely
+
+### 4. Enable Required APIs
+
+Ensure the following APIs are enabled in your GCP project:
+
+```bash
+gcloud services enable logging.googleapis.com
+gcloud services enable monitoring.googleapis.com
+```
+
+Or enable them in the GCP Console:
+- **Cloud Logging API**
+- **Cloud Monitoring API**
+
+### 5. Gather Required Information
+
+Collect the following information:
+
+- **Project ID**: Your GCP project ID
+- **Service Account Key**: The JSON key file downloaded earlier
+- **Log Filter** (optional): Specific log types to collect
+
+### 6. Configure in UTMStack
+
+1. Navigate to **Integrations** in the UTMStack console
+2. Select **Google Cloud Platform**
+3. Enter the required information:
+   - Project ID
+   - Upload or paste the service account JSON key
+   - (Optional) Configure log filters
+4. Click **Save** to activate the integration
+
+### 7. Verify Integration
+
+Once configured, the plugin will:
+
+1. Authenticate with GCP using the service account credentials
+2. Begin collecting logs from the specified project
+3. Forward events to UTMStack for analysis
+
+Verify the integration by:
+
+- Checking the integration status in UTMStack console
+- Viewing incoming GCP events in the Events dashboard
+- Monitoring the plugin logs for any errors
+
+## Supported Log Sources
+
+The GCP integration can collect logs from various GCP services:
+
+- **Cloud Audit Logs**: Admin activity, data access, and system events
+- **VPC Flow Logs**: Network traffic monitoring
+- **Cloud DNS Logs**: DNS query logging
+- **Load Balancer Logs**: HTTP(S) load balancer requests
+- **Cloud Firewall Logs**: Firewall rule hits
+- **GKE Logs**: Kubernetes cluster logs
+- **Cloud Functions Logs**: Serverless function execution
+- **Cloud SQL Logs**: Database activity
+- **Cloud Storage Logs**: Object access logs
+
+## Log Filtering
+
+You can configure filters to collect specific log types:
+
+```
+resource.type="gce_instance"
+logName="projects/[PROJECT_ID]/logs/cloudaudit.googleapis.com%2Factivity"
+```
+
+This helps reduce data volume and focus on security-relevant events.
+
+## Troubleshooting
+
+### Authentication Errors
+
+- Verify the service account JSON key is valid and not corrupted
+- Ensure the service account has not been deleted or disabled
+- Check that the project ID is correct
+
+### No Data Received
+
+- Verify the required APIs are enabled
+- Ensure logging is configured for the resources you want to monitor
+- Check that the service account has sufficient permissions
+- Review plugin logs for specific error messages
+
+### Permission Issues
+
+- Verify the service account has the Logs Viewer or Logging Admin role
+- Check organization policies that might restrict service account access
+- Ensure the service account key has not expired
+
+## Security Best Practices
+
+- Store the service account key securely
+- Rotate service account keys regularly
+- Use the principle of least privilege for role assignments
+- Enable audit logging for the service account
+- Monitor service account usage in GCP

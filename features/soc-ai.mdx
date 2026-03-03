@@ -1,0 +1,226 @@
+---
+title: SOC AI-Powered Analysis
+description: Artificial intelligence and machine learning capabilities that enhance security operations and accelerate threat detection
+---
+
+## Overview
+
+UTMStack's SOC AI-Powered Analysis leverages artificial intelligence and machine learning to enhance security operations, reduce analyst workload, and accelerate threat detection and response. Available in the Enterprise version, SOC AI provides intelligent automation and advanced analytics capabilities.
+
+<Info>
+**Enterprise Feature**: SOC AI capabilities are included in UTMStack Enterprise. The open-source version provides core SIEM/XDR functionality.
+</Info>
+
+## Key Capabilities
+
+<CardGroup cols={2}>
+  <Card title="Alert Prioritization" icon="ranking-star">
+    Automatically prioritize alerts based on risk, context, and historical patterns to focus analyst attention.
+  </Card>
+  
+  <Card title="Anomaly Detection" icon="magnifying-glass-chart">
+    Identify unusual patterns and behaviors that deviate from established baselines.
+  </Card>
+  
+  <Card title="Intelligent Triage" icon="brain">
+    AI-powered analysis of alerts to recommend investigation paths and likely root causes.
+  </Card>
+  
+  <Card title="Pattern Recognition" icon="diagram-project">
+    Discover relationships between seemingly unrelated events to uncover complex attacks.
+  </Card>
+</CardGroup>
+
+## Alert Analysis
+
+SOC AI enhances alert investigation with:
+
+### Automated Analysis
+- **Risk Scoring**: Calculate risk scores based on multiple factors
+- **Context Enrichment**: Add relevant context from historical data
+- **Similar Alerts**: Identify patterns across similar alerts
+- **Recommended Actions**: Suggest investigation steps and responses
+
+Reference: `frontend/src/app/data-management/alert-management/shared/components/alert-soc-ai/`
+
+### Investigation Assistance
+- **Root Cause Analysis**: Identify likely attack sources and methods
+- **Impact Assessment**: Estimate potential impact and affected systems
+- **Timeline Reconstruction**: Build attack timelines automatically
+- **Evidence Collection**: Gather relevant logs and events automatically
+
+<Tip>
+Use SOC AI recommendations as a starting point for investigations, but always validate findings with manual analysis for critical incidents.
+</Tip>
+
+## Machine Learning Models
+
+SOC AI employs multiple ML models:
+
+### Supervised Learning
+- Trained on labeled security events
+- Classifies alerts as true positive or false positive
+- Improves accuracy over time with feedback
+
+### Unsupervised Learning
+- Discovers unknown attack patterns
+- Identifies anomalous behavior without prior training
+- Adapts to environment-specific normal baselines
+
+### Deep Learning
+- Analyzes complex relationships in security data
+- Detects advanced persistent threats
+- Processes unstructured log data
+
+## Privacy and Data Handling
+
+SOC AI includes privacy protections:
+
+- **Data Sanitization**: Sensitive data is cleaned before processing
+- **PII Removal**: Personal information is redacted or anonymized
+- **Configurable Redaction**: Customize what data is included/excluded
+
+Reference: `plugins/soc-ai/alert.go:11-54`
+
+### Sanitization Examples
+
+The system automatically redacts:
+- Email addresses → Fake email patterns
+- Usernames → Generic user identifiers  
+- Sensitive patterns → Configurable fake values
+- Custom PII → User-defined redaction rules
+
+<Info>
+Data sanitization ensures compliance with privacy regulations while still enabling effective AI analysis.
+</Info>
+
+## Behavioral Baselines
+
+SOC AI establishes baselines for:
+
+- User authentication patterns
+- Network traffic flows
+- Application usage trends
+- Data access patterns
+- System resource utilization
+
+### Deviation Detection
+
+Alerts are generated when behavior deviates from baselines:
+
+- Authentication from unusual locations
+- Abnormal data transfer volumes
+- Unexpected application usage
+- Privilege escalation attempts
+- Lateral movement patterns
+
+## Alert Correlation
+
+AI-enhanced correlation capabilities:
+
+- **Multi-Stage Attack Detection**: Connect events across the attack chain
+- **Cross-Source Correlation**: Relate events from different data sources
+- **Temporal Analysis**: Identify time-based attack patterns
+- **Entity Linking**: Track users, IPs, and assets across events
+
+## Threat Hunting
+
+SOC AI assists proactive threat hunting:
+
+- **Hypothesis Generation**: Suggest hunting hypotheses based on threat intelligence
+- **Query Recommendations**: Recommend search queries for investigations
+- **Pattern Discovery**: Identify suspicious patterns in historical data
+- **Anomaly Surfacing**: Highlight unusual events worth investigating
+
+## False Positive Reduction
+
+Reduce alert fatigue through:
+
+- **Contextual Filtering**: Consider environment context before alerting
+- **Historical Learning**: Learn from past false positive dispositions
+- **Confidence Scoring**: Only alert on high-confidence detections
+- **Auto-Suppression**: Automatically suppress known false positive patterns
+
+<Tip>
+Regularly review false positives and provide feedback to SOC AI. The system learns from your decisions and improves over time.
+</Tip>
+
+## Automation Integration
+
+SOC AI integrates with automation:
+
+- **SOAR Playbooks**: Trigger response actions based on AI analysis
+- **Auto-Triage**: Automatically classify and route alerts
+- **Smart Escalation**: Escalate only alerts requiring human review
+- **Response Suggestions**: Recommend appropriate response actions
+
+## Performance Metrics
+
+Track SOC AI effectiveness:
+
+- **Accuracy**: True positive vs false positive rates
+- **Coverage**: Percentage of alerts analyzed by AI
+- **Time Savings**: Reduction in mean time to triage
+- **Detection Rate**: Previously unknown threats detected
+- **False Positive Reduction**: Decrease in false alert volume
+
+## Model Training
+
+SOC AI models are continuously trained:
+
+- **Analyst Feedback**: Dispositions inform model training
+- **Threat Intelligence**: New IOCs and TTPs update models
+- **Environment Learning**: Adapts to organization-specific patterns
+- **Transfer Learning**: Leverages global threat knowledge
+
+## Best Practices
+
+<Tip>
+**Maximize SOC AI Value**
+
+1. Consistently provide feedback on alert dispositions
+2. Allow sufficient baseline period before relying on anomaly detection
+3. Review AI recommendations but validate critical decisions manually
+4. Tune confidence thresholds to match risk tolerance
+5. Regularly review and update exclusion patterns
+6. Integrate AI insights into playbooks and runbooks
+7. Monitor AI performance metrics to track effectiveness
+</Tip>
+
+## Enterprise vs Open Source
+
+| Feature | Open Source | Enterprise |
+|---------|------------|------------|
+| Basic Correlation | ✓ | ✓ |
+| Rule-based Detection | ✓ | ✓ |
+| SOC AI Analysis | - | ✓ |
+| ML-based Anomaly Detection | - | ✓ |
+| Automated Prioritization | - | ✓ |
+| Behavioral Baselines | - | ✓ |
+| Advanced Threat Intelligence | - | ✓ |
+
+## Getting Started
+
+To enable SOC AI:
+
+1. Upgrade to UTMStack Enterprise
+2. Configure AI analysis preferences
+3. Set data sanitization rules
+4. Allow baseline period (typically 30 days)
+5. Review and provide feedback on AI recommendations
+6. Monitor performance metrics
+
+## Related Features
+
+- **[Alert Investigation](/features/alert-investigation)**: AI-enhanced investigation workflows
+- **[Threat Detection](/features/threat-detection)**: AI-powered correlation and detection
+- **[Threat Intelligence](/features/threat-intelligence)**: Threat intel feeds AI training
+
+## Technical Implementation
+
+References:
+- SOC AI Plugin: `plugins/soc-ai/`
+- Alert Processing: `plugins/soc-ai/alert.go`
+- Elasticsearch Integration: `plugins/soc-ai/elastic/alerts.go`
+- Frontend Component: `frontend/src/app/data-management/alert-management/shared/components/alert-soc-ai/`
+- Alert Service: `frontend/src/app/data-management/alert-management/shared/services/alert-soc-ai.service.ts`

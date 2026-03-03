@@ -1,0 +1,197 @@
+---
+title: Network Configuration
+description: Configure network settings for UTMStack deployment
+---
+
+Proper network configuration is essential for UTMStack to function correctly and securely in your environment.
+
+## Network Requirements
+
+### Internet Connectivity
+
+UTMStack requires internet access for:
+
+- Threat intelligence updates
+- Software updates and patches
+- License validation (Enterprise version)
+- Integration with cloud services
+
+### Internal Network Access
+
+Ensure UTMStack can communicate with:
+
+- Data sources (agents, devices, SaaS integrations)
+- Network devices sending logs
+- Admin and analyst workstations
+- DNS servers
+- NTP servers for time synchronization
+
+## IP Address Configuration
+
+### Static IP Address
+
+It is strongly recommended to configure a static IP address for your UTMStack server.
+
+<Steps>
+  <Step title="Edit Netplan Configuration">
+    On Ubuntu 22.04 LTS, edit the netplan configuration file:
+
+    ```bash
+    sudo nano /etc/netplan/00-installer-config.yaml
+    ```
+  </Step>
+
+  <Step title="Configure Static IP">
+    Update the configuration with your network settings:
+
+    ```yaml
+    network:
+      version: 2
+      ethernets:
+        ens18:  # Replace with your interface name
+          dhcp4: no
+          addresses:
+            - 192.168.1.100/24  # Your static IP and subnet
+          routes:
+            - to: default
+              via: 192.168.1.1  # Your gateway
+          nameservers:
+            addresses:
+              - 8.8.8.8
+              - 8.8.4.4
+    ```
+
+    <Note>
+    Replace `ens18` with your actual network interface name. Use `ip link show` to list available interfaces.
+    </Note>
+  </Step>
+
+  <Step title="Apply Configuration">
+    Apply the netplan configuration:
+
+    ```bash
+    sudo netplan apply
+    ```
+  </Step>
+
+  <Step title="Verify Configuration">
+    Verify the network configuration:
+
+    ```bash
+    ip addr show
+    ip route show
+    ```
+  </Step>
+</Steps>
+
+## DNS Configuration
+
+### Hostname Setup
+
+Set a meaningful hostname for your UTMStack server:
+
+```bash
+sudo hostnamectl set-hostname utmstack.yourdomain.com
+```
+
+### DNS Resolution
+
+Ensure proper DNS resolution is configured:
+
+```bash
+# Test DNS resolution
+nslookup utmstack.com
+
+# Test reverse DNS
+nslookup your-server-ip
+```
+
+## Time Synchronization
+
+Accurate time synchronization is critical for log correlation and security analysis.
+
+<Steps>
+  <Step title="Verify NTP Service">
+    Check if systemd-timesyncd is active:
+
+    ```bash
+    timedatectl status
+    ```
+  </Step>
+
+  <Step title="Configure NTP Servers">
+    Edit the timesyncd configuration if needed:
+
+    ```bash
+    sudo nano /etc/systemd/timesyncd.conf
+    ```
+
+    Add your preferred NTP servers:
+
+    ```ini
+    [Time]
+    NTP=pool.ntp.org
+    FallbackNTP=time.google.com
+    ```
+  </Step>
+
+  <Step title="Restart Time Sync Service">
+    Restart the service to apply changes:
+
+    ```bash
+    sudo systemctl restart systemd-timesyncd
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+Ensure all UTMStack servers and data sources are synchronized to the same time source to maintain accurate log correlation.
+</Warning>
+
+## TLS/SSL Configuration
+
+UTMStack uses TLS encryption for secure communication.
+
+### Default Certificate
+
+UTMStack generates a self-signed certificate during installation. For production use, replace it with a trusted certificate.
+
+### Custom Certificate
+
+To use a custom SSL certificate:
+
+1. Obtain a certificate from a trusted Certificate Authority
+2. Prepare your certificate files (certificate, private key, CA chain)
+3. Consult the UTMStack documentation for certificate installation procedures
+
+<Note>
+All data in transit between agents and UTMStack servers is encrypted using TLS by default.
+</Note>
+
+## Network Segmentation
+
+### Security Best Practices
+
+Consider implementing network segmentation:
+
+- Place UTMStack in a dedicated management VLAN
+- Restrict access to administrative interfaces
+- Use separate networks for data collection and management
+- Implement network access controls between segments
+
+### Agent Communication
+
+Ensure agents can reach the UTMStack server:
+
+- Agents connect to the server using a unique authentication key (+24 characters)
+- All agent communication is encrypted using TLS
+- Configure firewall rules to allow agent traffic to required ports
+
+## Next Steps
+
+After configuring network settings:
+
+1. [Configure firewall rules and ports](/deployment/ports-firewall)
+2. Test connectivity from admin workstations
+3. Test connectivity from data sources
+4. Configure integrations and data sources

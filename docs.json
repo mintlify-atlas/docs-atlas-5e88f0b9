@@ -1,122 +1,203 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "UTMStack",
+  "theme": "aspen",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#1e3a8a",
+    "light": "#3b82f6",
+    "dark": "#0f172a"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/utmstack/UTMStack"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/utmstack/UTMStack"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
-              "index",
+              "introduction",
               "quickstart",
-              "development"
+              "installation",
+              "system-requirements"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Features",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "features/log-management",
+              "features/threat-detection",
+              "features/threat-intelligence",
+              "features/alert-investigation",
+              "features/file-classification",
+              "features/soc-ai",
+              "features/compliance"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Deployment",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "deployment/overview",
+              "deployment/ubuntu-installation",
+              "deployment/iso-installation",
+              "deployment/network-configuration",
+              "deployment/ports-firewall"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Agent Management",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "agents/overview",
+              "agents/windows-agent",
+              "agents/linux-agent",
+              "agents/agent-configuration",
+              "agents/agent-commands"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/overview",
+              "integrations/aws",
+              "integrations/azure",
+              "integrations/gcp",
+              "integrations/office365",
+              "integrations/crowdstrike",
+              "integrations/sophos",
+              "integrations/bitdefender"
+            ]
+          },
+          {
+            "group": "Data Sources",
+            "pages": [
+              "data-sources/overview",
+              "data-sources/log-collection",
+              "data-sources/syslog",
+              "data-sources/filebeat",
+              "data-sources/netflow",
+              "data-sources/custom-parsers"
+            ]
+          },
+          {
+            "group": "Compliance",
+            "pages": [
+              "compliance/overview",
+              "compliance/hipaa",
+              "compliance/soc2",
+              "compliance/cmmc",
+              "compliance/custom-standards"
+            ]
+          },
+          {
+            "group": "Security Operations",
+            "pages": [
+              "operations/dashboards",
+              "operations/alerts",
+              "operations/incidents",
+              "operations/threat-hunting",
+              "operations/soar"
+            ]
+          },
+          {
+            "group": "Administration",
+            "pages": [
+              "admin/user-management",
+              "admin/roles-permissions",
+              "admin/authentication",
+              "admin/two-factor-auth",
+              "admin/saml-sso"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Overview",
             "pages": [
-              "api-reference/introduction"
+              "api/introduction",
+              "api/authentication",
+              "api/rate-limits"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Alerts",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/alerts/list-alerts",
+              "api/alerts/get-alert",
+              "api/alerts/update-alert",
+              "api/alerts/alert-tags"
+            ]
+          },
+          {
+            "group": "Data Sources",
+            "pages": [
+              "api/data-sources/list-sources",
+              "api/data-sources/configure-source",
+              "api/data-sources/source-status"
+            ]
+          },
+          {
+            "group": "Users",
+            "pages": [
+              "api/users/list-users",
+              "api/users/create-user",
+              "api/users/update-user",
+              "api/users/delete-user"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "api/integrations/list-integrations",
+              "api/integrations/configure-integration",
+              "api/integrations/integration-status"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Architecture",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "architecture/system-architecture",
+              "architecture/components",
+              "architecture/data-flow"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "architecture/backend-api",
+              "architecture/frontend-ui",
+              "architecture/agent-system",
+              "architecture/correlation-engine",
+              "architecture/data-storage"
+            ]
+          },
+          {
+            "group": "Scalability",
+            "pages": [
+              "architecture/horizontal-scaling",
+              "architecture/performance-tuning",
+              "architecture/high-availability"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

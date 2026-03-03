@@ -1,0 +1,187 @@
+---
+title: HIPAA Compliance Monitoring
+description: Monitor and maintain HIPAA compliance for healthcare organizations using UTMStack's automated compliance capabilities
+---
+
+# HIPAA Compliance Monitoring
+
+The Health Insurance Portability and Accountability Act (HIPAA) requires healthcare organizations and their business associates to protect the privacy and security of Protected Health Information (PHI). UTMStack provides comprehensive monitoring and reporting capabilities to help maintain HIPAA compliance.
+
+## HIPAA Requirements Overview
+
+HIPAA compliance consists of several key rules and requirements:
+
+### Privacy Rule
+
+Protects the privacy of individually identifiable health information:
+
+- Limits on PHI use and disclosure
+- Patient rights to access their health information
+- Administrative requirements for privacy practices
+
+### Security Rule
+
+Establishes national standards for protecting electronic PHI (ePHI):
+
+- **Administrative Safeguards**: Security management processes, workforce security, information access management
+- **Physical Safeguards**: Facility access controls, workstation security, device and media controls
+- **Technical Safeguards**: Access control, audit controls, integrity controls, transmission security
+
+### Breach Notification Rule
+
+Requires covered entities to notify affected individuals, HHS, and in some cases the media of breaches:
+
+- Breach discovery and notification timelines
+- Content requirements for notifications
+- Documentation and reporting obligations
+
+<Info>
+  **Compliance Tip**: HIPAA requires notification of breaches affecting 500+ individuals within 60 days. UTMStack can help detect and document potential breaches in real-time.
+</Info>
+
+## UTMStack HIPAA Monitoring Approach
+
+### Access Control Monitoring
+
+Track and audit all access to systems containing ePHI:
+
+- **User authentication**: Monitor login attempts, failed authentications, and privilege escalations
+- **Access violations**: Detect unauthorized access attempts to ePHI
+- **Role-based access**: Verify users only access data appropriate to their role
+- **Terminated employee access**: Alert on access attempts by former employees
+
+### Audit Trail Requirements
+
+HIPAA requires audit logs for all ePHI access and modifications:
+
+```json
+{
+  "timestamp": "2026-03-03T14:32:18Z",
+  "user": "dr.smith@hospital.local",
+  "action": "VIEW_PATIENT_RECORD",
+  "patient_id": "PAT-12345",
+  "resource": "EHR_SYSTEM",
+  "ip_address": "10.0.1.45",
+  "workstation": "WORKSTATION-234",
+  "result": "SUCCESS"
+}
+```
+
+UTMStack automatically captures and retains these audit trails for the required 6-year period.
+
+### Encryption Monitoring
+
+Verify ePHI is properly encrypted:
+
+- **Data at rest**: Monitor encryption status of databases and file systems
+- **Data in transit**: Detect unencrypted PHI transmissions
+- **Encryption strength**: Verify appropriate encryption algorithms are used
+- **Key management**: Monitor encryption key access and rotation
+
+### Integrity Controls
+
+Ensure ePHI has not been improperly altered or destroyed:
+
+- File integrity monitoring for systems storing ePHI
+- Database integrity checks
+- Checksums and digital signatures validation
+- Change detection and alerting
+
+<Info>
+  **Best Practice**: Enable file integrity monitoring on all systems storing ePHI. This provides both security protection and compliance evidence.
+</Info>
+
+### Device and Media Controls
+
+Monitor physical and electronic media containing ePHI:
+
+- USB device usage and data transfers
+- Portable media access
+- Device disposal and sanitization tracking
+- Mobile device management
+
+## HIPAA Compliance Rules
+
+UTMStack includes pre-built rules for HIPAA compliance monitoring:
+
+| Rule | Description | Severity |
+|------|-------------|----------|
+| Unauthorized PHI Access | Detects access to ePHI by unauthorized users | High |
+| Failed Authentication Attempts | Multiple failed login attempts to systems with ePHI | Medium |
+| After-Hours Access | Access to ePHI outside normal business hours | Medium |
+| Unencrypted PHI Transmission | Detection of unencrypted ePHI in network traffic | Critical |
+| Bulk PHI Export | Large-scale export or download of patient records | High |
+| Admin Access to PHI | Administrative accounts accessing patient data | Medium |
+| Inactive Session Timeout Violation | User sessions exceeding maximum idle time | Low |
+
+## HIPAA Compliance Reports
+
+UTMStack generates comprehensive HIPAA compliance reports:
+
+### Access Audit Report
+
+- Complete audit trail of all ePHI access
+- User access patterns and anomalies
+- Failed access attempts
+- Privileged user activity
+
+### Security Controls Assessment
+
+- Status of technical safeguards
+- Encryption compliance status
+- Access control effectiveness
+- Audit logging coverage
+
+### Breach Detection Report
+
+- Potential breach incidents
+- Breach investigation timeline
+- Affected systems and data
+- Remediation actions taken
+
+<Info>
+  **Compliance Tip**: Schedule weekly compliance reports for security teams and monthly executive summaries for compliance officers.
+</Info>
+
+## Required Data Sources
+
+To effectively monitor HIPAA compliance, integrate these data sources:
+
+- **Directory Services**: Active Directory, LDAP for authentication monitoring
+- **Electronic Health Records (EHR)**: Epic, Cerner, or other EHR audit logs
+- **Database Systems**: SQL Server, Oracle, MySQL containing ePHI
+- **File Servers**: Windows file shares, NAS devices storing ePHI
+- **Email Systems**: Office 365, Exchange for PHI transmission monitoring
+- **Web Applications**: Patient portals, healthcare applications
+- **Network Devices**: Firewalls, IDS/IPS for network traffic analysis
+- **Endpoints**: Workstations and servers with endpoint agents
+
+## Implementation Steps
+
+1. **Inventory ePHI**: Identify all systems, applications, and data stores containing ePHI
+2. **Integrate Data Sources**: Connect identified systems to UTMStack
+3. **Enable HIPAA Rules**: Activate pre-built HIPAA compliance rules
+4. **Configure Alerts**: Set up notifications for compliance violations
+5. **Establish Baselines**: Create baseline behavior profiles for normal access patterns
+6. **Schedule Reports**: Configure automated compliance reporting
+7. **Train Staff**: Ensure security and compliance teams understand the monitoring capabilities
+
+## Continuous Compliance
+
+Maintaining HIPAA compliance is an ongoing process:
+
+- **Regular Risk Assessments**: Quarterly security risk assessments
+- **Policy Updates**: Review and update policies annually or as regulations change
+- **Staff Training**: Annual HIPAA training for all workforce members
+- **Vendor Management**: Ongoing monitoring of business associate agreements
+- **Incident Response**: Regular testing of breach notification procedures
+
+<Info>
+  **Audit Preparation**: UTMStack's audit export feature generates audit-ready evidence packages that can be provided directly to auditors during HIPAA assessments.
+</Info>
+
+## Related Topics
+
+- [Compliance Overview](/compliance/overview)
+- [SOC 2 Compliance](/compliance/soc2)
+- [Custom Compliance Standards](/compliance/custom-standards)

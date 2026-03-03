@@ -1,0 +1,118 @@
+---
+title: AWS Integration
+description: Integrate UTMStack with Amazon Web Services CloudWatch
+---
+
+## Overview
+
+The UTMStack AWS plugin is a connector developed in Golang that receives logs from AWS CloudWatch and sends them to the UTMStack processing server for security analysis and monitoring.
+
+## How It Works
+
+The AWS integration:
+
+- Uses the **AWS Go SDK** to communicate with CloudWatch Logs service
+- Connects to UTMStack via **GRPC** through a Unix socket
+- Automatically pulls logs from specified CloudWatch log groups
+- Processes and forwards events to UTMStack for correlation and analysis
+
+<Note>
+**Prerequisites**
+
+You need a valid AWS account with:
+- Access to CloudWatch Logs
+- IAM credentials with appropriate permissions to read CloudWatch logs
+- CloudWatch log groups configured with the resources you want to monitor
+</Note>
+
+## Configuration Steps
+
+### 1. Create IAM User for UTMStack
+
+Create an IAM user in AWS with the following permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+### 2. Gather Required Information
+
+Collect the following information from AWS:
+
+- **Access Key ID**: IAM user access key
+- **Secret Access Key**: IAM user secret key
+- **Region**: AWS region where your CloudWatch logs are located (e.g., `us-east-1`)
+- **Log Group Names**: Names of CloudWatch log groups to monitor
+
+### 3. Configure in UTMStack
+
+1. Navigate to **Integrations** in the UTMStack console
+2. Select **AWS CloudWatch**
+3. Enter the required credentials:
+   - Access Key ID
+   - Secret Access Key
+   - AWS Region
+   - Log Group Names (comma-separated)
+4. Click **Save** to activate the integration
+
+### 4. Verify Integration
+
+Once configured, the plugin will:
+
+1. Connect to AWS CloudWatch using the provided credentials
+2. Begin pulling logs from specified log groups
+3. Forward events to UTMStack for processing
+
+You can verify the integration is working by:
+
+- Checking the integration status in UTMStack console
+- Viewing incoming AWS events in the Events dashboard
+- Monitoring the plugin logs for any connection errors
+
+## Supported Log Sources
+
+The AWS integration can collect logs from any CloudWatch log group, including:
+
+- **VPC Flow Logs**: Network traffic monitoring
+- **CloudTrail**: API activity and governance
+- **Lambda**: Serverless function logs
+- **EC2**: Instance system logs
+- **RDS**: Database logs
+- **ECS/EKS**: Container orchestration logs
+- **API Gateway**: API request logs
+- **WAF**: Web application firewall logs
+
+## Troubleshooting
+
+### Authentication Errors
+
+- Verify IAM credentials are correct
+- Ensure the IAM user has the required permissions
+- Check if MFA is required for the account
+
+### No Data Received
+
+- Verify log groups contain recent data
+- Check the AWS region is correct
+- Ensure CloudWatch is generating logs for your resources
+- Review plugin logs for specific error messages
+
+### Performance Considerations
+
+- The plugin polls CloudWatch at regular intervals
+- High-volume log groups may require additional tuning
+- Consider filtering logs at the CloudWatch level to reduce data volume

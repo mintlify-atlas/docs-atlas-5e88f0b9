@@ -1,0 +1,307 @@
+---
+title: Alert Tags
+description: Manage alert tags and tagging rules
+icon: "tags"
+---
+
+Alert tags help categorize and organize alerts for efficient triage and analysis.
+
+## List Alert Tags
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alert-tags</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Get all alert tags with pagination and filtering.
+
+### Query Parameters
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="20">
+  Number of items per page
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort field and direction (e.g., `tagName,asc`)
+</ParamField>
+
+### Response
+
+Returns an array of alert tag objects.
+
+<ResponseField name="id" type="integer">
+  Tag ID
+</ResponseField>
+
+<ResponseField name="tagName" type="string">
+  Tag name
+</ResponseField>
+
+<ResponseField name="tagColor" type="string">
+  Hex color code for tag display
+</ResponseField>
+
+<ResponseField name="systemOwner" type="boolean">
+  Whether tag is system-owned (cannot be deleted)
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-alert-tags?page=0&size=20" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-alert-tags"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+params = {"page": 0, "size": 20}
+
+response = requests.get(url, headers=headers, params=params)
+tags = response.json()
+for tag in tags:
+    print(f"{tag['tagName']} - {tag['tagColor']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+[
+  {
+    "id": 1,
+    "tagName": "false-positive",
+    "tagColor": "#28a745",
+    "systemOwner": true
+  },
+  {
+    "id": 2,
+    "tagName": "high-priority",
+    "tagColor": "#dc3545",
+    "systemOwner": false
+  },
+  {
+    "id": 3,
+    "tagName": "investigated",
+    "tagColor": "#007bff",
+    "systemOwner": false
+  }
+]
+```
+</ResponseExample>
+
+## Get Alert Tag
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alert-tags/{id}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Get a specific alert tag by ID.
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  Tag ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/utm-alert-tags/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 1,
+  "tagName": "false-positive",
+  "tagColor": "#28a745",
+  "systemOwner": true
+}
+```
+
+```json 404 Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Alert tag not found"
+}
+```
+</ResponseExample>
+
+## Create Alert Tag
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alert-tags</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Create a new alert tag.
+
+### Request Body
+
+<ParamField body="tagName" type="string" required>
+  Unique tag name
+</ParamField>
+
+<ParamField body="tagColor" type="string" required>
+  Hex color code (e.g., `#ff0000`)
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/utm-alert-tags \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tagName": "ransomware",
+    "tagColor": "#ff0000"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-alert-tags"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "tagName": "ransomware",
+    "tagColor": "#ff0000"
+}
+
+response = requests.post(url, headers=headers, json=data)
+tag = response.json()
+print(f"Created tag ID: {tag['id']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201 Created
+{
+  "id": 10,
+  "tagName": "ransomware",
+  "tagColor": "#ff0000",
+  "systemOwner": false
+}
+```
+
+```json 409 Conflict
+{
+  "status": 409,
+  "error": "Conflict",
+  "message": "Tag name already exists"
+}
+```
+</ResponseExample>
+
+## Update Alert Tag
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>PUT</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alert-tags</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Update an existing alert tag.
+
+### Request Body
+
+<ParamField body="id" type="integer" required>
+  Tag ID to update
+</ParamField>
+
+<ParamField body="tagName" type="string" required>
+  Tag name
+</ParamField>
+
+<ParamField body="tagColor" type="string" required>
+  Hex color code
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT https://your-utmstack-instance.com/api/utm-alert-tags \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 10,
+    "tagName": "ransomware-detected",
+    "tagColor": "#cc0000"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 10,
+  "tagName": "ransomware-detected",
+  "tagColor": "#cc0000",
+  "systemOwner": false
+}
+```
+</ResponseExample>
+
+## Delete Alert Tag
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>DELETE</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alert-tags/{id}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Delete an alert tag. System-owned tags cannot be deleted.
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  Tag ID to delete
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE https://your-utmstack-instance.com/api/utm-alert-tags/10 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-alert-tags/10"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.delete(url, headers=headers)
+print(response.status_code)
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+
+```json 400 Bad Request
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Cannot delete system-owned tags"
+}
+```
+</ResponseExample>

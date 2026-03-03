@@ -1,0 +1,335 @@
+---
+title: List Users
+description: GET endpoint to retrieve all users
+icon: "users"
+---
+
+## Get All Users
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/users</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Retrieve all user accounts with pagination and filtering.
+
+<Note>
+This endpoint requires `ROLE_ADMIN` permissions.
+</Note>
+
+### Query Parameters
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="20">
+  Number of items per page
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort field and direction (e.g., `login,asc`)
+</ParamField>
+
+<ParamField query="login" type="string">
+  Filter users by login name (partial match)
+</ParamField>
+
+### Response
+
+Returns an array of user objects.
+
+<ResponseField name="id" type="integer">
+  User ID
+</ResponseField>
+
+<ResponseField name="login" type="string">
+  Username
+</ResponseField>
+
+<ResponseField name="firstName" type="string">
+  User's first name
+</ResponseField>
+
+<ResponseField name="lastName" type="string">
+  User's last name
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  User's email address
+</ResponseField>
+
+<ResponseField name="activated" type="boolean">
+  Whether the user account is activated
+</ResponseField>
+
+<ResponseField name="langKey" type="string">
+  User's language preference
+</ResponseField>
+
+<ResponseField name="authorities" type="array">
+  Array of role names assigned to the user
+</ResponseField>
+
+<ResponseField name="imageUrl" type="string">
+  URL to user's profile image
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/users?page=0&size=20" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/users"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+params = {"page": 0, "size": 20}
+
+response = requests.get(url, headers=headers, params=params)
+users = response.json()
+for user in users:
+    print(f"{user['login']} - {user['email']} - Roles: {', '.join(user['authorities'])}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+[
+  {
+    "id": 1,
+    "login": "admin",
+    "firstName": "Admin",
+    "lastName": "User",
+    "email": "admin@utmstack.com",
+    "activated": true,
+    "langKey": "en",
+    "authorities": ["ROLE_ADMIN"],
+    "imageUrl": null
+  },
+  {
+    "id": 2,
+    "login": "analyst1",
+    "firstName": "Security",
+    "lastName": "Analyst",
+    "email": "analyst@utmstack.com",
+    "activated": true,
+    "langKey": "en",
+    "authorities": ["ROLE_USER"],
+    "imageUrl": null
+  }
+]
+```
+
+```json 403 Forbidden
+{
+  "status": 403,
+  "error": "Forbidden",
+  "message": "Access denied"
+}
+```
+</ResponseExample>
+
+## Get User by Login
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/users/{login}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Retrieve a specific user by their login name.
+
+<Note>
+This endpoint requires `ROLE_ADMIN` permissions.
+</Note>
+
+### Path Parameters
+
+<ParamField path="login" type="string" required>
+  User's login name
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/users/analyst1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/users/analyst1"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.get(url, headers=headers)
+user = response.json()
+print(f"User: {user['login']}, Email: {user['email']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 2,
+  "login": "analyst1",
+  "firstName": "Security",
+  "lastName": "Analyst",
+  "email": "analyst@utmstack.com",
+  "activated": true,
+  "langKey": "en",
+  "authorities": ["ROLE_USER"],
+  "imageUrl": null
+}
+```
+
+```json 404 Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "User not found"
+}
+```
+</ResponseExample>
+
+## Filter Users by Login
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/users/filter/{login}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Search for users by partial login match, excluding the current user.
+
+<Note>
+This endpoint requires `ROLE_ADMIN` permissions.
+</Note>
+
+### Path Parameters
+
+<ParamField path="login" type="string" required>
+  Partial login name to search for
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="page" type="integer" default="0">
+  Page number
+</ParamField>
+
+<ParamField query="size" type="integer" default="20">
+  Page size
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/users/filter/analyst?page=0&size=20" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/users/filter/analyst"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+params = {"page": 0, "size": 20}
+
+response = requests.get(url, headers=headers, params=params)
+users = response.json()
+print(f"Found {len(users)} matching users")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+[
+  {
+    "id": 2,
+    "login": "analyst1",
+    "firstName": "Security",
+    "lastName": "Analyst",
+    "email": "analyst@utmstack.com",
+    "activated": true,
+    "langKey": "en",
+    "authorities": ["ROLE_USER"]
+  },
+  {
+    "id": 3,
+    "login": "analyst2",
+    "firstName": "Senior",
+    "lastName": "Analyst",
+    "email": "senior@utmstack.com",
+    "activated": true,
+    "langKey": "en",
+    "authorities": ["ROLE_USER", "ROLE_ANALYST"]
+  }
+]
+```
+</ResponseExample>
+
+## Get User Authorities
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/users/authorities</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Get a list of all available user roles/authorities.
+
+<Note>
+This endpoint requires `ROLE_ADMIN` permissions.
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/users/authorities \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/users/authorities"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.get(url, headers=headers)
+roles = response.json()
+print("Available roles:", roles)
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+[
+  "ROLE_ADMIN",
+  "ROLE_USER",
+  "ROLE_ANALYST",
+  "ROLE_VIEWER"
+]
+```
+</ResponseExample>
+
+## Response Headers
+
+Paginated endpoints include:
+
+- `X-Total-Count` - Total number of users
+- `Link` - Pagination links (first, last, next, prev)
+
+## User Roles
+
+Common user authorities:
+
+- `ROLE_ADMIN` - Full system access
+- `ROLE_USER` - Standard user access
+- `ROLE_ANALYST` - Security analyst permissions
+- `ROLE_VIEWER` - Read-only access

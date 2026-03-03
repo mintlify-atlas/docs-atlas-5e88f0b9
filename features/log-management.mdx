@@ -1,0 +1,108 @@
+---
+title: Log Management
+description: Comprehensive log collection, correlation, and analysis capabilities for enterprise security monitoring
+---
+
+## Overview
+
+UTMStack's Log Management system provides enterprise-grade log collection, correlation, and analysis capabilities. The platform processes logs from multiple sources in real-time, enabling security teams to identify threats and investigate incidents with unprecedented speed and accuracy.
+
+<Info>
+Correlation happens **before data ingestion**, reducing workload and improving response times compared to traditional SIEM solutions.
+</Info>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Real-Time Collection" icon="stream">
+    Collect logs from diverse sources including agents, integrations, and SaaS platforms with automatic parsing and normalization.
+  </Card>
+  
+  <Card title="Pre-Ingestion Correlation" icon="network-wired">
+    Correlate log data before ingestion to reduce storage requirements and accelerate threat detection.
+  </Card>
+  
+  <Card title="Advanced Search" icon="magnifying-glass">
+    Query and analyze logs with powerful search capabilities using the log analyzer interface.
+  </Card>
+  
+  <Card title="Field Extraction" icon="filter">
+    Automatically extract and index relevant fields for efficient searching and correlation.
+  </Card>
+</CardGroup>
+
+## Log Analyzer
+
+The Log Analyzer module (`/discover` route) provides interactive log exploration capabilities:
+
+- **Interactive Querying**: Build and save custom queries for frequently used searches
+- **Field Analysis**: Drill down into specific log fields to identify patterns
+- **Time-Based Filtering**: Analyze logs across custom time ranges
+- **Export Capabilities**: Export log data for offline analysis or compliance reporting
+
+<Tip>
+Save frequently used queries in the Log Analyzer to quickly access common searches and share them with your team.
+</Tip>
+
+## Data Sources
+
+UTMStack supports log collection from:
+
+- **Agents**: Windows, Linux, and macOS endpoints (`/data-sources`)
+- **Network Devices**: Firewalls, routers, switches via syslog
+- **Cloud Platforms**: AWS, Azure, GCP, and other cloud services
+- **Security Tools**: EDR, antivirus, IDS/IPS systems
+- **Applications**: Web servers, databases, custom applications
+
+## Storage Management
+
+UTMStack differentiates between hot and cold log storage:
+
+- **Hot Storage**: Immediately accessible logs for active analysis
+- **Cold Storage**: Archived logs that can be restored when needed
+
+<Info>
+For 50 data sources generating 120 GB of monthly data, UTMStack requires 4 Cores, 16 GB RAM, and 150 GB disk space for one month of hot log storage.
+</Info>
+
+## Log Parsing
+
+The platform includes built-in parsers for common log formats and allows custom parsing rules:
+
+- Access the Data Parsing module at `/data-parsing`
+- Create custom parsing rules for proprietary log formats
+- Test and validate parsing logic before deployment
+- Monitor parsing performance and error rates
+
+## Best Practices
+
+<Tip>
+**Optimize Log Collection**
+
+1. Configure log sources to send only necessary severity levels
+2. Use pre-filtering on agents to reduce network traffic
+3. Schedule log rotation to maintain performance
+4. Regularly review and archive old data to cold storage
+</Tip>
+
+## Integration with Other Features
+
+Log Management integrates seamlessly with:
+
+- **[Threat Detection](/features/threat-detection)**: Logs feed into correlation rules for alert generation
+- **[Alert Investigation](/features/alert-investigation)**: Access raw logs directly from alert details
+- **[Compliance](/features/compliance)**: Generate compliance reports from historical log data
+- **[SOC AI](/features/soc-ai)**: AI-powered analysis of log patterns and anomalies
+
+## Technical Implementation
+
+Log data flows through UTMStack's architecture:
+
+```
+Log Source → Agent/Collector → Correlation Engine → Storage → Analysis Interface
+```
+
+References:
+- Log Analyzer Module: `frontend/src/app/log-analyzer/`
+- Log Analyzer Service: `frontend/src/app/log-analyzer/shared/services/log-analyzer.service.ts`
+- Data Management Route: `frontend/src/app/app-routing.module.ts:28`

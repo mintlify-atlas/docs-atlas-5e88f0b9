@@ -1,0 +1,494 @@
+---
+title: Filebeat integration
+description: Configure Filebeat to collect and forward file-based logs to UTMStack
+icon: file-lines
+---
+
+Filebeat is a lightweight log shipper for forwarding and centralizing log data. Use Filebeat to collect logs from files, containers, and systemd journals.
+
+## When to use Filebeat
+
+Filebeat is ideal for:
+
+- **Application logs**: Custom application log files
+- **Web server logs**: Apache, Nginx, IIS access and error logs  
+- **Container logs**: Docker and Kubernetes logs
+- **Cloud platforms**: EC2, Azure VM log files
+- **Database logs**: MySQL, PostgreSQL, MongoDB logs
+
+<Info>
+  For Windows Event Logs and Linux syslog, use the [UTMStack agent](/agents/overview) for better integration.
+</Info>
+
+## Installation
+
+<Tabs>
+  <Tab title="Ubuntu/Debian">
+    ```bash
+    # Add Elastic repository
+    wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+    echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-7.x.list
+    
+    # Install Filebeat
+    sudo apt-get update
+    sudo apt-get install filebeat
+    ```
+  </Tab>
+  <Tab title="RHEL/CentOS">
+    ```bash
+    # Add Elastic repository
+    sudo rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    
+    cat <<EOF | sudo tee /etc/yum.repos.d/elastic.repo
+[elastic-7.x]
+name=Elastic repository for 7.x packages
+baseurl=https://artifacts.elastic.co/packages/7.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+EOF
+    
+    # Install Filebeat
+    sudo yum install filebeat
+    ```
+  </Tab>
+  <Tab title="Docker">
+    ```bash
+    # Run Filebeat container
+    docker run -d \
+      --name filebeat \
+      --user=root \
+      --volume="$(pwd)/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro" \
+      --volume="/var/lib/docker/containers:/var/lib/docker/containers:ro" \
+      --volume="/var/run/docker.sock:/var/run/docker.sock:ro" \
+      docker.elastic.co/beats/filebeat:7.17.0
+    ```
+  </Tab>
+</Tabs>
+
+## Configuration
+
+### Basic configuration
+
+Edit `/etc/filebeat/filebeat.yml`:
+
+```yaml filebeat.yml
+# Define log inputs
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/application/*.log
+    fields:
+      log_type: application
+      environment: production
+      app_name: myapp
+    fields_under_root: true
+
+# Configure UTMStack output
+output.logstash:
+  hosts: ["utm-server.company.com:5044"]
+  ssl.certificate_authorities: ["/etc/filebeat/utm-ca.pem"]
+  ssl.certificate: "/etc/filebeat/filebeat-client.pem"
+  ssl.key: "/etc/filebeat/filebeat-client-key.pem"
+
+# Processor to add metadata
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+```
+
+### Multiple log types
+
+Collect different log types with dedicated inputs:
+
+```yaml filebeat.yml
+filebeat.inputs:
+  # Application logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/app/*.log
+    fields:
+      log_type: application
+    multiline.pattern: '^\d{4}-\d{2}-\d{2}'
+    multiline.negate: true
+    multiline.match: after
+  
+  # Web server access logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/nginx/access.log
+    fields:
+      log_type: nginx_access
+  
+  # Web server error logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/nginx/error.log
+    fields:
+      log_type: nginx_error
+  
+  # System auth logs
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/auth.log
+    fields:
+      log_type: auth
+
+output.logstash:
+  hosts: ["utm-server.company.com:5044"]
+```
+
+### Docker container logs
+
+Collect logs from Docker containers:
+
+```yaml filebeat.yml
+filebeat.inputs:
+  - type: container
+    paths:
+      - '/var/lib/docker/containers/*/*.log'
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+      - decode_json_fields:
+          fields: ["message"]
+          target: ""
+          overwrite_keys: true
+
+output.logstash:
+  hosts: ["utm-server.company.com:5044"]
+```
+
+### Kubernetes logs
+
+Deploy Filebeat as DaemonSet to collect Kubernetes logs:
+
+```yaml filebeat-kubernetes.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: kube-system
+data:
+  filebeat.yml: |-
+    filebeat.inputs:
+    - type: container
+      paths:
+        - /var/log/containers/*.log
+      processors:
+        - add_kubernetes_metadata:
+            host: ${NODE_NAME}
+            matchers:
+            - logs_path:
+                logs_path: "/var/log/containers/"
+    
+    output.logstash:
+      hosts: ["utm-server.company.com:5044"]
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: filebeat
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: filebeat
+  template:
+    metadata:
+      labels:
+        app: filebeat
+    spec:
+      serviceAccountName: filebeat
+      terminationGracePeriodSeconds: 30
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: filebeat
+        image: docker.elastic.co/beats/filebeat:7.17.0
+        args: [
+          "-c", "/etc/filebeat.yml",
+          "-e",
+        ]
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        volumeMounts:
+        - name: config
+          mountPath: /etc/filebeat.yml
+          readOnly: true
+          subPath: filebeat.yml
+        - name: data
+          mountPath: /usr/share/filebeat/data
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: filebeat-config
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: data
+        hostPath:
+          path: /var/lib/filebeat-data
+          type: DirectoryOrCreate
+```
+
+## Multiline log handling
+
+Many applications produce multiline logs (stack traces, JSON). Configure multiline processing:
+
+### Java stack traces
+
+```yaml
+filebeat.inputs:
+  - type: log
+    paths:
+      - /var/log/app/application.log
+    multiline.pattern: '^[[:space:]]+(at|\\.\\.\\.|Caused by:)'
+    multiline.negate: false
+    multiline.match: after
+```
+
+### Timestamp-based multiline
+
+```yaml
+filebeat.inputs:
+  - type: log
+    paths:
+      - /var/log/app/*.log
+    multiline.pattern: '^\\d{4}-\\d{2}-\\d{2}'
+    multiline.negate: true
+    multiline.match: after
+    multiline.max_lines: 500
+    multiline.timeout: 5s
+```
+
+## Filtering and processing
+
+Process logs before sending to UTMStack:
+
+```yaml filebeat.yml
+filebeat.inputs:
+  - type: log
+    paths:
+      - /var/log/app/*.log
+
+processors:
+  # Add hostname
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  
+  # Drop debug logs
+  - drop_event:
+      when:
+        regexp:
+          message: "^DEBUG"
+  
+  # Parse JSON logs
+  - decode_json_fields:
+      fields: ["message"]
+      target: ""
+      overwrite_keys: true
+  
+  # Rename fields
+  - rename:
+      fields:
+        - from: "log.level"
+          to: "severity"
+  
+  # Add custom tags
+  - add_tags:
+      tags: ["application", "production"]
+      target: "tags"
+```
+
+## Performance tuning
+
+### Optimize for high volume
+
+```yaml filebeat.yml
+filebeat.inputs:
+  - type: log
+    paths:
+      - /var/log/app/*.log
+    close_inactive: 5m
+    clean_inactive: 24h
+    scan_frequency: 10s
+    harvester_buffer_size: 16384
+
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 1s
+
+output.logstash:
+  hosts: ["utm-server.company.com:5044"]
+  worker: 2
+  compression_level: 3
+  bulk_max_size: 2048
+  loadbalance: true
+```
+
+### Resource limits
+
+```yaml filebeat.yml
+# Limit memory usage
+max_procs: 2
+queue.mem:
+  events: 2048
+  
+# Limit file handles
+filebeat.registry.flush: 5s
+filebeat.registry.file_permissions: 0600
+```
+
+## Monitoring
+
+Enable Filebeat monitoring:
+
+```yaml filebeat.yml
+# Enable monitoring
+monitoring.enabled: true
+monitoring.elasticsearch:
+  hosts: ["utm-server.company.com:9200"]
+
+# Or use internal HTTP endpoint
+http.enabled: true
+http.host: localhost
+http.port: 5066
+```
+
+Check Filebeat status:
+
+```bash
+# Check service status
+sudo systemctl status filebeat
+
+# View logs
+sudo journalctl -u filebeat -f
+
+# Test configuration
+sudo filebeat test config
+sudo filebeat test output
+
+# Check metrics endpoint
+curl http://localhost:5066/stats
+```
+
+## Troubleshooting
+
+<Accordion title="Filebeat not starting">
+  1. **Validate configuration**:
+     ```bash
+     sudo filebeat test config -e
+     ```
+  
+  2. **Check output connectivity**:
+     ```bash
+     sudo filebeat test output -e
+     ```
+  
+  3. **Review service logs**:
+     ```bash
+     sudo journalctl -u filebeat -n 100
+     ```
+  
+  4. **Verify file permissions**:
+     ```bash
+     sudo ls -la /etc/filebeat/filebeat.yml
+     sudo ls -la /var/lib/filebeat
+     ```
+</Accordion>
+
+<Accordion title="No logs forwarded to UTMStack">
+  1. **Check log file paths exist**:
+     ```bash
+     ls -la /var/log/app/*.log
+     ```
+  
+  2. **Verify Filebeat can read files**:
+     ```bash
+     sudo -u filebeat cat /var/log/app/app.log
+     ```
+  
+  3. **Check registry for harvested files**:
+     ```bash
+     sudo cat /var/lib/filebeat/registry/filebeat/log.json | jq
+     ```
+  
+  4. **Test Logstash connectivity**:
+     ```bash
+     telnet utm-server.company.com 5044
+     ```
+</Accordion>
+
+<Accordion title="High CPU/memory usage">
+  1. Reduce harvester count:
+     ```yaml
+     filebeat.inputs:
+       - type: log
+         paths:
+           - /var/log/app/*.log
+         close_inactive: 2m
+     ```
+  
+  2. Limit queue size:
+     ```yaml
+     queue.mem:
+       events: 1024
+     ```
+  
+  3. Disable unnecessary processors
+  4. Use include/exclude patterns to reduce file count
+</Accordion>
+
+## Best practices
+
+<Tip>
+  **Filebeat deployment tips**:
+  - Use specific file paths instead of wildcards when possible
+  - Configure `close_inactive` to release file handles
+  - Enable `clean_inactive` to remove old registry entries
+  - Use TLS for production deployments
+  - Add custom fields for filtering and routing
+  - Monitor Filebeat resource usage
+  - Test multiline patterns thoroughly
+  - Use log rotation to prevent large files
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Custom parsers" href="/data-sources/custom-parsers">
+    Parse custom log formats
+  </Card>
+  <Card title="UTMStack agents" href="/agents/overview">
+    Use agents for better integration
+  </Card>
+  <Card title="Dashboards" href="/operations/dashboards">
+    Visualize collected logs
+  </Card>
+  <Card title="Alerts" href="/operations/alerts">
+    Create alerts on log events
+  </Card>
+</CardGroup>

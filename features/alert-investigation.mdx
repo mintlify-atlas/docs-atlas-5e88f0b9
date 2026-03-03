@@ -1,0 +1,198 @@
+---
+title: Alert Investigation
+description: Comprehensive workflows and tools for investigating, analyzing, and responding to security alerts
+---
+
+## Overview
+
+UTMStack's Alert Investigation capabilities provide security analysts with comprehensive workflows and tools to efficiently investigate, analyze, and respond to security alerts. The platform centralizes all relevant context, evidence, and actions in a unified interface to accelerate incident response.
+
+<Info>
+All alert investigation data is accessible through the `/data` route in the Alert Management module.
+</Info>
+
+## Investigation Workflow
+
+<CardGroup cols={2}>
+  <Card title="Alert Triage" icon="list-check">
+    Quickly review and prioritize alerts based on severity, category, and threat intelligence context.
+  </Card>
+  
+  <Card title="Contextual Analysis" icon="microscope">
+    Access related logs, events, and alerts to understand the full scope of the security incident.
+  </Card>
+  
+  <Card title="Collaborative Investigation" icon="users">
+    Add notes, tags, and collaborate with team members on complex investigations.
+  </Card>
+  
+  <Card title="Response Actions" icon="gavel">
+    Execute response actions directly from the alert interface or escalate to incident management.
+  </Card>
+</CardGroup>
+
+## Alert Details View
+
+Each alert provides comprehensive information:
+
+### Core Alert Information
+- **Alert Name**: Description of the detected threat or anomaly
+- **Category**: Type of security event (malware, network attack, etc.)
+- **Severity**: Risk level (High, Medium, Low)
+- **Status**: Current alert state (Automatic review, Under investigation, Closed)
+- **Timestamp**: When the alert was generated
+- **Data Source**: Which integration or agent generated the alert
+
+### Enrichment Data
+- **Target Information**: Affected users, systems, IP addresses
+- **Adversary Details**: Source IPs, domains, user agents
+- **Threat Intelligence**: Matched IOCs, reputation scores, threat actor info
+- **MITRE ATT&CK**: Mapped tactics, techniques, and procedures
+- **Description**: Detailed explanation of the threat and recommended actions
+
+### Related Events
+- **Last Event**: Most recent event that contributed to the alert
+- **Event Timeline**: Chronological view of all related events
+- **Raw Logs**: Access to underlying log data for deep analysis
+
+<Tip>
+Use the alert detail view to access raw logs with a single click. This allows you to quickly pivot from high-level alerts to detailed log analysis.
+</Tip>
+
+## Alert Management Actions
+
+Perform actions directly from the alert interface:
+
+- **Change Status**: Update alert status to track investigation progress
+- **Adjust Severity**: Modify severity based on investigation findings
+- **Add Tags**: Apply custom tags for categorization and filtering
+- **Add Notes**: Document investigation findings and decisions
+- **Create Incident**: Escalate to formal incident management workflow
+- **Assign Owner**: Delegate investigation to specific team members
+
+## Alert Filtering
+
+Efficiently find relevant alerts using advanced filtering:
+
+- **Status Filters**: View open, closed, or all alerts
+- **Severity Filters**: Focus on High, Medium, or Low severity events
+- **Category Filters**: Filter by alert category or type
+- **Time Range**: Analyze alerts within specific timeframes
+- **Data Source**: View alerts from specific integrations
+- **Custom Filters**: Save frequently used filter combinations
+
+Reference: `frontend/src/app/data-management/alert-management/shared/components/filters/`
+
+## Alert History
+
+Track all changes made to an alert:
+
+- Status changes and who made them
+- Severity adjustments
+- Notes and comments added
+- Tag modifications
+- Assignment changes
+- Related incident associations
+
+Reference: `frontend/src/app/shared/types/alert/alert-history.type.ts`
+
+## Alert Tags
+
+Organize and categorize alerts with tags:
+
+- Apply multiple tags to a single alert
+- Create custom tag taxonomies
+- Filter and search by tags
+- Auto-apply tags based on rules
+- Share tag definitions across teams
+
+Reference: `frontend/src/app/shared/types/alert/alert-tag.type.ts`
+
+## Incident Creation
+
+Escalate alerts to formal incidents:
+
+1. Select one or more related alerts
+2. Create a new incident or add to existing incident
+3. Incident automatically includes alert context and evidence
+4. Continue investigation in the incident management interface (`/incident`)
+5. Track incident through resolution and post-incident review
+
+Reference: `frontend/src/app/incident/incident-shared/component/add-alert-to-incident/`
+
+## Alert Notifications
+
+Stay informed about new and updated alerts:
+
+- **Real-time Notifications**: Get notified of new high-severity alerts
+- **Email Alerts**: Configurable email notifications for alert conditions
+- **WebSocket Updates**: Live alert updates without page refresh
+- **Notification Center**: View recent alerts in the header notification area
+
+Reference: `frontend/src/app/shared/components/layout/header/shared/notification/utm-notification-alert/`
+
+## Alert Rules and Solutions
+
+Access contextual guidance during investigations:
+
+- **Alert Descriptions**: Detailed explanations of what triggered the alert
+- **Recommended Solutions**: Step-by-step remediation guidance
+- **Related Rules**: View the detection rule that generated the alert
+- **Rule Modification**: Tune rules directly from the alert interface
+
+References:
+- `frontend/src/app/shared/types/alert/actions/alert-description.type.ts`
+- `frontend/src/app/shared/types/alert/actions/alert-solution.type.ts`
+
+## Integration with SOAR
+
+Alert investigations can trigger automated response:
+
+- Execute response playbooks from alert interface
+- Automate common investigation tasks
+- Orchestrate actions across security tools
+- Track automation execution in alert history
+
+Access SOAR capabilities at `/soar` route.
+
+## Best Practices
+
+<Tip>
+**Efficient Alert Investigation**
+
+1. Establish standard operating procedures for each alert category
+2. Use tags consistently to track investigation patterns
+3. Document findings in alert notes for knowledge sharing
+4. Escalate to incidents early when scope expands
+5. Regularly review closed alerts to identify trends
+6. Tune rules based on false positive investigations
+7. Leverage SOC AI for initial alert triage and prioritization
+</Tip>
+
+## Reporting
+
+Generate reports from alert data:
+
+- Alert summary reports by time period
+- Category and severity distribution
+- Mean time to detect and respond metrics
+- Analyst performance and workload analysis
+- Custom reports with specific filter criteria
+
+Reference: `frontend/src/app/shared/types/alert/alert-report.type.ts`
+
+## Related Features
+
+- **[Threat Detection](/features/threat-detection)**: How alerts are generated
+- **[SOC AI](/features/soc-ai)**: AI-powered investigation assistance
+- **[Threat Intelligence](/features/threat-intelligence)**: Enrich investigations with threat context
+- **[Log Management](/features/log-management)**: Access raw logs during investigations
+
+## Technical Implementation
+
+References:
+- Alert Management Module: `frontend/src/app/data-management/alert-management/`
+- Alert Services: `frontend/src/app/data-management/alert-management/shared/services/`
+- Alert Types: `frontend/src/app/shared/types/alert/`
+- Alert Constants: `frontend/src/app/shared/constants/alert/`
+- Data Route: `frontend/src/app/app-routing.module.ts:28`

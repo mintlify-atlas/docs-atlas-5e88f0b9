@@ -1,0 +1,132 @@
+---
+title: Azure Integration
+description: Integrate UTMStack with Microsoft Azure Monitor Log Analytics
+---
+
+## Overview
+
+The UTMStack Azure plugin is a connector developed in Golang that retrieves logs from Azure Monitor's Log Analytics workspace and sends them to the UTMStack processing server for comprehensive security monitoring.
+
+## How It Works
+
+The Azure integration:
+
+- Uses the **Azure Go SDK** to communicate with Log Analytics service
+- Leverages the `azidentity` package for Azure authentication
+- Uses the `azquery` package for querying Log Analytics workspace
+- Connects to UTMStack via **GRPC** through a Unix socket
+
+<Note>
+**Prerequisites**
+
+You need a valid Azure subscription with:
+- **Tenant ID**: Your Azure Active Directory tenant ID
+- **Client ID**: Application (client) ID of your registered app
+- **Client Secret**: Client secret for the registered application
+- **Workspace ID**: Log Analytics workspace ID
+</Note>
+
+## Configuration Steps
+
+### 1. Register an Application in Azure AD
+
+1. Navigate to **Azure Active Directory** in the Azure portal
+2. Go to **App registrations** and click **New registration**
+3. Enter a name for the application (e.g., "UTMStack Integration")
+4. Select the appropriate account type
+5. Click **Register**
+
+### 2. Create a Client Secret
+
+1. In your registered application, go to **Certificates & secrets**
+2. Click **New client secret**
+3. Add a description and select an expiration period
+4. Click **Add** and copy the secret value immediately (you won't be able to see it again)
+
+### 3. Grant Permissions to Log Analytics
+
+1. Navigate to your **Log Analytics workspace**
+2. Go to **Access control (IAM)**
+3. Click **Add role assignment**
+4. Select **Log Analytics Reader** role
+5. Search for and select your registered application
+6. Click **Save**
+
+### 4. Gather Required Information
+
+Collect the following information:
+
+- **Tenant ID**: Found in Azure Active Directory > Overview
+- **Client ID**: Found in your App registration > Overview
+- **Client Secret**: The secret value you created earlier
+- **Workspace ID**: Found in Log Analytics workspace > Overview
+
+### 5. Configure in UTMStack
+
+1. Navigate to **Integrations** in the UTMStack console
+2. Select **Microsoft Azure**
+3. Enter the required credentials:
+   - Tenant ID
+   - Client ID
+   - Client Secret
+   - Workspace ID
+4. Click **Save** to activate the integration
+
+### 6. Verify Integration
+
+Once configured, the plugin will:
+
+1. Authenticate with Azure using the provided credentials
+2. Query the Log Analytics workspace for security events
+3. Forward events to UTMStack for processing and correlation
+
+You can verify the integration is working by:
+
+- Checking the integration status in UTMStack console
+- Viewing incoming Azure events in the Events dashboard
+- Monitoring the plugin logs for connection status
+
+## Supported Data Sources
+
+The Azure integration can collect data from various sources in Log Analytics:
+
+- **Azure Activity Logs**: Subscription-level events
+- **Azure AD Sign-in Logs**: Authentication events
+- **Azure AD Audit Logs**: Directory changes
+- **Security Center Alerts**: Security recommendations and alerts
+- **Azure Firewall Logs**: Network traffic and threat detection
+- **NSG Flow Logs**: Network security group traffic
+- **Key Vault Logs**: Secret access and changes
+- **Application Insights**: Application telemetry
+
+## Query Customization
+
+The plugin queries Log Analytics using KQL (Kusto Query Language). You can customize which logs are collected by configuring the query parameters in UTMStack.
+
+## Troubleshooting
+
+### Authentication Errors
+
+- Verify all credentials (Tenant ID, Client ID, Client Secret) are correct
+- Ensure the client secret has not expired
+- Check that the application has been granted proper permissions
+
+### No Data Received
+
+- Verify the Workspace ID is correct
+- Ensure the Log Analytics workspace contains data
+- Check that diagnostic settings are configured to send logs to the workspace
+- Review plugin logs for specific error messages
+
+### Permission Issues
+
+- Ensure the application has the Log Analytics Reader role
+- Verify the role assignment is at the correct scope (workspace level)
+- Check if conditional access policies are blocking the application
+
+## Security Best Practices
+
+- Regularly rotate client secrets (before expiration)
+- Use the principle of least privilege for role assignments
+- Monitor the application's sign-in activity in Azure AD
+- Enable Azure AD audit logging for the service principal

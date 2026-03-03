@@ -1,0 +1,480 @@
+---
+title: Custom Compliance Standards
+description: Create and monitor custom compliance standards tailored to your organization's specific regulatory and business requirements
+---
+
+# Custom Compliance Standards
+
+While UTMStack provides pre-built compliance frameworks for major standards like HIPAA, SOC 2, and CMMC, many organizations need to monitor compliance with custom requirements, industry-specific regulations, or internal security policies. UTMStack's flexible compliance engine allows you to create and monitor custom compliance standards.
+
+## When to Use Custom Standards
+
+Consider creating custom compliance standards when:
+
+- Your industry has specific regulatory requirements not covered by standard frameworks
+- Your organization has internal security policies requiring monitoring
+- You need to combine requirements from multiple frameworks
+- You operate in multiple jurisdictions with different compliance needs
+- You have contractual obligations with specific compliance requirements
+
+<Info>
+  **Best Practice**: Even when using pre-built standards, create custom controls for organization-specific policies and procedures that extend beyond regulatory baselines.
+</Info>
+
+## Custom Compliance Architecture
+
+### Compliance Components
+
+A custom compliance standard consists of several components:
+
+```json
+{
+  "standard": {
+    "name": "Financial Services Security Standard",
+    "version": "1.0",
+    "description": "Custom compliance standard for financial services operations",
+    "domains": [
+      {
+        "id": "FSSS-AC",
+        "name": "Access Control",
+        "controls": [
+          {
+            "id": "FSSS-AC-01",
+            "description": "Multi-factor authentication required for all financial system access",
+            "rules": ["mfa_enforcement", "financial_system_access"],
+            "evidence_requirements": ["authentication_logs", "mfa_usage_reports"]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Control Hierarchy
+
+Organize custom standards in a logical hierarchy:
+
+1. **Standard**: Top-level compliance framework
+2. **Domains**: Logical groupings of related controls (e.g., Access Control, Data Protection)
+3. **Controls**: Specific security requirements or objectives
+4. **Rules**: UTMStack detection rules that validate control implementation
+5. **Evidence**: Logs, events, and reports that demonstrate compliance
+
+## Creating Custom Standards
+
+### Step 1: Define Requirements
+
+Identify and document your compliance requirements:
+
+- Review applicable regulations and standards
+- Document internal security policies
+- Identify contractual obligations
+- Consult with legal and compliance teams
+- Map requirements to technical controls
+
+### Step 2: Design Control Framework
+
+Organize requirements into a structured framework:
+
+```yaml
+standard_name: PCI DSS Custom Extension
+version: 1.0
+domains:
+  - name: Enhanced Authentication
+    controls:
+      - id: PCI-AUTH-01
+        description: Biometric authentication for card data access
+        severity: high
+        required_evidence:
+          - biometric_authentication_logs
+          - access_audit_trail
+        monitoring_frequency: real-time
+        
+  - name: Advanced Encryption
+    controls:
+      - id: PCI-ENC-01
+        description: AES-256 encryption for all cardholder data
+        severity: critical
+        required_evidence:
+          - encryption_status_logs
+          - key_management_audit
+        monitoring_frequency: continuous
+```
+
+### Step 3: Create Detection Rules
+
+Develop UTMStack rules to monitor each control:
+
+```json
+{
+  "rule": {
+    "name": "FSSS-AC-01: MFA Not Used for Financial System",
+    "description": "Detects financial system access without MFA",
+    "severity": "high",
+    "query": {
+      "bool": {
+        "must": [
+          {"match": {"event.category": "authentication"}},
+          {"match": {"event.outcome": "success"}},
+          {"match": {"app.name": "financial_system"}}
+        ],
+        "must_not": [
+          {"exists": {"field": "auth.mfa.verified"}}
+        ]
+      }
+    },
+    "actions": [
+      {
+        "type": "alert",
+        "priority": "high",
+        "notify": ["security-team@company.com", "compliance@company.com"]
+      },
+      {
+        "type": "ticket",
+        "system": "jira",
+        "project": "COMPLIANCE",
+        "issue_type": "Violation"
+      }
+    ]
+  }
+}
+```
+
+### Step 4: Configure Evidence Collection
+
+Specify what evidence should be collected for each control:
+
+- **Log Sources**: Systems and applications providing evidence
+- **Retention Period**: How long evidence must be retained
+- **Storage Location**: Where evidence is archived
+- **Access Controls**: Who can access compliance evidence
+
+<Info>
+  **Compliance Tip**: Retention periods should align with regulatory requirements. When in doubt, retain evidence longer rather than shorter.
+</Info>
+
+### Step 5: Build Compliance Dashboard
+
+Create a dashboard to visualize compliance status:
+
+- Overall compliance score
+- Control status by domain
+- Recent violations and exceptions
+- Evidence collection status
+- Trending and historical analysis
+
+## Example: Custom GDPR Monitoring
+
+Here's a complete example for custom GDPR compliance monitoring:
+
+### GDPR Control Definition
+
+```json
+{
+  "standard": "GDPR Data Protection",
+  "domains": [
+    {
+      "name": "Data Subject Rights",
+      "controls": [
+        {
+          "id": "GDPR-DSR-01",
+          "article": "Article 15",
+          "requirement": "Right of access by the data subject",
+          "description": "Monitor and track all data subject access requests",
+          "monitoring": {
+            "data_sources": ["privacy_portal", "email_gateway", "customer_service"],
+            "detection_criteria": "subject_access_request keyword or form submission",
+            "response_sla": "30 days",
+            "escalation": "privacy@company.com"
+          }
+        },
+        {
+          "id": "GDPR-DSR-02",
+          "article": "Article 17",
+          "requirement": "Right to erasure (right to be forgotten)",
+          "description": "Track deletion requests and verify complete data removal",
+          "monitoring": {
+            "data_sources": ["all_databases", "backup_systems", "third_party_processors"],
+            "verification": "automated_deletion_audit",
+            "response_sla": "30 days",
+            "evidence": "deletion_certificate"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Data Breach Notification",
+      "controls": [
+        {
+          "id": "GDPR-BREACH-01",
+          "article": "Article 33",
+          "requirement": "Notification of breach to supervisory authority",
+          "description": "Detect potential personal data breaches and ensure 72-hour notification",
+          "monitoring": {
+            "detection": "automated_breach_detection",
+            "workflow": "breach_assessment_and_notification",
+            "notification_sla": "72 hours",
+            "required_documentation": [
+              "breach_nature",
+              "affected_individuals_count",
+              "consequences",
+              "remediation_measures"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### GDPR Monitoring Rules
+
+```javascript
+// Rule: GDPR-DSR-01 - Track Subject Access Requests
+{
+  name: "GDPR Subject Access Request Received",
+  description: "Detects and tracks data subject access requests",
+  severity: "medium",
+  query: `
+    event.category: "web" AND 
+    (request.body: "subject access request" OR 
+     form.type: "sar_submission" OR
+     email.subject: "GDPR access request")
+  `,
+  enrichment: {
+    extract_fields: ["data_subject.email", "request.timestamp", "request.scope"],
+    create_case: true,
+    due_date: "30 days",
+    assign_to: "privacy_team"
+  }
+}
+
+// Rule: GDPR-BREACH-01 - Detect Potential Data Breaches
+{
+  name: "GDPR Potential Personal Data Breach",
+  description: "Detects events indicating potential breach of personal data",
+  severity: "critical",
+  query: `
+    (event.category: "database" AND action: "bulk_export" AND record_count: >1000) OR
+    (event.category: "file_access" AND file.classification: "personal_data" AND 
+     user.type: "unauthorized") OR
+    (event.category: "malware" AND data.classification: "personal_data")
+  `,
+  actions: [
+    {
+      type: "immediate_alert",
+      notify: ["dpo@company.com", "security-soc@company.com"]
+    },
+    {
+      type: "create_incident",
+      template: "gdpr_breach_assessment",
+      severity: "critical",
+      sla: "72 hours"
+    },
+    {
+      type: "start_workflow",
+      workflow: "breach_notification_process"
+    }
+  ]
+}
+```
+
+## Industry-Specific Examples
+
+### Financial Services (Custom PCI DSS)
+
+```yaml
+standard: Enhanced PCI DSS
+extends: pci_dss_v4
+custom_controls:
+  - id: EPCI-TXN-01
+    description: Real-time transaction monitoring for anomalies
+    threshold: $10,000 single transaction or $50,000 daily aggregate
+    monitoring: continuous
+    
+  - id: EPCI-GEO-01
+    description: Geographic access restrictions for cardholder data
+    allowed_countries: [US, CA, UK]
+    alert_on: access_from_disallowed_country
+```
+
+### Healthcare (Custom HIPAA)
+
+```yaml
+standard: Extended HIPAA Security
+extends: hipaa
+custom_controls:
+  - id: EHIPAA-TELEMEDICINE-01
+    description: Telemedicine platform security monitoring
+    requirements:
+      - end_to_end_encryption
+      - session_recording_disabled
+      - patient_consent_verified
+      - provider_authentication
+    
+  - id: EHIPAA-RESEARCH-01
+    description: De-identification verification for research data
+    validation: automated_phi_detection
+    approval: irb_required
+```
+
+### Manufacturing (Custom CMMC)
+
+```yaml
+standard: Supply Chain Security Standard
+extends: cmmc_level2
+custom_controls:
+  - id: SCSS-SUPPLIER-01
+    description: Third-party supplier access monitoring
+    requirements:
+      - dedicated_supplier_portal
+      - time_limited_access
+      - data_access_logging
+      - quarterly_access_review
+```
+
+<Info>
+  **Integration Tip**: Custom standards can extend pre-built frameworks, inheriting all controls and adding your specific requirements.
+</Info>
+
+## Compliance Automation
+
+### Automated Control Testing
+
+Schedule regular automated testing of controls:
+
+```json
+{
+  "control_test": {
+    "control_id": "FSSS-AC-01",
+    "test_schedule": "daily",
+    "test_type": "automated",
+    "test_procedure": {
+      "step1": "Query authentication logs for financial system access",
+      "step2": "Verify MFA was used for each access event",
+      "step3": "Calculate compliance percentage",
+      "step4": "Generate exception report for non-compliant events"
+    },
+    "success_criteria": "100% of access events use MFA",
+    "failure_action": "alert_compliance_team"
+  }
+}
+```
+
+### Continuous Compliance Scoring
+
+Calculate real-time compliance scores:
+
+- **Domain scores**: Compliance level for each domain
+- **Overall score**: Aggregate compliance across all controls
+- **Trend analysis**: Compliance trajectory over time
+- **Risk scoring**: Weight controls by risk level
+
+### Exception Management
+
+Track and manage compliance exceptions:
+
+```json
+{
+  "exception": {
+    "control_id": "FSSS-ENC-02",
+    "description": "Legacy system cannot support required encryption standard",
+    "risk_level": "medium",
+    "compensating_controls": [
+      "Network segmentation isolates legacy system",
+      "Enhanced monitoring of all access",
+      "Quarterly penetration testing"
+    ],
+    "remediation_plan": "System upgrade scheduled for Q3 2026",
+    "approved_by": "CISO",
+    "approval_date": "2026-01-15",
+    "expiration_date": "2026-09-30"
+  }
+}
+```
+
+## Custom Compliance Reporting
+
+### Executive Dashboard
+
+High-level compliance overview for leadership:
+
+- Overall compliance percentage
+- Compliance by domain
+- Critical violations requiring attention
+- Trending and improvement metrics
+- Comparison to previous periods
+
+### Technical Report
+
+Detailed report for security and compliance teams:
+
+- Control-by-control assessment
+- Evidence collection status
+- Detailed violation logs
+- Remediation tracking
+- Testing results
+
+### Audit Report
+
+Audit-ready evidence packages:
+
+- Control objectives and implementation
+- Evidence organized by control
+- Testing methodology and results
+- Exception documentation
+- Compliance certifications
+
+<Info>
+  **Report Customization**: Use UTMStack's report builder to create custom reports that match your organization's format and branding requirements.
+</Info>
+
+## Best Practices
+
+### Control Design
+
+- **Measurable**: Controls should have clear, measurable success criteria
+- **Automated**: Prefer automated monitoring over manual checks
+- **Actionable**: Controls should trigger specific remediation actions
+- **Documented**: Maintain clear documentation for each control
+
+### Rule Development
+
+- **Accurate**: Minimize false positives through careful rule tuning
+- **Complete**: Ensure rules cover all aspects of the control
+- **Tested**: Validate rules before production deployment
+- **Maintained**: Regularly review and update rules
+
+### Evidence Management
+
+- **Comprehensive**: Collect sufficient evidence to demonstrate compliance
+- **Secure**: Protect compliance evidence from tampering
+- **Retained**: Maintain evidence for required retention periods
+- **Accessible**: Ensure evidence can be retrieved for audits
+
+### Governance
+
+- **Version Control**: Track changes to compliance standards
+- **Change Management**: Formal process for modifying controls
+- **Regular Review**: Quarterly review of custom standards
+- **Stakeholder Input**: Include security, legal, and business teams
+
+## Migration and Updates
+
+Managing changes to custom compliance standards:
+
+1. **Version Management**: Maintain version history of standards
+2. **Impact Analysis**: Assess impact of proposed changes
+3. **Phased Rollout**: Implement changes gradually
+4. **Parallel Monitoring**: Run old and new standards simultaneously during transition
+5. **Validation**: Verify new controls work as expected
+6. **Documentation**: Update all compliance documentation
+
+## Related Topics
+
+- [Compliance Overview](/compliance/overview)
+- [HIPAA Compliance](/compliance/hipaa)
+- [SOC 2 Compliance](/compliance/soc2)
+- [CMMC Compliance](/compliance/cmmc)

@@ -1,80 +1,175 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get started with UTMStack in minutes - from installation to first login
 ---
 
-## Get started in three steps
+This guide will help you quickly set up UTMStack and access the platform for the first time.
 
-Get your documentation site running locally and make your first customization.
+<Note>
+  This quick start guide uses the installer file method on Ubuntu 22.04 LTS. For ISO installation or detailed options, see the [full installation guide](/installation).
+</Note>
 
-### Step 1: Set up your local environment
+## Prerequisites
+
+Before you begin, ensure you have:
+- A fresh Ubuntu 22.04 LTS server installation
+- Root or sudo access to the server
+- Minimum system resources based on your deployment size (see [System Requirements](/system-requirements))
+- Internet connectivity for downloading the installer
+
+## Installation Steps
+
+<Steps>
+  <Step title="Update Package List">
+    Update your system's package list to ensure you have the latest package information:
+    
+    ```bash
+    sudo apt update
+    ```
+  </Step>
+
+  <Step title="Install WGET">
+    Install wget to download the UTMStack installer:
+    
+    ```bash
+    sudo apt install wget
+    ```
+  </Step>
+
+  <Step title="Download Installer">
+    Download the latest version of the UTMStack installer from GitHub:
+    
+    ```bash
+    wget http://github.com/utmstack/UTMStack/releases/latest/download/installer
+    ```
+  </Step>
+
+  <Step title="Switch to Root User">
+    Switch to the root user for installation:
+    
+    ```bash
+    sudo su
+    ```
+  </Step>
+
+  <Step title="Set Execute Permissions">
+    Make the installer executable:
+    
+    ```bash
+    chmod +x installer
+    ```
+  </Step>
+
+  <Step title="Run the Installer">
+    Execute the installer without parameters:
+    
+    ```bash
+    ./installer
+    ```
+    
+    The installer will guide you through the setup process and generate necessary configurations.
+  </Step>
+</Steps>
+
+## First Login
+
+Once the installation is complete, you can access UTMStack:
+
+<Steps>
+  <Step title="Find Your Credentials">
+    After installation, your login credentials are generated and stored in:
+    
+    ```bash
+    /root/utmstack.yml
+    ```
+    
+    <Note>
+      Default username is `admin`. The password is automatically generated during installation and can be found in the utmstack.yml file.
+    </Note>
+  </Step>
+
+  <Step title="Access the Login Page">
+    Open your web browser and navigate to your UTMStack server using HTTPS:
+    
+    ```
+    https://your-server-ip-or-hostname
+    ```
+    
+    <Warning>
+      Always use HTTPS (not HTTP) to access the UTMStack login page for secure communication.
+    </Warning>
+  </Step>
+
+  <Step title="Login">
+    Enter your credentials:
+    - **Username:** `admin`
+    - **Password:** (from `/root/utmstack.yml`)
+  </Step>
+</Steps>
+
+## Required Firewall Ports
+
+Ensure the following ports are accessible:
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+  <Accordion title="Port 22/TCP - SSH" icon="terminal">
+    Secure Shell access for server administration.
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
+    <Warning>
+      Restrict access to admin workstations only.
+    </Warning>
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+
+  <Accordion title="Port 80/TCP - HTTP Redirector" icon="arrow-right">
+    Redirects HTTP traffic to HTTPS.
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+    <Warning>
+      Restrict access to admin and security analyst workstations only.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Port 443/TCP - HTTPS" icon="lock">
+    UTMStack Web-based Graphical User Interface.
+    
+    <Warning>
+      Restrict access to admin and security analyst workstations only.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Port 9090/TCP - Cockpit" icon="gauge">
+    Cockpit Web-based Graphical Interface for server management.
+    
+    <Warning>
+      Restrict access to admin workstation only.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Integration Ports" icon="plug">
+    Additional ports may be required when configuring UTMStack integrations to receive logs.
+    
+    <Note>
+      Follow the security recommendations provided in each integration guide.
+    </Note>
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
+## Next Steps
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Configure Integrations" icon="plug">
+    Connect your data sources to start collecting logs
+  </Card>
+  <Card title="Set Up Users" icon="users">
+    Create user accounts for your security team
+  </Card>
+  <Card title="Configure Alerts" icon="bell">
+    Set up alert rules and notification channels
+  </Card>
+  <Card title="Explore Dashboard" icon="chart-line">
+    Familiarize yourself with the UTMStack interface
+  </Card>
 </CardGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  For detailed installation options including ISO installation, see the [full installation guide](/installation).
 </Note>

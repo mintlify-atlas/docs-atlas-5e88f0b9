@@ -1,0 +1,319 @@
+---
+title: CMMC Compliance Monitoring
+description: Achieve Cybersecurity Maturity Model Certification (CMMC) compliance for defense contractors with UTMStack's monitoring capabilities
+---
+
+# CMMC Compliance Monitoring
+
+The Cybersecurity Maturity Model Certification (CMMC) is a unified standard for implementing cybersecurity across the Defense Industrial Base (DIB). UTMStack provides comprehensive monitoring and reporting capabilities to help defense contractors achieve and maintain CMMC certification.
+
+## CMMC Framework Overview
+
+CMMC 2.0 consists of three maturity levels:
+
+### Level 1 - Foundational
+
+Basic cyber hygiene practices to protect Federal Contract Information (FCI):
+
+- 17 practices from NIST SP 800-171
+- Annual self-assessment
+- Suitable for contractors handling FCI only
+
+### Level 2 - Advanced
+
+Advanced cybersecurity practices to protect Controlled Unclassified Information (CUI):
+
+- All 110 practices from NIST SP 800-171
+- Triennial assessment by certified assessor
+- Required for most DoD contractors
+
+### Level 3 - Expert
+
+Advanced and progressive cybersecurity practices:
+
+- Level 2 requirements plus additional practices
+- Subset of NIST SP 800-172 requirements
+- Government-led assessment
+- Required for highest priority programs
+
+<Info>
+  **Compliance Tip**: Most defense contractors need CMMC Level 2 certification. Start with a gap assessment to identify which controls require monitoring.
+</Info>
+
+## CMMC Domains
+
+CMMC organizes requirements into 14 capability domains:
+
+| Domain | Focus Area | UTMStack Monitoring |
+|--------|-----------|---------------------|
+| Access Control (AC) | Limit system access to authorized users | User authentication, authorization, privilege monitoring |
+| Asset Management (AM) | Identify and manage assets | Asset inventory, configuration monitoring |
+| Audit and Accountability (AU) | Create and maintain audit logs | Log collection, retention, analysis |
+| Awareness and Training (AT) | Security awareness activities | Training completion tracking |
+| Configuration Management (CM) | Establish and maintain configurations | Configuration drift detection, change control |
+| Identification and Authentication (IA) | Verify user identities | Authentication monitoring, MFA enforcement |
+| Incident Response (IR) | Detect and respond to incidents | Incident detection, response workflow |
+| Maintenance (MA) | Perform system maintenance | Maintenance activity logging |
+| Media Protection (MP) | Protect and control media | Removable media monitoring, data sanitization |
+| Physical Protection (PE) | Limit physical access | Physical access logs, badge system integration |
+| Personnel Security (PS) | Screen and monitor personnel | Background check tracking |
+| Recovery (RE) | Recover from incidents | Backup monitoring, recovery testing |
+| Risk Management (RM) | Identify and manage risks | Vulnerability management, risk assessment |
+| Security Assessment (CA) | Assess security controls | Control testing, assessment tracking |
+| System and Communications Protection (SC) | Monitor and control communications | Network traffic analysis, encryption monitoring |
+| System and Information Integrity (SI) | Identify and address flaws | Integrity monitoring, malware detection |
+
+## UTMStack CMMC Monitoring Approach
+
+### Access Control (AC)
+
+Monitor and enforce access control policies:
+
+```json
+{
+  "practice": "AC.L2-3.1.1",
+  "requirement": "Limit system access to authorized users",
+  "monitoring": [
+    {
+      "control": "user_authentication",
+      "events": ["login_success", "login_failure", "session_timeout"],
+      "alerting": "excessive_failed_attempts"
+    },
+    {
+      "control": "authorization_verification",
+      "events": ["access_granted", "access_denied"],
+      "alerting": "unauthorized_access_attempt"
+    }
+  ]
+}
+```
+
+### Audit and Accountability (AU)
+
+CMMC requires comprehensive audit logging for CUI systems:
+
+- **AU.L2-3.3.1**: Create audit records with specific content requirements
+- **AU.L2-3.3.2**: Ensure actions can be traced to individual users
+- **AU.L2-3.3.3**: Review and update logged events
+- **AU.L2-3.3.4**: Alert on audit logging failures
+- **AU.L2-3.3.5**: Correlate audit records across repositories
+- **AU.L2-3.3.6**: Provide audit reduction and report generation
+- **AU.L2-3.3.7**: Provide centralized audit record review and analysis
+- **AU.L2-3.3.8**: Protect audit information from unauthorized access
+- **AU.L2-3.3.9**: Limit audit record management to authorized personnel
+
+UTMStack automatically satisfies these requirements through centralized log collection, correlation, and secure storage.
+
+<Info>
+  **Best Practice**: UTMStack's SIEM capabilities directly address the audit and accountability domain. Configure appropriate retention periods based on CMMC requirements (typically 1 year minimum).
+</Info>
+
+### Incident Response (IR)
+
+Comprehensive incident detection and response:
+
+- **IR.L2-3.6.1**: Establish incident response capability
+- **IR.L2-3.6.2**: Track, document, and report incidents
+- **IR.L2-3.6.3**: Test incident response capability
+
+UTMStack provides:
+
+- Real-time threat detection and alerting
+- Incident workflow and case management
+- Automated incident documentation
+- Integration with NIST 800-61 incident response procedures
+
+### System and Information Integrity (SI)
+
+Monitor system integrity and detect malicious code:
+
+- File integrity monitoring for CUI systems
+- Malware detection and prevention
+- Security alert and advisory monitoring
+- Software and firmware integrity verification
+- Network traffic anomaly detection
+
+## CMMC Compliance Rules
+
+Pre-built rules mapped to CMMC practices:
+
+| Rule | CMMC Practice | Description | Severity |
+|------|---------------|-------------|----------|
+| Unauthorized CUI Access | AC.L2-3.1.1 | Access to CUI by unauthorized user | Critical |
+| Missing MFA on Privileged Account | IA.L2-3.5.3 | Privileged access without multi-factor authentication | High |
+| Audit Logging Failure | AU.L2-3.3.4 | System failed to generate audit records | Critical |
+| Unencrypted CUI at Rest | SC.L2-3.13.16 | CUI stored without encryption | Critical |
+| Unencrypted CUI in Transit | SC.L2-3.13.11 | CUI transmitted without encryption | Critical |
+| Malware Detection | SI.L2-3.14.1 | Malicious code detected on CUI system | High |
+| Configuration Change Detected | CM.L2-3.4.3 | Unauthorized configuration change | Medium |
+| Failed Backup | RE.L2-3.13.1 | System backup failed or incomplete | High |
+| Vulnerability Detected | RM.L2-3.11.2 | Security vulnerability identified | Medium |
+| Removable Media Usage | MP.L2-3.8.2 | Unauthorized removable media connected | Medium |
+
+## CMMC Assessment Evidence
+
+UTMStack generates evidence required for CMMC assessments:
+
+### Practice Implementation Evidence
+
+For each CMMC practice, UTMStack provides:
+
+- **Policies and Procedures**: References to documented controls
+- **Implementation Evidence**: Logs and events demonstrating control operation
+- **Testing Results**: Validation of control effectiveness
+- **Continuous Monitoring**: Ongoing evidence of control maintenance
+
+### Assessment Artifacts
+
+UTMStack can generate:
+
+- System Security Plans (SSP) supporting documentation
+- Plan of Action and Milestones (POA&M) tracking
+- Incident response documentation
+- Access control matrices
+- Audit log reports
+- Configuration management records
+
+<Info>
+  **Assessment Preparation**: Start collecting evidence at least 6 months before your planned assessment. CMMC assessors look for sustained implementation, not point-in-time compliance.
+</Info>
+
+## CUI Protection Monitoring
+
+Special focus on Controlled Unclassified Information (CUI) protection:
+
+### CUI Identification and Tracking
+
+- Label and track systems containing CUI
+- Monitor data flows containing CUI
+- Detect CUI in unauthorized locations
+- Track CUI disposal and destruction
+
+### CUI Access Monitoring
+
+```json
+{
+  "asset": "CUI_DATABASE_01",
+  "classification": "CUI",
+  "access_event": {
+    "timestamp": "2026-03-03T11:22:45Z",
+    "user": "engineer@contractor.mil",
+    "clearance": "verified",
+    "need_to_know": "verified",
+    "action": "READ",
+    "records_accessed": 15,
+    "mfa_verified": true,
+    "result": "ALLOWED"
+  }
+}
+```
+
+### CUI Transmission Security
+
+Monitor CUI transmissions for proper security:
+
+- Encryption verification (FIPS 140-2 compliant)
+- Transmission destination validation
+- Data loss prevention (DLP) monitoring
+- Email and file transfer monitoring
+
+## Required Data Sources
+
+Integrate these data sources for CMMC compliance monitoring:
+
+- **Windows Systems**: Event logs from workstations and servers handling CUI
+- **Active Directory**: Authentication and authorization events
+- **Network Devices**: Firewalls, routers, switches protecting CUI networks
+- **Email Gateway**: Email security and DLP logs
+- **Endpoint Protection**: Antivirus, EDR, and endpoint security tools
+- **Database Systems**: Audit logs from databases containing CUI
+- **Application Logs**: Custom applications processing CUI
+- **Cloud Services**: Office 365, Azure, AWS logs (if storing CUI)
+- **Physical Access**: Badge readers and facility access systems
+- **Vulnerability Scanners**: Tenable, Qualys, or similar tools
+
+## Implementation Steps
+
+1. **Scope Definition**: Identify systems that process, store, or transmit CUI
+2. **Gap Assessment**: Compare current state against CMMC Level 2 requirements
+3. **Network Segmentation**: Isolate CUI environment for focused monitoring
+4. **Data Source Integration**: Connect all CUI systems to UTMStack
+5. **Enable CMMC Rules**: Activate CMMC-specific compliance rules
+6. **Tag CUI Assets**: Label systems and data containing CUI
+7. **Configure Alerts**: Set up notifications for CMMC violations
+8. **Evidence Collection**: Begin automated evidence gathering
+9. **Quarterly Reviews**: Schedule regular compliance reviews
+
+## CMMC Assessment Preparation
+
+### Pre-Assessment Activities
+
+6-12 months before assessment:
+
+- Complete initial gap assessment
+- Implement missing controls
+- Begin evidence collection
+- Conduct internal assessments
+- Remediate identified gaps
+
+### Assessment Readiness
+
+3 months before assessment:
+
+- Validate all controls are operating effectively
+- Compile evidence packages by domain
+- Conduct mock assessment
+- Prepare System Security Plan (SSP)
+- Review Plan of Action and Milestones (POA&M)
+
+<Info>
+  **Documentation Tip**: UTMStack's compliance dashboards can be exported as PDF reports to include in your assessment evidence package.
+</Info>
+
+### During Assessment
+
+UTMStack supports the assessment process:
+
+- Real-time demonstration of controls
+- Evidence retrieval for assessor review
+- Audit trail documentation
+- Incident history reporting
+
+## Continuous Compliance
+
+Maintaining CMMC certification requires ongoing effort:
+
+- **Continuous Monitoring**: Real-time monitoring of all CMMC controls
+- **Quarterly Self-Assessments**: Regular validation of control effectiveness
+- **Annual Policy Review**: Update security policies and procedures
+- **Incident Response Exercises**: Test IR capabilities quarterly
+- **Vulnerability Management**: Regular scanning and patching
+- **Access Reviews**: Quarterly recertification of user access
+- **Training**: Annual security awareness training for all personnel
+- **Third-Party Risk**: Monitor suppliers and service providers
+
+## NIST SP 800-171 Alignment
+
+CMMC Level 2 is based on NIST SP 800-171. UTMStack's monitoring capabilities align with all 110 security requirements:
+
+- Access Control (22 requirements)
+- Awareness and Training (3 requirements)
+- Audit and Accountability (9 requirements)
+- Configuration Management (9 requirements)
+- Identification and Authentication (11 requirements)
+- Incident Response (3 requirements)
+- Maintenance (6 requirements)
+- Media Protection (9 requirements)
+- Personnel Security (2 requirements)
+- Physical Protection (6 requirements)
+- Risk Assessment (3 requirements)
+- Security Assessment (4 requirements)
+- System and Communications Protection (18 requirements)
+- System and Information Integrity (15 requirements)
+
+## Related Topics
+
+- [Compliance Overview](/compliance/overview)
+- [HIPAA Compliance](/compliance/hipaa)
+- [SOC 2 Compliance](/compliance/soc2)
+- [Custom Compliance Standards](/compliance/custom-standards)

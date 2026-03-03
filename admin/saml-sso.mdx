@@ -1,0 +1,521 @@
+---
+title: SAML SSO Configuration
+description: Configure SAML-based single sign-on for enterprise authentication in UTMStack
+---
+
+## Overview
+
+UTMStack supports SAML 2.0 single sign-on (SSO) integration using Spring Security SAML2 Service Provider. SAML SSO enables centralized authentication through your enterprise identity provider (IdP), providing:
+
+- Centralized user management
+- Single sign-on across applications
+- Automated user provisioning
+- Role mapping from IdP attributes
+- Enhanced security through IdP policies
+
+<Warning>
+SAML configuration requires coordination between UTMStack administrators and your identity provider administrators. Incorrect configuration can prevent all users from logging in. Always maintain a local administrator account as a backup.
+</Warning>
+
+## Supported Identity Providers
+
+UTMStack's SAML implementation works with any SAML 2.0 compliant identity provider:
+
+- Okta
+- Azure Active Directory (Microsoft Entra ID)
+- Google Workspace
+- OneLogin
+- PingFederate
+- ADFS (Active Directory Federation Services)
+- Auth0
+- Custom SAML 2.0 providers
+
+## SAML Architecture
+
+UTMStack acts as a SAML Service Provider (SP):
+
+```
+User → Identity Provider (IdP) → UTMStack (SP)
+  ↓
+SAML Response
+  ↓
+Authentication + Attributes
+  ↓
+Role Mapping + Session Creation
+```
+
+**Key Components:**
+- **Service Provider (SP)**: UTMStack
+- **Identity Provider (IdP)**: Your enterprise SSO provider
+- **SAML Metadata**: XML configuration exchanged between SP and IdP
+- **Assertions**: Signed statements about user identity and attributes
+
+## Initial SAML Setup
+
+### Step 1: Gather UTMStack Metadata
+
+<Steps>
+  <Step title="Access SAML Configuration">
+    Navigate to **Settings > Authentication > SAML SSO** in UTMStack.
+  </Step>
+  
+  <Step title="Download SP Metadata">
+    Click **Download Metadata** to get the Service Provider metadata XML file.
+  </Step>
+  
+  <Step title="Note SP URLs">
+    Record the following URLs for IdP configuration:
+    - **Entity ID**: `https://your-utmstack-instance.com/saml2/service-provider-metadata`
+    - **ACS URL**: `https://your-utmstack-instance.com/login/saml2/sso`
+    - **Metadata URL**: `https://your-utmstack-instance.com/saml2/service-provider-metadata`
+  </Step>
+</Steps>
+
+### Step 2: Configure Identity Provider
+
+Configuration varies by IdP. General steps:
+
+<Steps>
+  <Step title="Create SAML Application">
+    In your IdP admin console, create a new SAML 2.0 application for UTMStack.
+  </Step>
+  
+  <Step title="Upload SP Metadata">
+    Upload the UTMStack metadata XML file or manually enter the SP URLs.
+  </Step>
+  
+  <Step title="Configure Attribute Mapping">
+    Map IdP attributes to SAML assertions:
+    - **Email** (required): `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress`
+    - **First Name**: `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname`
+    - **Last Name**: `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname`
+    - **Groups/Roles**: `http://schemas.xmlsoap.org/claims/Group`
+  </Step>
+  
+  <Step title="Configure Name ID">
+    Set Name ID format to **Email Address** or **Persistent**.
+  </Step>
+  
+  <Step title="Download IdP Metadata">
+    Download the IdP metadata XML file for UTMStack configuration.
+  </Step>
+</Steps>
+
+### Step 3: Configure UTMStack
+
+<Steps>
+  <Step title="Upload IdP Metadata">
+    In **Settings > Authentication > SAML SSO**, click **Upload IdP Metadata** and select the XML file from your IdP.
+  </Step>
+  
+  <Step title="Configure Attribute Mapping">
+    Map SAML attributes to UTMStack user properties:
+    - **Email**: SAML attribute name for email (e.g., `email` or `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress`)
+    - **First Name**: Attribute for first name
+    - **Last Name**: Attribute for last name
+    - **Groups**: Attribute containing group/role information
+  </Step>
+  
+  <Step title="Configure Role Mapping">
+    Map IdP groups to UTMStack roles (see [Role Mapping](#role-mapping) below).
+  </Step>
+  
+  <Step title="Enable SAML SSO">
+    Toggle **Enable SAML SSO** and save the configuration.
+  </Step>
+  
+  <Step title="Test Authentication">
+    Click **Test SAML Connection** to verify the configuration before enabling for all users.
+  </Step>
+</Steps>
+
+<Warning>
+Before enabling SAML for all users, thoroughly test the configuration with a test account. Ensure at least one local administrator account remains active as a backup authentication method.
+</Warning>
+
+## Role Mapping
+
+Map IdP groups to UTMStack roles for automatic permission assignment:
+
+<Steps>
+  <Step title="Access Role Mapping">
+    Navigate to **Settings > Authentication > SAML SSO > Role Mapping**.
+  </Step>
+  
+  <Step title="Add Mapping Rule">
+    Click **Add Role Mapping** and configure:
+    - **IdP Group**: The group name from your identity provider (e.g., `UTMStack-Admins`)
+    - **UTMStack Role**: The corresponding UTMStack role (e.g., `Administrator`)
+    - **Priority**: Order of evaluation (higher priority first)
+  </Step>
+  
+  <Step title="Configure Default Role">
+    Set a default role for users not matching any mapping rules (recommended: `Viewer`).
+  </Step>
+  
+  <Step title="Test Mappings">
+    Use the **Test Role Mapping** feature to verify mappings with sample user attributes.
+  </Step>
+</Steps>
+
+**Example Mappings:**
+
+| IdP Group | UTMStack Role | Description |
+|-----------|---------------|-------------|
+| UTMStack-Admins | Administrator | Full system access |
+| UTMStack-Analysts | Security Analyst | Operational monitoring |
+| UTMStack-Auditors | Auditor | Read-only compliance access |
+| UTMStack-Viewers | Viewer | Limited dashboard access |
+
+<Warning>
+Role mappings are applied at login. Changing a user's group in the IdP will not affect their current UTMStack session until they log out and log back in.
+</Warning>
+
+## User Provisioning
+
+### Just-In-Time (JIT) Provisioning
+
+UTMStack supports automatic user creation on first SAML login:
+
+<Steps>
+  <Step title="Enable JIT Provisioning">
+    Navigate to **Settings > Authentication > SAML SSO** and enable **Just-In-Time Provisioning**.
+  </Step>
+  
+  <Step title="Configure User Attributes">
+    Specify which SAML attributes populate user profile fields.
+  </Step>
+  
+  <Step title="Set Default Settings">
+    Configure defaults for JIT-created users:
+    - Default role (if no role mapping matches)
+    - Account status (active/inactive)
+    - Email notification preferences
+  </Step>
+</Steps>
+
+**JIT Provisioning Process:**
+1. User authenticates via SAML for the first time
+2. UTMStack receives SAML assertion
+3. System checks if user exists (by email)
+4. If new: User account is created automatically
+5. Roles are assigned based on mapping rules
+6. User is logged into UTMStack
+
+### Manual User Provisioning
+
+Disable JIT provisioning to require manual user creation:
+
+- Administrators create users in advance
+- SAML authentication links to existing accounts by email
+- Provides tighter control over user access
+- Useful for highly regulated environments
+
+## SAML Authentication Flow
+
+### SP-Initiated Login
+
+User starts at UTMStack login page:
+
+<Steps>
+  <Step title="User Accesses UTMStack">
+    User navigates to the UTMStack login page.
+  </Step>
+  
+  <Step title="Select SSO Login">
+    User clicks **Sign in with SSO** button.
+  </Step>
+  
+  <Step title="Redirect to IdP">
+    UTMStack redirects to the identity provider login page.
+  </Step>
+  
+  <Step title="IdP Authentication">
+    User authenticates with the IdP (username/password, MFA, etc.).
+  </Step>
+  
+  <Step title="SAML Response">
+    IdP sends signed SAML assertion to UTMStack ACS URL.
+  </Step>
+  
+  <Step title="Assertion Validation">
+    UTMStack validates:
+    - SAML signature
+    - Assertion expiration
+    - Audience restriction
+    - Issuer validation
+  </Step>
+  
+  <Step title="Session Creation">
+    Upon successful validation, UTMStack creates a user session and redirects to the dashboard.
+  </Step>
+</Steps>
+
+### IdP-Initiated Login
+
+User starts from IdP portal:
+
+1. User logs into IdP portal (e.g., Okta dashboard)
+2. User clicks UTMStack application tile
+3. IdP sends SAML assertion to UTMStack
+4. UTMStack validates and creates session
+5. User is logged into UTMStack
+
+<Warning>
+IdP-initiated login bypasses some security checks. For maximum security, disable IdP-initiated login and require SP-initiated authentication.
+</Warning>
+
+## Advanced SAML Configuration
+
+### Signature and Encryption
+
+Configure SAML security settings:
+
+<Steps>
+  <Step title="Access Advanced Settings">
+    Navigate to **Settings > Authentication > SAML SSO > Advanced**.
+  </Step>
+  
+  <Step title="Signature Requirements">
+    Enable:
+    - **Require Signed Assertions**: IdP must sign SAML assertions
+    - **Require Signed Responses**: IdP must sign entire SAML response
+    - **Sign Authentication Requests**: UTMStack signs outgoing requests
+  </Step>
+  
+  <Step title="Encryption Settings">
+    Optionally enable:
+    - **Encrypt Assertions**: IdP encrypts assertions with UTMStack public key
+    - **Encryption Algorithm**: AES-256 (recommended)
+  </Step>
+</Steps>
+
+### Certificate Management
+
+Manage SAML signing and encryption certificates:
+
+<Steps>
+  <Step title="View Certificates">
+    Navigate to **Settings > Authentication > SAML SSO > Certificates**.
+  </Step>
+  
+  <Step title="Upload New Certificate">
+    Upload a new X.509 certificate and private key for SAML operations.
+  </Step>
+  
+  <Step title="Configure Certificate Rotation">
+    UTMStack supports dual certificates for zero-downtime rotation:
+    - Upload new certificate
+    - Update IdP with new metadata
+    - Verify new certificate works
+    - Remove old certificate
+  </Step>
+</Steps>
+
+<Warning>
+Certificate expiration will break SAML authentication. Set up monitoring alerts for certificates expiring within 30 days.
+</Warning>
+
+### Single Logout (SLO)
+
+Configure SAML Single Logout for improved security:
+
+<Steps>
+  <Step title="Enable SLO">
+    In **Settings > Authentication > SAML SSO**, enable **Single Logout**.
+  </Step>
+  
+  <Step title="Configure SLO URL">
+    Provide the IdP's Single Logout URL from the IdP metadata.
+  </Step>
+  
+  <Step title="Test Logout Flow">
+    Log in via SAML and click logout. Verify you are logged out of both UTMStack and the IdP.
+  </Step>
+</Steps>
+
+When enabled:
+- Logging out of UTMStack triggers IdP logout
+- Logging out of IdP can trigger UTMStack logout
+- Prevents session hijacking via IdP session reuse
+
+## Provider-Specific Guides
+
+### Okta Configuration
+
+**In Okta:**
+1. Create new SAML 2.0 app integration
+2. Set **Single sign-on URL**: `https://your-utmstack.com/login/saml2/sso`
+3. Set **Audience URI**: `https://your-utmstack.com/saml2/service-provider-metadata`
+4. Attribute Statements:
+   - `email` → `user.email`
+   - `firstName` → `user.firstName`
+   - `lastName` → `user.lastName`
+5. Group Attribute Statements: `groups` → Matches regex `.*`
+
+**In UTMStack:**
+- Upload Okta metadata XML
+- Map `groups` attribute to UTMStack roles
+- Enable JIT provisioning
+
+### Azure AD Configuration
+
+**In Azure AD:**
+1. Create new Enterprise Application
+2. Select **SAML** authentication
+3. Set **Identifier (Entity ID)**: `https://your-utmstack.com/saml2/service-provider-metadata`
+4. Set **Reply URL**: `https://your-utmstack.com/login/saml2/sso`
+5. Attributes & Claims:
+   - `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress` → `user.mail`
+   - `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname` → `user.givenname`
+   - `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname` → `user.surname`
+   - `http://schemas.xmlsoap.org/claims/Group` → `user.groups`
+
+**In UTMStack:**
+- Upload Azure AD metadata XML (Federation Metadata XML)
+- Map claims to user attributes
+- Configure group-to-role mappings
+
+## Monitoring and Troubleshooting
+
+### SAML Authentication Logs
+
+All SAML events are logged:
+- SAML login attempts (success/failure)
+- Assertion validation errors
+- Role mapping results
+- User provisioning events
+
+Access at **Settings > Audit Logs** filtered by "SAML Authentication".
+
+### Testing SAML Configuration
+
+Use the built-in SAML tester:
+
+<Steps>
+  <Step title="Access SAML Tester">
+    Navigate to **Settings > Authentication > SAML SSO > Test**.
+  </Step>
+  
+  <Step title="Initiate Test Login">
+    Click **Test SAML Login** to perform a test authentication.
+  </Step>
+  
+  <Step title="Review Results">
+    The tester displays:
+    - SAML request sent to IdP
+    - SAML response received
+    - Parsed attributes
+    - Role mapping results
+    - Any errors encountered
+  </Step>
+</Steps>
+
+### Common SAML Issues
+
+**"SAML Response Signature Invalid"**
+- IdP certificate mismatch
+- Clock skew between UTMStack and IdP
+- IdP metadata out of date
+
+**Solution:**
+1. Re-download and upload IdP metadata
+2. Verify server time synchronization (NTP)
+3. Check certificate expiration
+
+**"User Not Found"**
+- Email attribute not mapped correctly
+- JIT provisioning disabled
+- Email mismatch between IdP and UTMStack
+
+**Solution:**
+1. Verify email attribute mapping
+2. Enable JIT provisioning or manually create user
+3. Check SAML assertion for correct email value
+
+**"Access Denied - No Role Assigned"**
+- User's IdP group not mapped to UTMStack role
+- No default role configured
+- Group attribute not included in assertion
+
+**Solution:**
+1. Review role mapping rules
+2. Set a default role
+3. Verify IdP sends group attribute in assertion
+
+<Warning>
+When troubleshooting SAML issues, use the SAML Tester and audit logs to view the full SAML exchange. Never share SAML assertions externally as they may contain sensitive user information.
+</Warning>
+
+## Security Best Practices
+
+<Warning>
+Follow these SAML SSO security best practices:
+
+- **Maintain Local Admin Account**: Always keep a local administrator account for emergency access
+- **Require Signed Assertions**: Enable signature validation for all SAML assertions
+- **Use Strong Certificates**: Use 2048-bit or higher RSA certificates
+- **Monitor Certificate Expiration**: Set alerts for certificates expiring within 30 days
+- **Enforce HTTPS**: Ensure all SAML endpoints use HTTPS with valid TLS certificates
+- **Limit Assertion Validity**: Configure short assertion lifetime (e.g., 5 minutes)
+- **Enable Single Logout**: Implement SLO to prevent session reuse
+- **Audit Role Mappings**: Regularly review and validate group-to-role mappings
+- **Test Changes**: Always test SAML configuration changes before enabling for all users
+- **Disable IdP-Initiated Login**: Use SP-initiated login for better security
+- **Enable MFA at IdP**: Require multi-factor authentication in your identity provider
+- **Regular Security Reviews**: Audit SAML configuration and logs quarterly
+</Warning>
+
+## Backup Authentication
+
+Maintain alternative authentication methods:
+
+<Steps>
+  <Step title="Create Emergency Admin">
+    Create a local administrator account that does not use SAML.
+  </Step>
+  
+  <Step title="Secure Credentials">
+    Store credentials in a secure location (password manager, vault).
+  </Step>
+  
+  <Step title="Test Local Login">
+    Periodically verify local authentication still works.
+  </Step>
+  
+  <Step title="Document Procedure">
+    Document the emergency access procedure for SAML failures.
+  </Step>
+</Steps>
+
+### Disabling SAML in Emergency
+
+If SAML authentication fails system-wide:
+
+1. Access server via SSH/console
+2. Run emergency SAML disable command:
+   ```bash
+   utmstack-admin disable-saml
+   ```
+3. Log in with local administrator account
+4. Diagnose and fix SAML configuration
+5. Re-enable SAML after validation
+
+## Compliance and Auditing
+
+SAML SSO supports compliance requirements:
+
+- **Centralized Authentication**: Single point of authentication control
+- **Audit Trail**: Complete logging of authentication events
+- **Role-Based Access**: Automatic permission assignment via IdP groups
+- **MFA Integration**: Leverage IdP multi-factor authentication
+- **Automated Provisioning**: JIT provisioning with audit trail
+
+Generate SAML compliance reports at **Settings > Reports > Authentication Reports**.
+
+## Related Topics
+
+- [Authentication Configuration](/admin/authentication) - Configure authentication methods
+- [User Management](/admin/user-management) - Manage user accounts
+- [Roles and Permissions](/admin/roles-permissions) - Configure RBAC and role mapping
+- [Two-Factor Authentication](/admin/two-factor-auth) - Additional authentication security

@@ -1,0 +1,323 @@
+---
+title: Syslog configuration
+description: Configure syslog forwarding from network devices and applications to UTMStack
+icon: server
+---
+
+Syslog is the most common method for collecting logs from network devices, security appliances, and Unix/Linux systems. UTMStack provides syslog receivers with support for multiple protocols and formats.
+
+## Syslog ports and protocols
+
+UTMStack listens for syslog on these ports:
+
+| Port | Protocol | Use case |
+|------|----------|----------|
+| 514 | UDP | Standard syslog (RFC 3164) |
+| 514 | TCP | Reliable syslog delivery |
+| 6514 | TCP/TLS | Encrypted syslog (recommended) |
+
+<Warning>
+  UDP syslog is unreliable and can lose messages under high load. Use TCP or TLS for production environments.
+</Warning>
+
+## Configure syslog sources
+
+### Cisco devices
+
+Configure Cisco routers, switches, and ASA firewalls:
+
+```cisco
+! Configure logging to UTMStack
+logging host utm-server.company.com transport tcp port 514
+logging trap informational
+logging facility local6
+logging source-interface GigabitEthernet0/0
+
+! Enable specific log categories
+logging console warnings
+logging monitor informational
+service timestamps log datetime msec
+service sequence-numbers
+```
+
+**Cisco ASA firewall**:
+```cisco
+logging enable
+logging timestamp
+logging trap informational
+logging host inside utm-server.company.com tcp/514
+logging permit-hostdown
+```
+
+### Fortinet FortiGate
+
+Configure FortiGate firewalls to send logs via syslog:
+
+```fortinet
+config log syslogd setting
+    set status enable
+    set server "utm-server.company.com"
+    set port 514
+    set mode reliable
+    set facility local7
+    set source-ip 192.168.1.1
+end
+
+config log syslogd filter
+    set severity information
+end
+```
+
+### Palo Alto Networks
+
+Configure Palo Alto firewalls:
+
+<Steps>
+  <Step title="Navigate to Device → Server Profiles → Syslog">
+    Create a new syslog server profile
+  </Step>
+  <Step title="Add UTMStack server">
+    - **Name**: UTMStack
+    - **Syslog Server**: utm-server.company.com
+    - **Transport**: TCP
+    - **Port**: 514
+    - **Format**: BSD
+    - **Facility**: LOG_USER
+  </Step>
+  <Step title="Configure log forwarding">
+    Navigate to Objects → Log Forwarding and create profiles for:
+    - Traffic logs
+    - Threat logs
+    - URL filtering logs
+    - Data filtering logs
+  </Step>
+  <Step title="Apply to security policies">
+    Edit security policies and assign log forwarding profile
+  </Step>
+</Steps>
+
+### pfSense
+
+Configure pfSense firewall syslog:
+
+```
+1. Navigate to Status → System Logs → Settings
+2. Enable "Send log messages to remote syslog server"
+3. Remote log servers: utm-server.company.com:514
+4. Select log contents to send:
+   - Firewall Events
+   - DHCP Events  
+   - VPN Events
+   - Gateway Events
+```
+
+### Linux systems
+
+Configure rsyslog on Linux:
+
+```bash /etc/rsyslog.d/utm.conf
+# Forward all logs to UTMStack via TCP
+*.*  @@utm-server.company.com:514
+
+# Forward only auth logs
+auth,authpriv.* @@utm-server.company.com:514
+
+# Forward with TLS encryption
+$DefaultNetstreamDriver gtls
+$ActionSendStreamDriverMode 1
+$ActionSendStreamDriverAuthMode x509/name
+$ActionSendStreamDriverPermittedPeer utm-server.company.com
+*.*  @@utm-server.company.com:6514
+```
+
+Restart rsyslog:
+```bash
+sudo systemctl restart rsyslog
+```
+
+### Windows Event Log forwarding
+
+For Windows, use the UTMStack agent for better integration. Alternatively, configure Windows Event Collector:
+
+```powershell
+# Install and configure Winlogbeat for syslog forwarding
+$wlb = @"
+winlogbeat.event_logs:
+  - name: Application
+  - name: Security
+  - name: System
+  - name: Microsoft-Windows-Sysmon/Operational
+
+output.logstash:
+  hosts: ["utm-server.company.com:5044"]
+"@
+
+$wlb | Out-File -FilePath "C:\Program Files\Winlogbeat\winlogbeat.yml"
+```
+
+## TLS encryption for syslog
+
+Secure syslog transmission with TLS:
+
+### Generate certificates
+
+```bash
+# On UTMStack server, generate CA and server certificates
+openssl req -x509 -nodes -days 3650 -newkey rsa:4096 \
+  -keyout /etc/utm/certs/ca-key.pem \
+  -out /etc/utm/certs/ca-cert.pem \
+  -subj "/CN=UTMStack CA"
+
+openssl req -nodes -newkey rsa:4096 \
+  -keyout /etc/utm/certs/server-key.pem \
+  -out /etc/utm/certs/server-req.pem \
+  -subj "/CN=utm-server.company.com"
+
+openssl x509 -req -days 3650 \
+  -in /etc/utm/certs/server-req.pem \
+  -CA /etc/utm/certs/ca-cert.pem \
+  -CAkey /etc/utm/certs/ca-key.pem \
+  -CAcreateserial \
+  -out /etc/utm/certs/server-cert.pem
+```
+
+### Configure TLS syslog on clients
+
+```bash /etc/rsyslog.d/utm-tls.conf
+# Load required modules
+$ModLoad imuxsock
+$ModLoad imtcp
+
+# Configure TLS
+$DefaultNetstreamDriver gtls
+$DefaultNetstreamDriverCAFile /etc/utm/ca-cert.pem
+$ActionSendStreamDriverMode 1
+$ActionSendStreamDriverAuthMode x509/name
+$ActionSendStreamDriverPermittedPeer utm-server.company.com
+
+# Forward with TLS
+*.*  @@utm-server.company.com:6514
+```
+
+<Info>
+  Distribute the CA certificate (`ca-cert.pem`) to all syslog clients.
+</Info>
+
+## Syslog message formats
+
+UTMStack supports these syslog formats:
+
+### RFC 3164 (BSD syslog)
+
+```
+<34>Mar  3 12:45:23 firewall-01 %ASA-4-106023: Deny tcp src inside:10.1.1.100/54321 dst outside:203.0.113.10/443 by access-group "inside_in" [0x0, 0x0]
+```
+
+### RFC 5424 (Structured syslog)
+
+```
+<165>1 2024-03-03T12:45:23.123Z firewall-01 sshd 1234 ID47 [timeQuality tzKnown="1" isSynced="1"] Failed password for admin from 192.168.1.50 port 54321 ssh2
+```
+
+### CEF (Common Event Format)
+
+```
+CEF:0|Fortinet|FortiGate|6.4.7|traffic|forward|5|src=192.168.1.100 dst=203.0.113.10 spt=54321 dpt=443 proto=tcp act=deny
+```
+
+## Verify syslog reception
+
+Test syslog connectivity:
+
+```bash
+# Send test syslog message
+logger -n utm-server.company.com -P 514 -t test "Test message from $(hostname)"
+
+# Send via TCP
+logger -n utm-server.company.com -P 514 -T -t test "Test TCP message"
+
+# Monitor UTMStack syslog on server
+tail -f /var/log/utm/syslog-receiver.log
+```
+
+Verify in UTMStack UI:
+1. Navigate to **Data Sources** → **Status**
+2. Check for your device in active sources
+3. View recent logs in **Discover** or **Log Analyzer**
+
+## Troubleshooting
+
+<Accordion title="No logs received from device">
+  1. **Test network connectivity**:
+     ```bash
+     telnet utm-server.company.com 514
+     nc -zv utm-server.company.com 514
+     ```
+  
+  2. **Check firewall rules**:
+     - Allow TCP/UDP 514 from source to UTMStack
+     - Verify no ACLs blocking traffic
+  
+  3. **Verify device configuration**:
+     ```bash
+     # Cisco
+     show logging
+     
+     # Fortinet
+     get log syslogd setting
+     ```
+  
+  4. **Check UTMStack receiver**:
+     ```bash
+     sudo netstat -tulpn | grep 514
+     sudo tcpdump -i any port 514 -A
+     ```
+</Accordion>
+
+<Accordion title="Logs received but not parsed">
+  1. Check raw logs in UTMStack: **Discover** → Select index pattern
+  2. Review parsing errors: **Management** → **Parser Logs**
+  3. Verify log format matches expected parser
+  4. Consider creating a [custom parser](/data-sources/custom-parsers)
+</Accordion>
+
+<Accordion title="TLS connection failures">
+  1. Verify certificate validity:
+     ```bash
+     openssl s_client -connect utm-server.company.com:6514 -CAfile ca-cert.pem
+     ```
+  
+  2. Check certificate CN matches server hostname
+  3. Ensure CA certificate is properly distributed
+  4. Review TLS configuration in rsyslog
+</Accordion>
+
+## Best practices
+
+<Tip>
+  **Syslog best practices**:
+  - Use TCP or TLS instead of UDP for production
+  - Enable timestamps with millisecond precision
+  - Configure source IP/interface to identify devices
+  - Set appropriate severity levels (information or higher)
+  - Test with `logger` command before configuring devices
+  - Document device IP addresses and log types
+  - Monitor syslog receiver disk space
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Custom parsers" href="/data-sources/custom-parsers">
+    Create custom parsers for proprietary formats
+  </Card>
+  <Card title="Log analysis" href="/operations/dashboards">
+    Analyze collected logs in dashboards
+  </Card>
+  <Card title="Alert rules" href="/operations/alerts">
+    Create alerts based on syslog events
+  </Card>
+  <Card title="NetFlow" href="/data-sources/netflow">
+    Configure NetFlow data collection
+  </Card>
+</CardGroup>

@@ -1,0 +1,268 @@
+---
+title: System Requirements
+description: Hardware and resource requirements for different UTMStack deployment sizes
+---
+
+This guide outlines the system resources required for UTMStack deployments based on the number of data sources and hot log storage needs.
+
+## Understanding the Requirements
+
+### Key Definitions
+
+<CardGroup cols={3}>
+  <Card title="Hot Log Storage" icon="fire">
+    Non-archived data that can be accessed for analysis at any time without restoration
+  </Card>
+  <Card title="Cold Log Storage" icon="snowflake">
+    Archived data that must be restored before accessing it for analysis
+  </Card>
+  <Card title="Data Source" icon="database">
+    Any individual source of logs, including devices, agents, and SaaS integrations
+  </Card>
+</CardGroup>
+
+### Baseline Assumption
+
+<Note>
+  **Industry Average:** 60 data sources (devices) typically generate approximately 100 GB of monthly data.
+  
+  Your actual data volume may vary based on log verbosity, device types, and monitoring configuration.
+</Note>
+
+## Resource Requirements by Deployment Size
+
+The following table shows required resources for **one month of hot log storage**:
+
+<Tabs>
+  <Tab title="Small Deployment">
+    ### 50 Data Sources
+    
+    **Hot Log Storage:** 120 GB/month
+    
+    | Resource | Requirement |
+    |----------|-------------|
+    | CPU Cores | 4 Cores |
+    | RAM | 16 GB |
+    | Disk Space | 150 GB |
+    
+    <Note>
+      Ideal for small businesses or branch offices with limited infrastructure
+    </Note>
+  </Tab>
+  
+  <Tab title="Medium Deployment">
+    ### 120 Data Sources
+    
+    **Hot Log Storage:** 250 GB/month
+    
+    | Resource | Requirement |
+    |----------|-------------|
+    | CPU Cores | 8 Cores |
+    | RAM | 16 GB |
+    | Disk Space | 250 GB |
+    
+    <Note>
+      Suitable for mid-sized organizations with moderate security monitoring needs
+    </Note>
+  </Tab>
+  
+  <Tab title="Large Deployment">
+    ### 240 Data Sources
+    
+    **Hot Log Storage:** 500 GB/month
+    
+    | Resource | Requirement |
+    |----------|-------------|
+    | CPU Cores | 16 Cores |
+    | RAM | 32 GB |
+    | Disk Space | 500 GB |
+    
+    <Note>
+      Appropriate for large enterprises with extensive security infrastructure
+    </Note>
+  </Tab>
+  
+  <Tab title="Enterprise Deployment">
+    ### 500 Data Sources
+    
+    **Hot Log Storage:** 1000 GB (1 TB)/month
+    
+    | Resource | Requirement |
+    |----------|-------------|
+    | CPU Cores | 32 Cores |
+    | RAM | 64 GB |
+    | Disk Space | 1000 GB (1 TB) |
+    
+    <Note>
+      Designed for very large enterprises or managed security service providers (MSPs)
+    </Note>
+  </Tab>
+</Tabs>
+
+## Detailed Requirements Table
+
+| Data Sources | Hot Log Storage | CPU Cores | RAM | Disk Space |
+|--------------|-----------------|-----------|-----|------------|
+| 50 | 120 GB | 4 Cores | 16 GB | 150 GB |
+| 120 | 250 GB | 8 Cores | 16 GB | 250 GB |
+| 240 | 500 GB | 16 Cores | 32 GB | 500 GB |
+| 500 | 1000 GB | 32 Cores | 64 GB | 1000 GB |
+
+<Warning>
+  **Important Scaling Limitation:**
+  
+  Going above 500 data sources/devices requires adding secondary nodes for horizontal scaling. Single-node deployments are not recommended beyond this threshold.
+</Warning>
+
+## Calculating Your Requirements
+
+You may combine these tiers to allocate resources based on your specific number of devices and desired hot log storage retention.
+
+### Example Calculation
+
+If you have 180 data sources:
+
+<Steps>
+  <Step title="Determine Your Scale">
+    180 data sources falls between the Medium (120) and Large (240) deployment tiers.
+  </Step>
+  
+  <Step title="Interpolate Resources">
+    You would need resources between the two tiers, closer to the Large deployment:
+    - **CPU:** 12-16 Cores
+    - **RAM:** 24-32 GB
+    - **Disk Space:** 350-400 GB
+  </Step>
+  
+  <Step title="Add Headroom">
+    Always provision slightly above your calculated needs for growth and performance headroom.
+  </Step>
+</Steps>
+
+<Note>
+  These requirements assume one month of hot log storage. If you need longer retention periods, multiply the disk space requirements accordingly.
+</Note>
+
+## Storage Considerations
+
+### Hot vs. Cold Storage Strategy
+
+<CardGroup cols={2}>
+  <Card title="Hot Storage" icon="fire">
+    **Use for:**
+    - Recent logs (last 1-3 months)
+    - Active investigations
+    - Real-time dashboards
+    - Frequent searches
+    
+    **Characteristics:**
+    - Immediate access
+    - Higher cost per GB
+    - Fast query performance
+  </Card>
+  
+  <Card title="Cold Storage" icon="snowflake">
+    **Use for:**
+    - Historical logs (>3 months)
+    - Compliance retention
+    - Infrequent access
+    - Long-term archival
+    
+    **Characteristics:**
+    - Requires restoration
+    - Lower cost per GB
+    - Slower access time
+  </Card>
+</CardGroup>
+
+### Disk Space Planning
+
+When planning disk space:
+
+- **Hot Storage Period:** Decide how many months of hot storage you need (1-3 months typical)
+- **Growth Buffer:** Add 20-30% for unexpected growth
+- **System Overhead:** Reserve space for operating system and UTMStack services
+- **Archive Strategy:** Plan cold storage for compliance and long-term retention
+
+## Horizontal Scaling
+
+<Warning>
+  **Scaling Beyond 500 Data Sources**
+  
+  For deployments exceeding 500 data sources or 1 TB of monthly hot log storage, you must implement horizontal scaling with secondary nodes.
+</Warning>
+
+### When to Scale Horizontally
+
+Consider adding secondary nodes when:
+
+- You exceed 500 data sources
+- Query performance degrades
+- You need high availability
+- Geographic distribution is required
+- You're an MSP serving multiple clients
+
+<Note>
+  Contact UTMStack support for guidance on implementing horizontal scaling for large deployments.
+</Note>
+
+## Operating System Requirements
+
+<Card title="Ubuntu 22.04 LTS" icon="ubuntu">
+  UTMStack is designed and tested for Ubuntu 22.04 LTS (Long Term Support)
+  
+  **Why Ubuntu 22.04 LTS?**
+  - Extended support lifecycle
+  - Stable and well-tested
+  - Broad hardware compatibility
+  - Extensive community support
+</Card>
+
+## Network Requirements
+
+### Bandwidth Considerations
+
+- **Inbound Traffic:** Sufficient bandwidth to receive logs from all data sources
+- **Outbound Traffic:** Bandwidth for threat intelligence updates and external integrations
+- **Internal Traffic:** Low latency between UTMStack and data sources
+
+### Port Requirements
+
+See the [Installation Guide](/installation#required-network-ports) for detailed port requirements.
+
+## Performance Optimization Tips
+
+<AccordionGroup>
+  <Accordion title="Use SSD Storage" icon="hard-drive">
+    Solid-state drives (SSDs) significantly improve query performance and data ingestion rates. NVMe SSDs are recommended for large deployments.
+  </Accordion>
+  
+  <Accordion title="Separate Data and System Disks" icon="database">
+    Mount data storage on a separate disk from the operating system to prevent system disk I/O from affecting log ingestion and queries.
+  </Accordion>
+  
+  <Accordion title="Monitor Resource Usage" icon="chart-line">
+    Regularly monitor CPU, RAM, and disk usage to identify when you're approaching capacity and need to scale.
+  </Accordion>
+  
+  <Accordion title="Optimize Log Collection" icon="filter">
+    Filter unnecessary logs at the source to reduce ingestion volume and storage requirements without sacrificing security visibility.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation Guide" icon="download" href="/installation">
+    Proceed with installing UTMStack on your sized infrastructure
+  </Card>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get started quickly after installation
+  </Card>
+  <Card title="Architecture Overview" icon="sitemap">
+    Learn about UTMStack's architecture and components
+  </Card>
+  <Card title="Contact Support" icon="headset">
+    Get help sizing your deployment from UTMStack experts
+  </Card>
+</CardGroup>

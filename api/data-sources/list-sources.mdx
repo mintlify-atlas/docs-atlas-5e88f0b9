@@ -1,0 +1,219 @@
+---
+title: List Data Sources
+description: GET endpoint to retrieve data source status information
+icon: "database"
+---
+
+## Get Data Input Statuses
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-data-input-statuses</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Retrieve the status of all important data sources.
+
+### Query Parameters
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="20">
+  Number of items per page
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort field and direction (e.g., `dataType,asc`)
+</ParamField>
+
+### Response
+
+Returns an array of data input status objects.
+
+<ResponseField name="id" type="string">
+  Unique data source identifier
+</ResponseField>
+
+<ResponseField name="dataType" type="string">
+  Type of data source (e.g., "windows", "linux", "firewall")
+</ResponseField>
+
+<ResponseField name="dataTypeName" type="string">
+  Human-readable name of the data source
+</ResponseField>
+
+<ResponseField name="status" type="boolean">
+  Whether the data source is currently active
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  Last time data was received (ISO 8601 format)
+</ResponseField>
+
+<ResponseField name="eventsCount" type="integer">
+  Number of events received in current period
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-data-input-statuses?page=0&size=20" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-data-input-statuses"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+params = {"page": 0, "size": 20}
+
+response = requests.get(url, headers=headers, params=params)
+sources = response.json()
+for source in sources:
+    print(f"{source['dataTypeName']}: {'Active' if source['status'] else 'Inactive'}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+[
+  {
+    "id": "windows-logs-001",
+    "dataType": "windows",
+    "dataTypeName": "Windows Event Logs",
+    "status": true,
+    "timestamp": "2024-01-15T10:30:00Z",
+    "eventsCount": 15420
+  },
+  {
+    "id": "firewall-logs-001",
+    "dataType": "firewall",
+    "dataTypeName": "Cisco Firewall",
+    "status": true,
+    "timestamp": "2024-01-15T10:29:45Z",
+    "eventsCount": 8932
+  },
+  {
+    "id": "linux-syslog-001",
+    "dataType": "linux",
+    "dataTypeName": "Linux Syslog",
+    "status": false,
+    "timestamp": "2024-01-15T09:15:30Z",
+    "eventsCount": 0
+  }
+]
+```
+</ResponseExample>
+
+## Get Data Source by ID
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-data-input-statuses/{id}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Retrieve a specific data source by ID.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  Data source identifier
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/utm-data-input-statuses/windows-logs-001 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-data-input-statuses/windows-logs-001"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.get(url, headers=headers)
+source = response.json()
+print(source)
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": "windows-logs-001",
+  "dataType": "windows",
+  "dataTypeName": "Windows Event Logs",
+  "status": true,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "eventsCount": 15420,
+  "details": {
+    "source": "DC01.example.com",
+    "version": "1.0"
+  }
+}
+```
+
+```json 404 Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Data source not found"
+}
+```
+</ResponseExample>
+
+## Count Data Sources
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-data-input-statuses/count</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Get the total count of data sources matching criteria.
+
+### Query Parameters
+
+Supports filtering criteria parameters (e.g., `dataType.equals=windows`).
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-data-input-statuses/count?dataType.equals=windows" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+5
+```
+</ResponseExample>
+
+## Data Source Types
+
+Common data source types include:
+
+- `windows` - Windows Event Logs
+- `linux` - Linux/Unix Syslog
+- `firewall` - Firewall logs
+- `ids-ips` - Intrusion Detection/Prevention Systems
+- `web-proxy` - Web proxy logs
+- `antivirus` - Antivirus/EDR logs
+- `network` - Network device logs
+- `cloud` - Cloud service logs (AWS, Azure, GCP)
+- `database` - Database audit logs
+- `application` - Application logs
+
+## Response Headers
+
+Paginated responses include these headers:
+
+- `X-Total-Count` - Total number of data sources
+- `Link` - Pagination links (first, last, next, prev)

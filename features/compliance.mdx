@@ -1,0 +1,249 @@
+---
+title: Security Compliance
+description: Comprehensive security compliance monitoring, reporting, and audit capabilities for regulatory frameworks
+---
+
+## Overview
+
+UTMStack's Security Compliance module helps organizations meet regulatory requirements by providing automated compliance monitoring, reporting, and audit capabilities. The platform supports multiple compliance frameworks and generates evidence-based reports for auditors.
+
+<Info>
+Access compliance features through the `/compliance` route to manage templates, schedules, and generate reports.
+</Info>
+
+## Supported Frameworks
+
+<CardGroup cols={2}>
+  <Card title="Industry Standards" icon="building">
+    PCI DSS, HIPAA, SOX, and other industry-specific compliance requirements.
+  </Card>
+  
+  <Card title="Regulatory Frameworks" icon="scale-balanced">
+    GDPR, CCPA, SOC 2, ISO 27001, and regional data protection regulations.
+  </Card>
+  
+  <Card title="Best Practices" icon="award">
+    NIST Cybersecurity Framework, CIS Controls, and security best practices.
+  </Card>
+  
+  <Card title="Custom Compliance" icon="pen-to-square">
+    Create custom compliance templates for organization-specific requirements.
+  </Card>
+</CardGroup>
+
+## Compliance Module
+
+The compliance module provides:
+
+### Compliance Templates
+- **Pre-built Templates**: Ready-to-use templates for common frameworks
+- **Customizable Controls**: Modify templates to match your requirements
+- **Control Mapping**: Map controls to log sources and detection rules
+- **Evidence Collection**: Automatically gather evidence for each control
+
+Reference: `frontend/src/app/compliance/compliance-templates/`
+
+### Compliance Schedules
+- **Automated Reports**: Schedule compliance reports at regular intervals
+- **Email Delivery**: Automatically send reports to stakeholders
+- **Custom Time Windows**: Define specific reporting periods
+- **Multi-Framework**: Schedule reports for multiple frameworks
+
+Reference: `frontend/src/app/compliance/compliance-schedule/`
+
+### Compliance Reports
+- **Executive Summaries**: High-level compliance status overview
+- **Detailed Findings**: Control-by-control compliance evidence
+- **Trend Analysis**: Track compliance posture over time
+- **Export Options**: PDF, CSV, and other formats for auditors
+
+Reference: `frontend/src/app/compliance/compliance-reports-view/`
+
+## Compliance Assessment
+
+Assess compliance status:
+
+- **Control Evaluation**: Automated assessment of each control requirement
+- **Compliance Score**: Overall compliance percentage and rating
+- **Gap Analysis**: Identify controls that need attention
+- **Remediation Guidance**: Recommendations for addressing gaps
+
+## Compliance Status
+
+Each control is evaluated and assigned a status:
+
+- **Compliant**: Control requirements are fully met
+- **Partially Compliant**: Some requirements met, gaps exist
+- **Non-Compliant**: Control requirements not met
+- **Not Applicable**: Control doesn't apply to your environment
+
+Reference: `frontend/src/app/compliance/shared/enums/compliance-status.enum.ts`
+
+<Tip>
+Focus remediation efforts on Non-Compliant controls first, then address Partially Compliant controls to improve overall compliance posture.
+</Tip>
+
+## Evidence Collection
+
+Automatic evidence gathering:
+
+- **Log Data**: Relevant logs that demonstrate control effectiveness
+- **Alert History**: Security alerts related to compliance controls
+- **Configuration**: System and security configurations
+- **Access Records**: Authentication and authorization logs
+- **Change History**: Audit trails of system modifications
+
+## Compliance Reporting
+
+Generate comprehensive compliance reports:
+
+### Report Types
+- **Summary Reports**: Executive-level compliance overview
+- **Detailed Reports**: Control-by-control analysis with evidence
+- **Trend Reports**: Compliance posture changes over time
+- **Gap Reports**: Focus on non-compliant controls
+- **Custom Reports**: Build reports for specific requirements
+
+### Report Customization
+- **Time Periods**: Custom date ranges for assessment
+- **Framework Selection**: Single or multiple frameworks
+- **Control Filtering**: Include specific controls or sections
+- **Branding**: Add organization logo and information
+
+Reference: `frontend/src/app/compliance/shared/type/compliance-report.type.ts`
+
+## Scheduled Compliance
+
+Automate compliance reporting:
+
+1. Create compliance schedule
+2. Select framework and controls
+3. Define reporting frequency (daily, weekly, monthly, quarterly)
+4. Configure email recipients
+5. Set time window parameters
+6. Reports are generated and delivered automatically
+
+Reference: `frontend/src/app/compliance/shared/type/compliance-schedule.type.ts`
+
+<Info>
+Scheduled compliance reports ensure stakeholders receive timely updates without manual intervention, reducing administrative overhead.
+</Info>
+
+## Dashboard Integration
+
+Compliance metrics on dashboards:
+
+- Overall compliance percentage
+- Control status distribution
+- Trending compliance over time
+- Framework-specific scores
+- Recent compliance report history
+
+Reference: `frontend/src/app/dashboard/compliance-export/`
+
+## Audit Support
+
+Support audit activities with:
+
+- **Audit-Ready Reports**: Formatted for auditor review
+- **Evidence Packages**: Bundled logs and evidence for controls
+- **Historical Data**: Access past compliance assessments
+- **Change Documentation**: Audit trail of all modifications
+- **Export Capabilities**: Multiple formats for auditor systems
+
+## Control Mapping
+
+Map compliance controls to UTMStack features:
+
+- **Log Collection**: Controls requiring log retention and analysis
+- **Access Control**: Authentication and authorization controls
+- **Threat Detection**: Intrusion detection and prevention controls
+- **Incident Response**: Incident handling and response controls
+- **Configuration**: Secure configuration requirements
+
+## Compliance Workflow
+
+Typical compliance workflow:
+
+1. **Select Framework**: Choose applicable compliance framework
+2. **Configure Template**: Customize controls and parameters
+3. **Run Assessment**: Execute compliance evaluation
+4. **Review Results**: Analyze compliance status and gaps
+5. **Remediate Issues**: Address non-compliant controls
+6. **Generate Report**: Create evidence-based report
+7. **Schedule Updates**: Automate ongoing assessments
+
+## Best Practices
+
+<Tip>
+**Effective Compliance Management**
+
+1. Review and update compliance templates quarterly
+2. Schedule automated reports to track compliance trends
+3. Address non-compliant controls promptly
+4. Document remediation efforts in UTMStack
+5. Maintain evidence archives for audit periods
+6. Map custom controls to organization-specific policies
+7. Integrate compliance checks into change management
+8. Use compliance dashboards in executive reporting
+</Tip>
+
+## Integration Points
+
+Compliance leverages:
+
+- **[Log Management](/features/log-management)**: Log retention for evidence
+- **[Threat Detection](/features/threat-detection)**: Security monitoring controls
+- **[Alert Investigation](/features/alert-investigation)**: Incident response evidence
+- **Authentication Logs**: Access control evidence
+- **Configuration Management**: Security configuration controls
+
+## Common Use Cases
+
+### PCI DSS Compliance
+- Monitor access to cardholder data
+- Track security events and alerts
+- Maintain audit trails
+- Generate quarterly compliance reports
+
+### HIPAA Compliance
+- Monitor access to protected health information
+- Track authentication and authorization
+- Document security incidents
+- Generate evidence for audits
+
+### GDPR Compliance
+- Monitor data access and transfers
+- Track data breach detection
+- Document security measures
+- Provide evidence of compliance
+
+## Technical Implementation
+
+References:
+- Compliance Module: `frontend/src/app/compliance/`
+- Compliance Types: `frontend/src/app/compliance/shared/type/`
+- Compliance Services: `frontend/src/app/compliance/shared/services/`
+- Compliance Enums: `frontend/src/app/compliance/shared/enums/`
+- Compliance Route: `frontend/src/app/app-routing.module.ts:100`
+- Backend Templates: `backend/src/main/resources/templates/mail/complianceScheduleEmail.html`
+
+## Report Templates
+
+Available report templates:
+
+- A4 format with branding
+- Multi-page layouts
+- Executive summary page
+- Detailed findings pages
+- Evidence appendices
+
+References:
+- `frontend/src/assets/img/report/A4_compliance.png`
+- `frontend/src/assets/img/report/A4_compliance_second.png`
+
+## Related Features
+
+- **[Log Management](/features/log-management)**: Evidence collection from logs
+- **[Threat Detection](/features/threat-detection)**: Security monitoring controls
+- **Dashboards**: Compliance metrics visualization

@@ -1,0 +1,126 @@
+---
+title: Threat Detection
+description: Real-time threat detection and response capabilities powered by advanced correlation and threat intelligence
+---
+
+## Overview
+
+UTMStack's Threat Detection system identifies and responds to security threats in real-time by correlating log data, threat intelligence, and malware activity patterns from multiple sources. This unified approach enables detection of complex threats that use stealthy techniques to evade traditional security controls.
+
+<Info>
+UTMStack can **swiftly analyze log data to identify and halt threats at their source in real-time**, even if the threat was not directly detected on the server itself.
+</Info>
+
+## Detection Capabilities
+
+<CardGroup cols={2}>
+  <Card title="Real-Time Correlation" icon="bolt">
+    Correlate events from multiple sources before data ingestion to detect complex attack patterns instantly.
+  </Card>
+  
+  <Card title="Advanced Persistent Threats" icon="shield-halved">
+    Identify APTs that use multi-stage attacks and lateral movement across your infrastructure.
+  </Card>
+  
+  <Card title="Behavioral Analysis" icon="chart-line">
+    Detect anomalous behavior that deviates from established baselines and normal patterns.
+  </Card>
+  
+  <Card title="MITRE ATT&CK Mapping" icon="map">
+    Alerts are mapped to MITRE ATT&CK techniques for standardized threat classification.
+  </Card>
+</CardGroup>
+
+## Alert Severity Levels
+
+Alerts are classified into three severity levels to prioritize security response:
+
+- **High (3)**: Critical threats requiring immediate attention
+- **Medium (2)**: Significant security events that should be investigated promptly  
+- **Low (1)**: Informational alerts for awareness and trend analysis
+
+<Tip>
+Focus your initial response efforts on High and Medium severity alerts to maximize security impact. Use Low severity alerts for trend analysis and proactive threat hunting.
+</Tip>
+
+## Alert Lifecycle
+
+Every alert in UTMStack goes through a defined lifecycle:
+
+1. **Generation**: Alert created by correlation rules or threat intelligence matches
+2. **Automatic Review**: Initial status when alert is first generated (`status: 1`)
+3. **Investigation**: Security analyst reviews alert details and context
+4. **Resolution**: Alert is closed with appropriate disposition (true positive, false positive, etc.)
+
+## Correlation Rules
+
+Manage detection rules through the Alerting Rules module (`/alerting-rules`):
+
+- **Pre-built Rules**: Hundreds of out-of-the-box rules for common threats
+- **Custom Rules**: Create organization-specific detection logic
+- **Rule Testing**: Validate rules against historical data before deployment
+- **Rule Tuning**: Adjust thresholds and conditions to reduce false positives
+
+## Alert Categories
+
+Alerts are organized into categories for efficient triage:
+
+- **Malware Activity**: Virus, trojan, ransomware detections
+- **Network Attacks**: Port scans, DDoS, network intrusions
+- **Authentication Failures**: Brute force, credential stuffing
+- **Data Exfiltration**: Unusual outbound traffic, large data transfers
+- **Policy Violations**: Configuration changes, unauthorized access
+- **Lateral Movement**: Internal reconnaissance, privilege escalation
+
+## Detection Data Sources
+
+Threat detection leverages multiple data sources:
+
+- **Endpoint Logs**: Process execution, file access, registry changes
+- **Network Traffic**: Flow data, packet captures, DNS queries
+- **Authentication Logs**: Login attempts, privilege escalations
+- **Application Logs**: Web server access, database queries
+- **Cloud Activity**: API calls, resource modifications
+
+<Info>
+The more diverse your data sources, the better UTMStack can correlate events and detect sophisticated attacks.
+</Info>
+
+## Alert Enrichment
+
+Alerts are automatically enriched with contextual information:
+
+- **Target Information**: User accounts, IP addresses, hostnames affected
+- **Adversary Details**: Source IPs, threat actor attribution when available
+- **Data Source Context**: Which integration or agent generated the alert
+- **Threat Intelligence**: IOC matches, reputation scores, threat feeds
+- **MITRE Techniques**: Tactics, techniques, and procedures (TTPs) mapped to the alert
+
+## Integration Points
+
+Threat Detection integrates with:
+
+- **[Threat Intelligence](/features/threat-intelligence)**: Enrich alerts with external threat context
+- **[Alert Investigation](/features/alert-investigation)**: Detailed investigation workflows for security analysts
+- **[SOC AI](/features/soc-ai)**: AI-powered alert analysis and prioritization
+- **[File Classification](/features/file-classification)**: Malware detection for file-based threats
+
+## Best Practices
+
+<Tip>
+**Optimize Threat Detection**
+
+1. Regularly review and tune correlation rules to reduce false positives
+2. Enable all relevant integrations to maximize visibility
+3. Establish baselines for normal behavior in your environment
+4. Integrate threat intelligence feeds for enhanced context
+5. Document common alert patterns to streamline investigations
+</Tip>
+
+## Technical Implementation
+
+References:
+- Alert Management Module: `frontend/src/app/data-management/alert-management/`
+- Alert Types: `frontend/src/app/shared/types/alert/utm-alert.type.ts`
+- Alert Severity Constants: `frontend/src/app/shared/constants/alert/alert-severity.constant.ts:1-8`
+- Rule Management Route: `frontend/src/app/app-routing.module.ts:150`

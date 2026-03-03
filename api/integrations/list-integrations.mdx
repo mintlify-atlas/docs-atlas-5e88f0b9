@@ -1,0 +1,352 @@
+---
+title: List Integrations
+description: GET endpoint to retrieve integrations
+icon: "puzzle-piece"
+---
+
+## Get All Integrations
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integrations</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Retrieve all available integrations with pagination and filtering.
+
+### Query Parameters
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="20">
+  Number of items per page
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort field and direction (e.g., `name,asc`)
+</ParamField>
+
+Additional filter criteria can be applied:
+
+<ParamField query="id.equals" type="integer">
+  Filter by integration ID
+</ParamField>
+
+<ParamField query="name.contains" type="string">
+  Filter by integration name (partial match)
+</ParamField>
+
+<ParamField query="active.equals" type="boolean">
+  Filter by active status
+</ParamField>
+
+### Response
+
+Returns an array of integration objects.
+
+<ResponseField name="id" type="integer">
+  Integration ID
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Integration name
+</ResponseField>
+
+<ResponseField name="shortName" type="string">
+  Short display name
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Integration description
+</ResponseField>
+
+<ResponseField name="integrationType" type="string">
+  Type of integration (e.g., "COLLECTOR", "FORWARDER")
+</ResponseField>
+
+<ResponseField name="active" type="boolean">
+  Whether integration is active
+</ResponseField>
+
+<ResponseField name="module" type="object">
+  Associated server module information
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-integrations?page=0&size=20" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integrations"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+params = {"page": 0, "size": 20}
+
+response = requests.get(url, headers=headers, params=params)
+integrations = response.json()
+for integration in integrations:
+    status = "Active" if integration["active"] else "Inactive"
+    print(f"{integration['name']} ({integration['shortName']}): {status}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+[
+  {
+    "id": 1,
+    "name": "Windows Event Collector",
+    "shortName": "windows-agent",
+    "description": "Collects Windows event logs",
+    "integrationType": "COLLECTOR",
+    "active": true,
+    "module": {
+      "id": 10,
+      "moduleName": "collector",
+      "serverName": "UTMStack Server",
+      "needsRestart": false
+    }
+  },
+  {
+    "id": 2,
+    "name": "Cisco ASA Syslog",
+    "shortName": "cisco-asa",
+    "description": "Receives Cisco ASA syslog messages",
+    "integrationType": "FORWARDER",
+    "active": true,
+    "module": {
+      "id": 11,
+      "moduleName": "logstash",
+      "serverName": "UTMStack Server",
+      "needsRestart": false
+    }
+  },
+  {
+    "id": 3,
+    "name": "AWS CloudTrail",
+    "shortName": "aws-cloudtrail",
+    "description": "Collects AWS CloudTrail logs",
+    "integrationType": "COLLECTOR",
+    "active": false,
+    "module": {
+      "id": 10,
+      "moduleName": "collector",
+      "serverName": "UTMStack Server",
+      "needsRestart": false
+    }
+  }
+]
+```
+</ResponseExample>
+
+## Get Integration by ID
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integrations/{id}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Retrieve a specific integration by ID.
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  Integration ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/utm-integrations/1 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integrations/1"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.get(url, headers=headers)
+integration = response.json()
+print(f"Integration: {integration['name']}")
+print(f"Type: {integration['integrationType']}")
+print(f"Active: {integration['active']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 1,
+  "name": "Windows Event Collector",
+  "shortName": "windows-agent",
+  "description": "Collects Windows event logs from domain controllers and workstations",
+  "integrationType": "COLLECTOR",
+  "active": true,
+  "module": {
+    "id": 10,
+    "moduleName": "collector",
+    "serverName": "UTMStack Server",
+    "needsRestart": false
+  }
+}
+```
+
+```json 404 Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Integration not found"
+}
+```
+</ResponseExample>
+
+## Count Integrations
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integrations/count</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Get the total count of integrations matching criteria.
+
+### Query Parameters
+
+Supports the same filter criteria as the list endpoint.
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-integrations/count?active.equals=true" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integrations/count"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+params = {"active.equals": "true"}
+
+response = requests.get(url, headers=headers, params=params)
+count = response.json()
+print(f"Active integrations: {count}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+15
+```
+</ResponseExample>
+
+## Filter Examples
+
+### Get Active Integrations Only
+
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-integrations?active.equals=true&size=100" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+### Search by Name
+
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-integrations?name.contains=AWS" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+### Get Collector Integrations
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integrations"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+params = {
+    "integrationType.equals": "COLLECTOR",
+    "size": 100
+}
+
+response = requests.get(url, headers=headers, params=params)
+collectors = response.json()
+print(f"Found {len(collectors)} collector integrations")
+```
+
+## Integration Types
+
+Common integration types:
+
+- `COLLECTOR` - Active data collectors (agents)
+- `FORWARDER` - Passive log forwarders (syslog, API)
+- `SCANNER` - Network and vulnerability scanners
+- `CLOUD` - Cloud service integrations
+- `WEBHOOK` - Webhook receivers
+- `API` - API-based integrations
+
+## Response Headers
+
+Paginated responses include:
+
+- `X-Total-Count` - Total number of integrations
+- `Link` - Pagination links (first, last, next, prev)
+
+## Python Example: List All Active Integrations
+
+```python Python
+import requests
+
+def get_all_active_integrations(api_url, token):
+    """
+    Retrieve all active integrations (handles pagination).
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    all_integrations = []
+    page = 0
+    size = 100
+    
+    while True:
+        response = requests.get(
+            f"{api_url}/utm-integrations",
+            headers=headers,
+            params={
+                "page": page,
+                "size": size,
+                "active.equals": "true"
+            }
+        )
+        
+        integrations = response.json()
+        if not integrations:
+            break
+        
+        all_integrations.extend(integrations)
+        
+        # Check if there are more pages
+        total_count = int(response.headers.get('X-Total-Count', 0))
+        if len(all_integrations) >= total_count:
+            break
+        
+        page += 1
+    
+    return all_integrations
+
+# Usage
+api_url = "https://your-utmstack-instance.com/api"
+token = "YOUR_TOKEN"
+
+integrations = get_all_active_integrations(api_url, token)
+print(f"Total active integrations: {len(integrations)}")
+
+for integration in integrations:
+    print(f"- {integration['name']} ({integration['shortName']})")
+```

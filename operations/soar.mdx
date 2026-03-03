@@ -1,0 +1,742 @@
+---
+title: 'SOAR Automation'
+description: 'Automate security operations with playbooks, workflows, and orchestration'
+icon: 'robot'
+---
+
+## Overview
+
+UTMStack's Security Orchestration, Automation, and Response (SOAR) capabilities enable security teams to automate repetitive tasks, accelerate incident response, and orchestrate complex workflows across security tools. The SOAR platform is accessible at `/soar` and integrates with alerts, incidents, and external systems via `/integrations`.
+
+<CardGroup cols={2}>
+  <Card title="Automated Playbooks" icon="book">
+    Pre-built and custom workflows for common security scenarios
+  </Card>
+  <Card title="Alert Orchestration" icon="diagram-project">
+    Automatically enrich and respond to alerts from `/iframe`
+  </Card>
+  <Card title="Incident Response" icon="fire">
+    Streamline response to incidents from `/incident`
+  </Card>
+  <Card title="Integration Hub" icon="plug">
+    Connect security tools via `/integrations`
+  </Card>
+</CardGroup>
+
+## SOAR Components
+
+### Core Elements
+
+<CardGroup cols={3}>
+  <Card title="Playbooks" icon="book-open">
+    Automated workflows that execute a series of actions
+  </Card>
+  <Card title="Actions" icon="bolt">
+    Individual tasks performed by playbooks (query, block, notify)
+  </Card>
+  <Card title="Triggers" icon="play">
+    Events that initiate playbook execution (alerts, schedules)
+  </Card>
+  <Card title="Variables" icon="sliders">
+    Dynamic values used in playbooks from `/variables`
+  </Card>
+  <Card title="Conditions" icon="code-branch">
+    Logic that controls playbook flow and decision-making
+  </Card>
+  <Card title="Integrations" icon="puzzle-piece">
+    Connected tools and systems from `/integrations`
+  </Card>
+</CardGroup>
+
+### Playbook Structure
+
+Playbooks consist of:
+
+1. **Trigger** - What initiates the playbook
+2. **Inputs** - Data provided to the playbook (IOCs, incident details)
+3. **Actions** - Steps executed by the playbook
+4. **Conditions** - Decision points and branching logic
+5. **Outputs** - Results returned by the playbook
+6. **Error Handling** - What happens if actions fail
+
+## Common Use Cases
+
+### Alert Enrichment
+
+Automatically enhance alerts from `/iframe` with additional context:
+
+<Steps>
+  <Step title="Alert Trigger">
+    New alert created in alert management system
+  </Step>
+  <Step title="Extract IOCs">
+    Parse alert to extract IPs, domains, hashes, and other indicators
+  </Step>
+  <Step title="Threat Intel Lookup">
+    Query `/threat-intelligence` feeds for IOC reputation
+  </Step>
+  <Step title="WHOIS/DNS Lookup">
+    Gather domain registration and DNS information
+  </Step>
+  <Step title="Asset Context">
+    Retrieve asset details from `/data-sources` (owner, criticality, location)
+  </Step>
+  <Step title="Historical Search">
+    Query `/discover` for previous occurrences of IOCs
+  </Step>
+  <Step title="Update Alert">
+    Add enrichment data to alert for analyst review
+  </Step>
+</Steps>
+
+### Phishing Response
+
+Automate response to phishing emails:
+
+<Steps>
+  <Step title="Phishing Alert">
+    Alert triggered for suspicious email
+  </Step>
+  <Step title="Extract Indicators">
+    Parse email for:
+    - Sender address and headers
+    - URLs and domains
+    - Attachments and file hashes
+  </Step>
+  <Step title="Analyze Attachments">
+    - Submit files to sandbox for analysis
+    - Extract file hashes and scan with antivirus
+  </Step>
+  <Step title="Check URLs">
+    - Scan URLs with threat intelligence feeds
+    - Take screenshots of landing pages
+  </Step>
+  <Step title="Search for Similar">
+    Query email logs for similar phishing emails sent to other users
+  </Step>
+  <Step title="Containment Actions">
+    - Delete phishing emails from all mailboxes
+    - Block sender at email gateway
+    - Add URLs to web proxy blocklist
+  </Step>
+  <Step title="Notify Users">
+    Send security awareness notification to affected users
+  </Step>
+  <Step title="Create Incident">
+    If malicious, create incident at `/incident` with all findings
+  </Step>
+</Steps>
+
+### Malware Response
+
+Automate malware incident response:
+
+<Steps>
+  <Step title="Malware Detection">
+    Alert from endpoint security or file analysis
+  </Step>
+  <Step title="Isolate Endpoint">
+    Automatically quarantine infected system via EDR integration
+  </Step>
+  <Step title="Collect Forensics">
+    - Capture memory dump
+    - Collect process list and network connections
+    - Gather file artifacts
+  </Step>
+  <Step title="Extract IOCs">
+    Identify malware hashes, C2 IPs, and related indicators
+  </Step>
+  <Step title="Threat Intelligence">
+    - Query `/threat-intelligence` for known malware family
+    - Submit samples to malware analysis platforms
+  </Step>
+  <Step title="Hunt for Spread">
+    Search other endpoints at `/discover` for same indicators
+  </Step>
+  <Step title="Block IOCs">
+    Add indicators to blocklists:
+    - Firewall rules for C2 IPs
+    - Proxy blocks for C2 domains
+    - Endpoint blocklists for file hashes
+  </Step>
+  <Step title="Notify and Document">
+    - Alert security team
+    - Create detailed incident at `/incident`
+    - Update threat intelligence
+  </Step>
+</Steps>
+
+### Account Compromise
+
+Automate response to compromised user accounts:
+
+<Steps>
+  <Step title="Compromise Detection">
+    Alert for suspicious login or account activity
+  </Step>
+  <Step title="Verify Legitimacy">
+    - Check login location against user baseline
+    - Compare with user's normal login times
+    - Review recent user activity in `/discover`
+  </Step>
+  <Step title="Immediate Containment">
+    If confirmed malicious:
+    - Force password reset
+    - Revoke all active sessions
+    - Disable account temporarily
+  </Step>
+  <Step title="Investigate Activity">
+    - Review all account activity during compromise window
+    - Check for data access or exfiltration
+    - Identify other affected accounts
+  </Step>
+  <Step title="Reset Access">
+    - Reset password via `/active-directory`
+    - Revoke API tokens and service credentials
+    - Require MFA re-enrollment
+  </Step>
+  <Step title="Monitor">
+    Enable enhanced monitoring for the account
+  </Step>
+  <Step title="Notify User">
+    Contact user about compromise and new security requirements
+  </Step>
+</Steps>
+
+## Building Playbooks
+
+### Playbook Design
+
+<Steps>
+  <Step title="Define Objective">
+    Clearly state what the playbook should accomplish (e.g., "Respond to phishing emails")
+  </Step>
+  <Step title="Map Manual Process">
+    Document current manual steps analysts perform
+  </Step>
+  <Step title="Identify Integrations">
+    Determine which tools from `/integrations` are needed
+  </Step>
+  <Step title="Design Workflow">
+    Create flowchart of:
+    - Actions to perform
+    - Decision points
+    - Error handling
+    - Output requirements
+  </Step>
+  <Step title="Define Variables">
+    Create automation variables at `/variables` for configurable values
+  </Step>
+  <Step title="Build in SOAR">
+    Navigate to `/soar` and construct the playbook
+  </Step>
+  <Step title="Test Thoroughly">
+    Test with various inputs including edge cases
+  </Step>
+  <Step title="Document">
+    Document playbook purpose, inputs, outputs, and dependencies
+  </Step>
+</Steps>
+
+### Action Types
+
+<CardGroup cols={2}>
+  <Card title="Enrichment Actions" icon="magnifying-glass-plus">
+    - Threat intelligence lookups
+    - WHOIS/DNS queries
+    - Asset database searches
+    - User directory queries
+  </Card>
+  <Card title="Investigation Actions" icon="search">
+    - Log searches via `/discover`
+    - File analysis and sandboxing
+    - Network traffic analysis
+    - Endpoint queries
+  </Card>
+  <Card title="Containment Actions" icon="shield">
+    - Network isolation
+    - Account disablement
+    - Firewall rule updates
+    - Endpoint quarantine
+  </Card>
+  <Card title="Notification Actions" icon="bell">
+    - Email notifications
+    - Slack/Teams messages
+    - SMS alerts
+    - Ticket creation
+  </Card>
+  <Card title="Remediation Actions" icon="wrench">
+    - File deletion
+    - Registry key cleanup
+    - Service termination
+    - Patch deployment
+  </Card>
+  <Card title="Documentation Actions" icon="file-lines">
+    - Create incidents at `/incident`
+    - Update alerts at `/iframe`
+    - Generate reports
+    - Update knowledge base
+  </Card>
+</CardGroup>
+
+### Conditional Logic
+
+Playbooks can include decision-making:
+
+```yaml
+IF alert.severity = "Critical" AND asset.criticality = "High"
+  THEN
+    - Isolate asset immediately
+    - Notify CISO
+    - Create P1 incident
+  ELSE IF alert.severity = "High"
+  THEN
+    - Alert SOC team
+    - Create P2 incident
+  ELSE
+    - Add to analyst queue
+    - Create alert for review
+```
+
+### Error Handling
+
+Implement robust error handling:
+
+<CardGroup cols={2}>
+  <Card title="Retry Logic" icon="rotate">
+    Retry failed actions with exponential backoff
+  </Card>
+  <Card title="Fallback Actions" icon="angles-right">
+    Alternative actions if primary fails
+  </Card>
+  <Card title="Notifications" icon="bell">
+    Alert on playbook failures
+  </Card>
+  <Card title="Logging" icon="file-lines">
+    Detailed logging of all actions and errors
+  </Card>
+</CardGroup>
+
+## Integration Management
+
+### Available Integrations
+
+Connect SOAR to tools via `/integrations`:
+
+<CardGroup cols={2}>
+  <Card title="Security Tools" icon="shield-halved">
+    - Firewalls and IPS/IDS
+    - EDR/XDR platforms
+    - Email security gateways
+    - SIEM systems
+  </Card>
+  <Card title="Threat Intelligence" icon="globe">
+    - Commercial TI feeds
+    - OSINT sources
+    - MISP and TI platforms
+    - Sandbox services
+  </Card>
+  <Card title="IT Systems" icon="server">
+    - Active Directory (via `/active-directory`)
+    - Asset management (via `/data-sources`)
+    - Ticketing systems
+    - CMDB platforms
+  </Card>
+  <Card title="Communication" icon="comments">
+    - Email (SMTP)
+    - Slack
+    - Microsoft Teams
+    - SMS/paging systems
+  </Card>
+</CardGroup>
+
+### Configuring Integrations
+
+<Steps>
+  <Step title="Navigate to Integrations">
+    Go to `/integrations` to view available integrations
+  </Step>
+  <Step title="Select Integration">
+    Choose the tool or service to integrate
+  </Step>
+  <Step title="Provide Credentials">
+    Enter API keys, usernames, passwords, or tokens
+  </Step>
+  <Step title="Configure Settings">
+    Set endpoints, regions, and integration-specific options
+  </Step>
+  <Step title="Test Connection">
+    Verify connectivity and authentication
+  </Step>
+  <Step title="Set Permissions">
+    Configure which playbooks can use the integration
+  </Step>
+</Steps>
+
+## Automation Variables
+
+### Variable Management
+
+Manage automation variables at `/variables`:
+
+<CardGroup cols={2}>
+  <Card title="Configuration Values" icon="gear">
+    - API endpoints
+    - Timeout values
+    - Retry counts
+    - Thresholds
+  </Card>
+  <Card title="Credentials" icon="key">
+    - API keys (encrypted)
+    - Passwords (encrypted)
+    - Tokens
+    - Certificates
+  </Card>
+  <Card title="Lists" icon="list">
+    - Whitelisted IPs
+    - Approved domains
+    - Critical assets
+    - VIP users
+  </Card>
+  <Card title="Dynamic Data" icon="arrow-right-arrow-left">
+    - Playbook outputs
+    - Shared state
+    - Temporary data
+    - Cache values
+  </Card>
+</CardGroup>
+
+### Variable Best Practices
+
+1. **Use Variables for Configurability** - Avoid hardcoding values in playbooks
+2. **Encrypt Sensitive Data** - Always encrypt credentials and secrets
+3. **Descriptive Names** - Use clear, consistent naming conventions
+4. **Document Purpose** - Add descriptions for all variables
+5. **Version Control** - Track variable changes over time
+6. **Regular Audits** - Review and remove unused variables
+
+## Playbook Triggers
+
+### Trigger Types
+
+<CardGroup cols={3}>
+  <Card title="Alert Triggers" icon="bell">
+    Execute when specific alerts fire from `/iframe`
+  </Card>
+  <Card title="Incident Triggers" icon="fire">
+    Launch when incidents are created at `/incident`
+  </Card>
+  <Card title="Schedule Triggers" icon="clock">
+    Run on a schedule (daily, weekly, hourly)
+  </Card>
+  <Card title="Manual Triggers" icon="hand-pointer">
+    Analyst-initiated playbook execution
+  </Card>
+  <Card title="Webhook Triggers" icon="webhook">
+    External system calls trigger playbook
+  </Card>
+  <Card title="Event Triggers" icon="calendar-star">
+    Specific log events from `/discover` trigger execution
+  </Card>
+</CardGroup>
+
+### Trigger Configuration
+
+<Steps>
+  <Step title="Select Trigger Type">
+    Choose appropriate trigger for the playbook use case
+  </Step>
+  <Step title="Define Conditions">
+    Specify conditions that must be met:
+    - Alert severity level
+    - Incident category
+    - Time of day
+    - Asset criticality
+  </Step>
+  <Step title="Set Throttling">
+    Configure rate limits to prevent excessive executions
+  </Step>
+  <Step title="Test Trigger">
+    Validate trigger fires correctly
+  </Step>
+</Steps>
+
+## Playbook Execution
+
+### Execution Modes
+
+<CardGroup cols={2}>
+  <Card title="Fully Automated" icon="robot">
+    Playbook runs without human intervention
+  </Card>
+  <Card title="Semi-Automated" icon="user-robot">
+    Analyst approval required at key decision points
+  </Card>
+  <Card title="Advisory Only" icon="circle-info">
+    Playbook provides recommendations, analyst executes
+  </Card>
+  <Card title="Simulation" icon="flask">
+    Test mode that doesn't execute actual actions
+  </Card>
+</CardGroup>
+
+### Monitoring Execution
+
+<Steps>
+  <Step title="View Execution Log">
+    Navigate to `/soar` to see playbook execution history
+  </Step>
+  <Step title="Review Status">
+    Check if playbook completed successfully or failed
+  </Step>
+  <Step title="Examine Actions">
+    Review each action performed and its result
+  </Step>
+  <Step title="Check Outputs">
+    Verify playbook produced expected outputs
+  </Step>
+  <Step title="Investigate Failures">
+    Review error logs for failed playbooks
+  </Step>
+</Steps>
+
+## Pre-built Playbooks
+
+### Alert Response Playbooks
+
+<AccordionGroup>
+  <Accordion title="Alert Triage and Enrichment">
+    - Extract IOCs from alert
+    - Query threat intelligence at `/threat-intelligence`
+    - Lookup asset information from `/data-sources`
+    - Search for related alerts
+    - Calculate priority score
+    - Assign to appropriate queue
+  </Accordion>
+  
+  <Accordion title="False Positive Suppression">
+    - Identify recurring false positive patterns
+    - Update allow lists
+    - Modify alert rules at `/alerting-rules`
+    - Document in knowledge base
+  </Accordion>
+</AccordionGroup>
+
+### Threat Response Playbooks
+
+<AccordionGroup>
+  <Accordion title="IOC Blocking">
+    - Receive IOC (IP, domain, hash, URL)
+    - Validate IOC via threat intelligence
+    - Block at multiple control points:
+      - Firewall rules
+      - Proxy/web filter
+      - EDR/endpoint protection
+      - Email gateway
+    - Document block action
+    - Create alert rule at `/alerting-rules` for detection
+  </Accordion>
+  
+  <Accordion title="Lateral Movement Detection">
+    - Detect suspicious lateral movement activity
+    - Map affected systems
+    - Check for additional compromised accounts
+    - Contain spread by isolating affected systems
+    - Collect forensic evidence
+    - Create incident at `/incident`
+  </Accordion>
+</AccordionGroup>
+
+### Compliance Playbooks
+
+<AccordionGroup>
+  <Accordion title="Access Review Automation">
+    - Extract user access lists
+    - Identify excessive permissions
+    - Flag dormant accounts
+    - Generate review reports
+    - Track via compliance at `/compliance`
+  </Accordion>
+  
+  <Accordion title="Policy Violation Response">
+    - Detect policy violation
+    - Gather evidence from `/discover`
+    - Notify responsible party
+    - Create compliance incident
+    - Track remediation
+  </Accordion>
+</AccordionGroup>
+
+## Performance and Optimization
+
+### Playbook Metrics
+
+Track playbook effectiveness:
+
+<CardGroup cols={2}>
+  <Card title="Execution Time" icon="clock">
+    Average time for playbook to complete
+  </Card>
+  <Card title="Success Rate" icon="check">
+    Percentage of successful executions
+  </Card>
+  <Card title="Resource Usage" icon="gauge">
+    CPU, memory, and API call consumption
+  </Card>
+  <Card title="Time Saved" icon="hourglass">
+    Manual effort eliminated by automation
+  </Card>
+  <Card title="Error Rate" icon="triangle-exclamation">
+    Frequency of playbook failures
+  </Card>
+  <Card title="ROI" icon="chart-line">
+    Value delivered vs development cost
+  </Card>
+</CardGroup>
+
+### Optimization Strategies
+
+<Steps>
+  <Step title="Profile Performance">
+    Identify slow actions and bottlenecks in playbooks
+  </Step>
+  <Step title="Optimize Queries">
+    Improve searches in `/discover` to reduce execution time
+  </Step>
+  <Step title="Implement Caching">
+    Cache frequently queried data using `/variables`
+  </Step>
+  <Step title="Parallelize Actions">
+    Run independent actions concurrently instead of sequentially
+  </Step>
+  <Step title="Reduce API Calls">
+    Batch operations to minimize integration overhead
+  </Step>
+  <Step title="Set Timeouts">
+    Prevent playbooks from hanging on slow actions
+  </Step>
+</Steps>
+
+## Governance and Control
+
+### Playbook Approval Workflow
+
+<Warning>
+  High-risk playbooks (destructive actions, production changes) should require approval before deployment.
+</Warning>
+
+<Steps>
+  <Step title="Develop Playbook">
+    Create and test playbook in development environment
+  </Step>
+  <Step title="Document Risk">
+    Assess potential impact of playbook actions
+  </Step>
+  <Step title="Peer Review">
+    Have another analyst review playbook logic
+  </Step>
+  <Step title="Security Review">
+    Security team approves high-risk playbooks
+  </Step>
+  <Step title="Test in Staging">
+    Validate in non-production environment
+  </Step>
+  <Step title="Gradual Rollout">
+    Start in advisory mode, then semi-automated, then fully automated
+  </Step>
+</Steps>
+
+### Access Controls
+
+Implement SOAR access controls via `/management`:
+
+- **Playbook Execution** - Who can run playbooks manually
+- **Playbook Creation** - Who can create new playbooks
+- **Playbook Editing** - Who can modify existing playbooks
+- **Integration Access** - Which playbooks can use which integrations
+- **Approval Rights** - Who can approve high-risk playbooks
+
+## Best Practices
+
+### Development
+
+1. **Start Simple** - Begin with basic workflows and add complexity gradually
+2. **Reuse Components** - Build libraries of common actions
+3. **Version Control** - Track all playbook changes
+4. **Test Thoroughly** - Test with various inputs and edge cases
+5. **Document Everything** - Clear documentation of purpose and usage
+6. **Error Handling** - Always include proper error handling
+7. **Idempotency** - Ensure playbooks can safely run multiple times
+
+### Operations
+
+1. **Monitor Performance** - Track execution metrics regularly
+2. **Review Logs** - Regularly review playbook execution logs
+3. **Update Regularly** - Keep playbooks current with evolving threats
+4. **Gradual Automation** - Move from manual to semi-automated to fully automated
+5. **Maintain Integrations** - Keep integration credentials and configs current
+6. **Regular Audits** - Quarterly review of all active playbooks
+
+### Security
+
+<CardGroup cols={2}>
+  <Card title="Least Privilege" icon="lock">
+    Grant minimum permissions necessary for playbooks
+  </Card>
+  <Card title="Credential Security" icon="key">
+    Encrypt all credentials in `/variables`
+  </Card>
+  <Card title="Audit Logging" icon="file-lines">
+    Log all playbook executions and actions
+  </Card>
+  <Card title="Change Control" icon="clipboard-check">
+    Require approval for playbook changes
+  </Card>
+</CardGroup>
+
+## Measuring SOAR Success
+
+### Key Metrics
+
+| Metric | Target | Description |
+|--------|--------|-------------|
+| Alert MTTR | -50% | Reduce mean time to respond to alerts |
+| Analyst Time Saved | 20+ hrs/week | Hours freed from manual tasks |
+| Playbook Success Rate | >95% | Percentage of successful executions |
+| Incident MTTR | -40% | Faster incident response with automation |
+| Coverage | 80% | Percentage of common scenarios automated |
+| False Positive Reduction | -30% | Automated enrichment reduces FPs |
+
+### ROI Calculation
+
+<Steps>
+  <Step title="Baseline Manual Effort">
+    Document time spent on manual processes
+  </Step>
+  <Step title="Implement Automation">
+    Deploy playbooks for common scenarios
+  </Step>
+  <Step title="Measure Time Saved">
+    Track reduction in manual effort
+  </Step>
+  <Step title="Calculate Value">
+    (Hours Saved × Hourly Rate) - (Development + Maintenance Costs)
+  </Step>
+</Steps>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Integrations" icon="plug" href="/integrations">
+    Connect tools for playbook orchestration
+  </Card>
+  <Card title="Automation Variables" icon="sliders" href="/variables">
+    Manage playbook variables and secrets
+  </Card>
+  <Card title="Alert Management" icon="bell" href="/iframe">
+    Source of alert-triggered playbooks
+  </Card>
+  <Card title="Incident Response" icon="fire" href="/incident">
+    Automate incident response workflows
+  </Card>
+</CardGroup>

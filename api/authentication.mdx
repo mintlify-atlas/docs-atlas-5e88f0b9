@@ -1,0 +1,227 @@
+---
+title: Authentication
+description: JWT authentication with UTMStack API
+icon: "key"
+---
+
+UTMStack uses JWT (JSON Web Token) authentication for API access. Obtain a token by authenticating with your credentials, then include the token in subsequent requests.
+
+## Authenticate
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/authenticate</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Authenticate with username and password to receive a JWT token.
+
+### Request Body
+
+<ParamField body="username" type="string" required>
+  User's login name
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password
+</ParamField>
+
+<ParamField body="rememberMe" type="boolean" default="false">
+  Whether to create a long-lived token
+</ParamField>
+
+### Response
+
+<ResponseField name="token" type="string">
+  JWT authentication token
+</ResponseField>
+
+<ResponseField name="success" type="boolean">
+  Whether authentication was successful
+</ResponseField>
+
+<ResponseField name="method" type="string">
+  Two-factor authentication method (if configured)
+</ResponseField>
+
+<ResponseField name="tfaConfigured" type="boolean">
+  Whether two-factor authentication is configured
+</ResponseField>
+
+<ResponseField name="forceTfa" type="boolean">
+  Whether TFA is required for this login
+</ResponseField>
+
+<ResponseField name="tfaExpiresInSeconds" type="integer">
+  TFA challenge expiration time in seconds
+</ResponseField>
+
+<ResponseField name="firstLogin" type="boolean">
+  Whether this is the user's first login
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "your-password",
+    "rememberMe": false
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/authenticate"
+data = {
+    "username": "admin",
+    "password": "your-password",
+    "rememberMe": False
+}
+
+response = requests.post(url, json=data)
+token_data = response.json()
+print(token_data["token"])
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGgiOiJST0xFX0FETUlOIiwiZXhwIjoxNzA5MjQwMDAwfQ.abcd1234...",
+  "success": true,
+  "method": null,
+  "tfaConfigured": false,
+  "forceTfa": true,
+  "tfaExpiresInSeconds": 0,
+  "firstLogin": false
+}
+```
+
+```json 401 Unauthorized
+{
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "Bad credentials"
+}
+```
+</ResponseExample>
+
+## Using the Token
+
+Include the JWT token in the `Authorization` header of subsequent requests:
+
+```bash
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9...
+```
+
+### Example Authenticated Request
+
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/account \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+## Check Authentication Status
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/authenticate</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Check if the current user is authenticated.
+
+### Response
+
+Returns the username if authenticated, or 401 status if not authenticated.
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/authenticate \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+admin
+```
+
+```text 401 Unauthorized
+
+```
+</ResponseExample>
+
+## Get Current Account
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/account</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Get the current authenticated user's account information.
+
+### Response
+
+<ResponseField name="id" type="integer">
+  User ID
+</ResponseField>
+
+<ResponseField name="login" type="string">
+  Username
+</ResponseField>
+
+<ResponseField name="firstName" type="string">
+  User's first name
+</ResponseField>
+
+<ResponseField name="lastName" type="string">
+  User's last name
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  User's email address
+</ResponseField>
+
+<ResponseField name="authorities" type="array">
+  List of user roles/permissions
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/account \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 1,
+  "login": "admin",
+  "firstName": "Admin",
+  "lastName": "User",
+  "email": "admin@utmstack.com",
+  "imageUrl": null,
+  "activated": true,
+  "langKey": "en",
+  "authorities": ["ROLE_ADMIN"]
+}
+```
+</ResponseExample>
+
+## Token Expiration
+
+Tokens expire after a set period:
+
+- Standard tokens: 24 hours
+- Remember me tokens: 30 days
+
+When a token expires, you'll receive a 401 Unauthorized response. Authenticate again to obtain a new token.

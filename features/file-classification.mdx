@@ -1,0 +1,198 @@
+---
+title: File Classification
+description: Advanced file classification and malware detection capabilities to identify and respond to file-based threats
+---
+
+## Overview
+
+UTMStack's File Classification feature provides advanced capabilities for identifying, analyzing, and responding to file-based threats. The system combines signature-based detection, behavioral analysis, and threat intelligence to classify files and detect malware across your infrastructure.
+
+<Info>
+File classification integrates with endpoint agents to analyze files at collection time and correlate findings with other security events.
+</Info>
+
+## Detection Capabilities
+
+<CardGroup cols={2}>
+  <Card title="Malware Detection" icon="virus">
+    Identify known malware using signature-based detection and hash matching against threat intelligence feeds.
+  </Card>
+  
+  <Card title="Behavioral Analysis" icon="chart-network">
+    Analyze file behavior and characteristics to detect unknown or zero-day malware.
+  </Card>
+  
+  <Card title="Hash Matching" icon="fingerprint">
+    Match MD5, SHA1, and SHA256 file hashes against global threat databases.
+  </Card>
+  
+  <Card title="File Reputation" icon="shield-check">
+    Assign reputation scores to files based on prevalence, origin, and threat intelligence.
+  </Card>
+</CardGroup>
+
+## File Analysis
+
+The platform analyzes multiple file attributes:
+
+### File Metadata
+- File name and extension
+- File size and creation/modification timestamps
+- Full file path and location
+- File permissions and ownership
+- Digital signatures and certificates
+
+### File Hashing
+- MD5 hash generation
+- SHA1 hash generation
+- SHA256 hash generation
+- Automatic threat intelligence lookup
+
+### File Behavior
+- Process execution monitoring
+- Network connections initiated
+- Registry modifications
+- File system changes
+- Memory injection attempts
+
+## Threat Classification
+
+Files are classified into categories:
+
+- **Malware**: Confirmed malicious files (viruses, trojans, ransomware)
+- **Potentially Unwanted Programs (PUP)**: Adware, toolbars, bundled software
+- **Suspicious**: Files with anomalous characteristics requiring investigation
+- **Safe**: Known good files from trusted sources
+- **Unknown**: Files requiring further analysis
+
+<Tip>
+Focus investigation efforts on Malware and Suspicious classifications first. Use the Unknown category for proactive threat hunting.
+</Tip>
+
+## Alert Generation
+
+File classification events generate alerts when:
+
+- Malware is detected on an endpoint
+- Suspicious files are executed
+- Files match threat intelligence IOCs
+- Unauthorized file modifications occur
+- Files violate security policies
+
+## Integration with Endpoints
+
+File classification works with UTMStack agents:
+
+1. Agent monitors file system activity
+2. New or modified files are hashed
+3. Hashes are sent to UTMStack server
+4. Server performs threat intelligence lookup
+5. Classification results are correlated with other events
+6. Alerts are generated for malicious files
+
+## Quarantine and Response
+
+Respond to detected threats:
+
+- **Automatic Quarantine**: Isolate malicious files automatically
+- **Manual Quarantine**: Analyst-initiated file quarantine
+- **Deletion**: Remove confirmed threats from endpoints
+- **Hash Blocking**: Prevent future execution of known malware
+- **Alert Generation**: Create alerts for security team review
+
+<Info>
+Quarantine actions can be automated using SOAR playbooks to ensure immediate response to critical file-based threats.
+</Info>
+
+## File Intelligence
+
+Enrich file detections with context:
+
+- **Prevalence**: How common is this file across your organization?
+- **First Seen**: When was this file first observed?
+- **Associated Threats**: What threat actors or campaigns use this file?
+- **Malware Family**: What malware family does this belong to?
+- **Attack Chain**: Where does this file fit in the attack lifecycle?
+
+## Whitelisting and Blacklisting
+
+Manage known files:
+
+- **Whitelist**: Trusted files that should never be flagged
+- **Blacklist**: Known malicious files to always block
+- **Custom Lists**: Organization-specific file classifications
+- **Import/Export**: Share lists across UTMStack instances
+
+## File Timeline
+
+Track file lifecycle:
+
+- File creation and first observation
+- Modification and access events
+- Execution attempts
+- Network activity correlation
+- Classification changes over time
+
+## Reporting
+
+Generate file classification reports:
+
+- Malware detection summaries
+- File type distribution
+- Endpoint risk scores based on file activity
+- Trending threats and malware families
+- Compliance reports for file integrity monitoring
+
+## Best Practices
+
+<Tip>
+**Optimize File Classification**
+
+1. Deploy agents to all critical endpoints for comprehensive coverage
+2. Regularly update threat intelligence feeds for current IOCs
+3. Whitelist known good files to reduce false positives
+4. Enable automatic quarantine for high-confidence detections
+5. Investigate Unknown classifications during threat hunting exercises
+6. Monitor file creation in sensitive directories closely
+7. Correlate file events with authentication and network activity
+</Tip>
+
+## Integration Points
+
+File Classification integrates with:
+
+- **[Threat Intelligence](/features/threat-intelligence)**: Hash matching and reputation lookups
+- **[Threat Detection](/features/threat-detection)**: Correlation with other security events
+- **[Alert Investigation](/features/alert-investigation)**: Investigate file-based alerts
+- **Endpoint Agents**: Collect file data from Windows, Linux, and macOS systems
+
+## Performance Considerations
+
+- File hashing is performed on agents to minimize network traffic
+- Only hashes and metadata are sent to the server by default
+- Full file upload can be configured for sandboxing analysis
+- Whitelist common system files to reduce processing overhead
+
+## Enterprise Features
+
+The Enterprise version adds:
+
+- **Sandboxing**: Automated file detonation in isolated environments
+- **Advanced Behavioral Analysis**: Machine learning-based file classification
+- **Faster Threat Intel**: Real-time hash reputation lookups
+- **Custom Yara Rules**: Create organization-specific detection signatures
+
+## Technical Implementation
+
+File classification leverages:
+
+- UTMStack agents for file monitoring
+- Threat intelligence feeds for hash matching
+- Correlation engine for event analysis
+- Alert system for threat notifications
+
+## Related Features
+
+- **[Threat Detection](/features/threat-detection)**: How file-based threats are detected
+- **[Threat Intelligence](/features/threat-intelligence)**: Hash reputation and IOC matching
+- **[SOC AI](/features/soc-ai)**: AI-powered file behavior analysis

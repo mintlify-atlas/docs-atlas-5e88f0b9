@@ -1,0 +1,293 @@
+---
+title: Create User
+description: POST endpoint to create a new user account
+icon: "user-plus"
+---
+
+## Create User
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/users</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Create a new user account. An activation email will be sent to the user.
+
+<Note>
+This endpoint requires `ROLE_ADMIN` permissions.
+</Note>
+
+### Request Body
+
+<ParamField body="login" type="string" required>
+  Unique username (lowercase recommended)
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Unique email address
+</ParamField>
+
+<ParamField body="firstName" type="string" required>
+  User's first name
+</ParamField>
+
+<ParamField body="lastName" type="string" required>
+  User's last name
+</ParamField>
+
+<ParamField body="authorities" type="array" required>
+  Array of role names to assign (e.g., `["ROLE_USER"]`)
+</ParamField>
+
+<ParamField body="activated" type="boolean" default="true">
+  Whether the user account is immediately activated
+</ParamField>
+
+<ParamField body="langKey" type="string" default="en">
+  User's language preference
+</ParamField>
+
+<ParamField body="imageUrl" type="string">
+  URL to user's profile image
+</ParamField>
+
+### Response
+
+<ResponseField name="id" type="integer">
+  Generated user ID
+</ResponseField>
+
+<ResponseField name="login" type="string">
+  Username
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Email address
+</ResponseField>
+
+<ResponseField name="firstName" type="string">
+  First name
+</ResponseField>
+
+<ResponseField name="lastName" type="string">
+  Last name
+</ResponseField>
+
+<ResponseField name="activated" type="boolean">
+  Activation status
+</ResponseField>
+
+<ResponseField name="authorities" type="array">
+  Assigned roles
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/users \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "login": "jdoe",
+    "email": "jdoe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "authorities": ["ROLE_USER"],
+    "activated": true,
+    "langKey": "en"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/users"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "login": "jdoe",
+    "email": "jdoe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "authorities": ["ROLE_USER"],
+    "activated": True,
+    "langKey": "en"
+}
+
+response = requests.post(url, headers=headers, json=data)
+user = response.json()
+print(f"Created user ID: {user['id']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201 Created
+{
+  "id": 5,
+  "login": "jdoe",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "jdoe@example.com",
+  "activated": true,
+  "langKey": "en",
+  "createdBy": "admin",
+  "createdDate": "2024-01-15T10:30:00Z",
+  "authorities": ["ROLE_USER"],
+  "imageUrl": null
+}
+```
+
+```json 400 Bad Request - Login Exists
+{
+  "type": "https://www.jhipster.tech/problem/login-already-used",
+  "title": "Login name already used!",
+  "status": 400,
+  "detail": "Login already in use"
+}
+```
+
+```json 400 Bad Request - Email Exists
+{
+  "type": "https://www.jhipster.tech/problem/email-already-used",
+  "title": "Email is already in use!",
+  "status": 400,
+  "detail": "Email already in use"
+}
+```
+
+```json 400 Bad Request - Has ID
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "A new user cannot already have an ID"
+}
+```
+</ResponseExample>
+
+## User Creation Flow
+
+1. **Validate Input**: Ensure login and email are unique
+2. **Create User**: User account is created in the database
+3. **Send Email**: Activation email is sent to the user's email address
+4. **Return User**: Created user object is returned
+
+## Activation Email
+
+When a user is created, an activation email is automatically sent containing:
+
+- Welcome message
+- Temporary password or activation link
+- Instructions to complete account setup
+
+## Creating Admin Users
+
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/users \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "login": "admin2",
+    "email": "admin2@example.com",
+    "firstName": "Second",
+    "lastName": "Admin",
+    "authorities": ["ROLE_ADMIN"],
+    "activated": true,
+    "langKey": "en"
+  }'
+```
+
+## Creating Multiple Users
+
+```python Python
+import requests
+
+def create_users_batch(api_url, token, users_data):
+    """
+    Create multiple users from a list.
+    """
+    url = f"{api_url}/users"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    created = []
+    errors = []
+    
+    for user_data in users_data:
+        try:
+            response = requests.post(url, headers=headers, json=user_data)
+            
+            if response.status_code == 201:
+                created.append(response.json())
+                print(f"✓ Created user: {user_data['login']}")
+            else:
+                errors.append({
+                    "user": user_data['login'],
+                    "error": response.json()
+                })
+                print(f"✗ Failed to create user: {user_data['login']}")
+        except Exception as e:
+            errors.append({
+                "user": user_data['login'],
+                "error": str(e)
+            })
+    
+    return created, errors
+
+# Example usage
+users = [
+    {
+        "login": "analyst1",
+        "email": "analyst1@example.com",
+        "firstName": "Alice",
+        "lastName": "Analyst",
+        "authorities": ["ROLE_USER", "ROLE_ANALYST"],
+        "activated": True,
+        "langKey": "en"
+    },
+    {
+        "login": "analyst2",
+        "email": "analyst2@example.com",
+        "firstName": "Bob",
+        "lastName": "Analyst",
+        "authorities": ["ROLE_USER", "ROLE_ANALYST"],
+        "activated": True,
+        "langKey": "en"
+    }
+]
+
+api_url = "https://your-utmstack-instance.com/api"
+token = "YOUR_TOKEN"
+
+created, errors = create_users_batch(api_url, token, users)
+print(f"\nCreated: {len(created)}, Errors: {len(errors)}")
+```
+
+## Validation Rules
+
+### Login
+- Must be unique
+- Typically lowercase
+- No special characters (alphanumeric and underscore recommended)
+
+### Email
+- Must be unique
+- Must be valid email format
+- Case-insensitive comparison
+
+### Authorities
+- Must include at least one role
+- Roles must exist in the system
+- Use `ROLE_` prefix for all roles
+
+## Best Practices
+
+1. **Use Meaningful Logins**: Use email prefix or full name as login
+2. **Assign Minimal Roles**: Start with `ROLE_USER`, add more as needed
+3. **Verify Email**: Ensure email addresses are valid and accessible
+4. **Set Language**: Match user's preferred language
+5. **Batch Creation**: For multiple users, implement error handling

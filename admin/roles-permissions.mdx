@@ -1,0 +1,318 @@
+---
+title: Roles and Permissions
+description: Configure role-based access control (RBAC) in UTMStack
+---
+
+## Overview
+
+UTMStack implements a comprehensive role-based access control (RBAC) system built on Spring Security. Roles define what actions users can perform and what data they can access within the system.
+
+## Built-in Roles
+
+UTMStack provides four default roles with different permission levels:
+
+### Administrator
+
+Full system access with all permissions:
+- User and role management
+- System configuration
+- All data access (read/write/delete)
+- Integration management
+- Agent deployment and management
+- Report creation and scheduling
+- Audit log access
+
+<Warning>
+The Administrator role has unrestricted access. Limit the number of users with this role and enable two-factor authentication for all admin accounts.
+</Warning>
+
+### Security Analyst
+
+Operational security monitoring permissions:
+- View and analyze security events
+- Create and modify alerts
+- Investigate incidents
+- Create custom dashboards
+- Generate reports
+- Acknowledge and assign alerts
+- Cannot modify system settings or manage users
+
+### Auditor
+
+Read-only access for compliance and audit functions:
+- View all security events and logs
+- Access compliance reports
+- View system configuration (read-only)
+- Access audit trails
+- Cannot modify any data or settings
+- Cannot acknowledge or assign alerts
+
+### Viewer
+
+Limited read-only access:
+- View assigned dashboards
+- View filtered security events
+- Basic reporting capabilities
+- Cannot access system settings
+- Cannot modify any configurations
+
+## Permission Matrix
+
+| Permission | Administrator | Security Analyst | Auditor | Viewer |
+|------------|---------------|------------------|---------|--------|
+| Manage Users | ✓ | ✗ | ✗ | ✗ |
+| Manage Roles | ✓ | ✗ | ✗ | ✗ |
+| System Configuration | ✓ | ✗ | ✗ | ✗ |
+| Manage Integrations | ✓ | ✗ | ✗ | ✗ |
+| Deploy Agents | ✓ | ✗ | ✗ | ✗ |
+| View Events | ✓ | ✓ | ✓ | Limited |
+| Investigate Incidents | ✓ | ✓ | ✗ | ✗ |
+| Manage Alerts | ✓ | ✓ | ✗ | ✗ |
+| Create Dashboards | ✓ | ✓ | ✗ | ✗ |
+| Generate Reports | ✓ | ✓ | ✓ | Limited |
+| View Audit Logs | ✓ | ✗ | ✓ | ✗ |
+| Modify Data | ✓ | Limited | ✗ | ✗ |
+
+## Creating Custom Roles
+
+<Steps>
+  <Step title="Navigate to Role Management">
+    Go to **Settings > Roles** in the UTMStack interface.
+  </Step>
+  
+  <Step title="Create New Role">
+    Click **Add Role** and provide:
+    - Role name
+    - Description
+    - Role type (custom)
+  </Step>
+  
+  <Step title="Configure Permissions">
+    Select permissions from the following categories:
+    
+    **Data Access:**
+    - Read events
+    - Write events
+    - Delete events
+    - Access levels (all data, organization, team, personal)
+    
+    **System Functions:**
+    - Dashboard management
+    - Alert configuration
+    - Integration management
+    - Report generation
+    
+    **Administrative:**
+    - User management
+    - Role management
+    - System configuration
+    - Audit access
+  </Step>
+  
+  <Step title="Set Data Filters">
+    Configure data access restrictions:
+    - Filter by data source
+    - Filter by severity level
+    - Filter by time range
+    - Filter by asset group
+  </Step>
+  
+  <Step title="Save and Test">
+    Save the custom role and assign it to a test user to validate permissions.
+  </Step>
+</Steps>
+
+<Warning>
+Always test custom roles with a non-critical user account before widespread deployment. Overly permissive roles can create security vulnerabilities.
+</Warning>
+
+## Assigning Roles to Users
+
+### Single User Assignment
+
+1. Navigate to **Settings > Users**
+2. Select the user account
+3. Click **Edit Roles**
+4. Add or remove role assignments
+5. Save changes
+
+Changes take effect immediately. Active user sessions will inherit new permissions after their next authentication.
+
+### Multiple Role Assignment
+
+Users can have multiple roles assigned:
+- Permissions are cumulative (union of all assigned roles)
+- The highest privilege level applies for conflicting permissions
+- Useful for users with hybrid responsibilities
+
+<Warning>
+Multiple role assignment can lead to permission creep. Regularly audit user role assignments to ensure least privilege access.
+</Warning>
+
+## Permission Scopes
+
+UTMStack supports granular permission scopes:
+
+### Global Scope
+
+Access to all data and resources across the entire system.
+
+### Organization Scope
+
+Access limited to a specific organization's data (multi-tenant deployments).
+
+### Team Scope
+
+Access limited to team-specific resources:
+- Team dashboards
+- Team-assigned incidents
+- Team data sources
+
+### Personal Scope
+
+Access limited to user's own resources:
+- Personal dashboards
+- Self-assigned incidents
+- Personal reports
+
+## Role Inheritance
+
+Custom roles can inherit permissions from base roles:
+
+<Steps>
+  <Step title="Select Base Role">
+    When creating a custom role, choose a base role to inherit from.
+  </Step>
+  
+  <Step title="Add Additional Permissions">
+    Extend the base role with additional permissions as needed.
+  </Step>
+  
+  <Step title="Override Restrictions">
+    Optionally restrict certain inherited permissions.
+  </Step>
+</Steps>
+
+Inheritance hierarchy:
+```
+Administrator (highest)
+  └─ Security Analyst
+      └─ Auditor
+          └─ Viewer (lowest)
+```
+
+## Data Source Permissions
+
+Control access to specific data sources:
+
+- **All Sources**: Access to all integrated data sources
+- **Selected Sources**: Limit to specific integrations
+- **Source Groups**: Organize sources into logical groups
+
+### Configuring Source Access
+
+1. Edit the role
+2. Navigate to **Data Source Permissions**
+3. Select **Limited Access**
+4. Choose specific sources or source groups
+5. Save the configuration
+
+## Time-Based Access Control
+
+Implement temporal access restrictions:
+
+- **Time-Limited Roles**: Automatically expire on a specific date
+- **Business Hours Only**: Restrict access to business hours
+- **Temporary Elevated Access**: Grant temporary admin rights for specific tasks
+
+<Steps>
+  <Step title="Configure Time Restriction">
+    When assigning a role, enable **Time-Based Access**.
+  </Step>
+  
+  <Step title="Set Time Parameters">
+    Define:
+    - Start date/time
+    - End date/time (optional)
+    - Allowed hours of access
+    - Allowed days of week
+  </Step>
+  
+  <Step title="Save and Schedule">
+    The system automatically enforces time restrictions and notifies users before expiration.
+  </Step>
+</Steps>
+
+## API Access Control
+
+Roles control API access for integrations and automation:
+
+- **Full API Access**: All API endpoints
+- **Read-Only API**: GET requests only
+- **Limited API**: Specific endpoint access
+- **No API Access**: UI access only
+
+API permissions are configured in the **API Access** section of role management.
+
+## Monitoring Role Usage
+
+Track role and permission usage:
+
+### Role Assignment Reports
+
+- View users per role
+- Identify unused roles
+- Track role changes over time
+
+Access at **Settings > Roles > Reports**.
+
+### Permission Audit Logs
+
+All permission checks are logged:
+- Permission granted/denied events
+- Role changes
+- Access attempts to restricted resources
+
+View in **Settings > Audit Logs** filtered by "Permission Events".
+
+## Best Practices
+
+<Warning>
+Follow these best practices for role and permission management:
+
+- **Principle of Least Privilege**: Grant only the minimum permissions required
+- **Regular Audits**: Review role assignments quarterly
+- **Separation of Duties**: Don't combine conflicting responsibilities in a single role
+- **Document Custom Roles**: Maintain documentation of custom role purposes and permissions
+- **Test Before Deployment**: Validate custom roles in a test environment
+- **Monitor Changes**: Alert on role and permission modifications
+- **Avoid Role Proliferation**: Consolidate similar roles to reduce complexity
+- **Use Groups**: Organize users into groups for easier role management
+</Warning>
+
+## Troubleshooting
+
+### User Cannot Access Expected Features
+
+1. Verify role assignment in **Settings > Users**
+2. Check role permissions in **Settings > Roles**
+3. Review audit logs for permission denied events
+4. Ensure user session has been refreshed (re-login)
+
+### Permission Changes Not Taking Effect
+
+- Active sessions cache permissions for performance
+- Users must log out and log back in for changes to apply
+- Force session termination from **Settings > Active Sessions**
+
+### Conflicting Permissions from Multiple Roles
+
+- Review the effective permissions for the user
+- Use the **Permission Calculator** at **Settings > Roles > Tools**
+- Remove redundant role assignments
+
+## Related Topics
+
+- [User Management](/admin/user-management) - Manage user accounts and assignments
+- [Authentication Configuration](/admin/authentication) - Configure authentication methods
+- [SAML SSO Configuration](/admin/saml-sso) - Enterprise role mapping with SSO

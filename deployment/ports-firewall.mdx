@@ -1,0 +1,255 @@
+---
+title: Ports and Firewall Configuration
+description: Required ports and firewall rules for UTMStack deployment
+---
+
+Proper firewall configuration is critical for securing your UTMStack deployment while ensuring necessary services are accessible.
+
+## Required Ports
+
+The following ports must be accessible on your UTMStack server:
+
+### Port 22/TCP - Secure Shell (SSH)
+
+**Purpose**: Remote administration and secure shell access
+
+**Firewall Recommendation**:
+
+<Warning>
+Create a firewall rule to allow port 22/TCP only from admin workstations. Never expose SSH to the public internet.
+</Warning>
+
+```bash
+# Example: Allow SSH from specific IP range
+sudo ufw allow from 192.168.1.0/24 to any port 22 proto tcp
+```
+
+### Port 80/TCP - HTTP Redirector
+
+**Purpose**: UTMStack Web-based Graphical User Interface Redirector (redirects to HTTPS)
+
+**Firewall Recommendation**:
+
+<Warning>
+Create a firewall rule to allow port 80/TCP only from admin and security analyst workstations.
+</Warning>
+
+```bash
+# Example: Allow HTTP from specific IP range
+sudo ufw allow from 192.168.1.0/24 to any port 80 proto tcp
+```
+
+### Port 443/TCP - HTTPS
+
+**Purpose**: UTMStack Web-based Graphical User Interface
+
+**Firewall Recommendation**:
+
+<Warning>
+Create a firewall rule to allow port 443/TCP only from admin and security analyst workstations.
+</Warning>
+
+```bash
+# Example: Allow HTTPS from specific IP range
+sudo ufw allow from 192.168.1.0/24 to any port 443 proto tcp
+```
+
+### Port 9090/TCP - Cockpit
+
+**Purpose**: Cockpit Web-based Graphical Interface for Servers
+
+**Firewall Recommendation**:
+
+<Warning>
+Create a firewall rule to allow port 9090/TCP only from admin workstations.
+</Warning>
+
+```bash
+# Example: Allow Cockpit from specific admin IP
+sudo ufw allow from 192.168.1.10 to any port 9090 proto tcp
+```
+
+### Additional Integration Ports
+
+**Purpose**: Log collection from various integrations and data sources
+
+<Note>
+Other ports will be required during the configuration of UTMStack's integrations to receive logs. Please follow the security recommendations given in the integration guide if one exists.
+</Note>
+
+Integration-specific ports will vary depending on:
+- Syslog receivers
+- Agent communications
+- API integrations
+- Custom data sources
+
+Refer to the specific integration documentation for port requirements.
+
+## Firewall Configuration
+
+### Using UFW (Uncomplicated Firewall)
+
+Ubuntu 22.04 LTS includes UFW for simplified firewall management.
+
+<Steps>
+  <Step title="Enable UFW">
+    Enable the firewall:
+
+    ```bash
+    sudo ufw enable
+    ```
+
+    <Warning>
+    Ensure you have configured SSH access before enabling the firewall to avoid being locked out.
+    </Warning>
+  </Step>
+
+  <Step title="Set Default Policies">
+    Configure default policies to deny incoming traffic and allow outgoing:
+
+    ```bash
+    sudo ufw default deny incoming
+    sudo ufw default allow outgoing
+    ```
+  </Step>
+
+  <Step title="Allow Required Ports">
+    Configure rules for required ports (adjust IP ranges for your environment):
+
+    ```bash
+    # SSH - from admin workstations only
+    sudo ufw allow from 192.168.1.0/24 to any port 22 proto tcp
+
+    # HTTP - from admin and analyst workstations
+    sudo ufw allow from 192.168.1.0/24 to any port 80 proto tcp
+
+    # HTTPS - from admin and analyst workstations
+    sudo ufw allow from 192.168.1.0/24 to any port 443 proto tcp
+
+    # Cockpit - from admin workstations only
+    sudo ufw allow from 192.168.1.0/24 to any port 9090 proto tcp
+    ```
+  </Step>
+
+  <Step title="Verify Rules">
+    Review configured firewall rules:
+
+    ```bash
+    sudo ufw status verbose
+    ```
+  </Step>
+</Steps>
+
+### Using iptables
+
+For advanced firewall configurations, you can use iptables directly:
+
+```bash
+# Allow SSH from specific network
+sudo iptables -A INPUT -p tcp -s 192.168.1.0/24 --dport 22 -j ACCEPT
+
+# Allow HTTPS from specific network
+sudo iptables -A INPUT -p tcp -s 192.168.1.0/24 --dport 443 -j ACCEPT
+
+# Save iptables rules
+sudo netfilter-persistent save
+```
+
+## Security Best Practices
+
+### Network Segmentation
+
+- Deploy UTMStack in a dedicated management network segment
+- Use VLANs to separate management and data collection traffic
+- Implement network access controls between segments
+
+### Access Control Lists
+
+<Steps>
+  <Step title="Document Authorized Networks">
+    Maintain a list of authorized IP ranges:
+    - Admin workstations
+    - Analyst workstations
+    - Data source networks
+    - Integration endpoints
+  </Step>
+
+  <Step title="Implement Least Privilege">
+    Only allow access from networks that require it:
+    - Limit SSH to admin workstations
+    - Limit web interface to admin and analyst workstations
+    - Restrict Cockpit to admin workstations only
+  </Step>
+
+  <Step title="Regular Review">
+    Periodically review and update firewall rules:
+    - Remove rules for decommissioned systems
+    - Update IP ranges as network topology changes
+    - Audit access logs for unauthorized attempts
+  </Step>
+</Steps>
+
+### Additional Security Measures
+
+- **Fail2ban**: UTMStack includes fail2ban mechanisms to protect against brute-force attacks
+- **Two-Factor Authentication**: Enable 2FA for all user accounts
+- **Strong Authentication**: Connections use +24 character unique keys
+- **Service Isolation**: UTMStack services are isolated by containers and microservices
+
+## Testing Connectivity
+
+### From Admin Workstation
+
+Test connectivity to required ports:
+
+```bash
+# Test SSH
+ssh utmstack@your-utmstack-ip
+
+# Test HTTPS (should return connection)
+telnet your-utmstack-ip 443
+
+# Test Cockpit
+curl -k https://your-utmstack-ip:9090
+```
+
+### From Data Sources
+
+Ensure data sources can reach the UTMStack server on required integration ports:
+
+```bash
+# Test connectivity to integration port (example: 514 for syslog)
+nc -zv your-utmstack-ip 514
+```
+
+## Troubleshooting
+
+### Connection Refused
+
+If you cannot connect to a service:
+
+1. Verify the service is running on the UTMStack server
+2. Check firewall rules allow traffic from your source IP
+3. Verify no intermediate firewalls are blocking traffic
+4. Check network routing and connectivity
+
+### Viewing Firewall Logs
+
+Monitor firewall activity:
+
+```bash
+# Enable UFW logging
+sudo ufw logging on
+
+# View firewall logs
+sudo tail -f /var/log/ufw.log
+```
+
+## Next Steps
+
+After configuring firewall rules:
+
+1. Test access from authorized workstations
+2. Configure [network settings](/deployment/network-configuration) if not already done
+3. Set up integrations and data sources
+4. Monitor firewall logs for unauthorized access attempts

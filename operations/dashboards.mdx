@@ -1,0 +1,232 @@
+---
+title: 'Security Dashboards'
+description: 'Create, customize, and manage security monitoring dashboards in UTMStack'
+icon: 'chart-line'
+---
+
+## Overview
+
+UTMStack provides powerful dashboard capabilities for visualizing security data, monitoring threats in real-time, and tracking key security metrics. Dashboards are accessible at `/dashboard` and offer customizable views for SOC analysts and security teams.
+
+<CardGroup cols={2}>
+  <Card title="Pre-built Dashboards" icon="grid-2">
+    Access ready-to-use security dashboards for common monitoring scenarios
+  </Card>
+  <Card title="Custom Dashboards" icon="sliders">
+    Create tailored dashboards with the visualization builder at `/creator`
+  </Card>
+  <Card title="Real-time Updates" icon="rotate">
+    Monitor security events as they happen with live data refreshes
+  </Card>
+  <Card title="Dashboard Sharing" icon="share-nodes">
+    Share dashboards with team members and export visualizations
+  </Card>
+</CardGroup>
+
+## Dashboard Features
+
+### Available Dashboard Types
+
+UTMStack offers several specialized dashboards for different security operations needs:
+
+- **Security Overview** - High-level view of your security posture
+- **Threat Detection** - Real-time threat alerts and indicators
+- **Compliance Status** - Compliance framework monitoring (accessible at `/compliance`)
+- **Asset Visibility** - Network asset discovery and monitoring (accessible at `/data-sources`)
+- **Log Analytics** - Log data analysis and patterns (accessible at `/discover`)
+- **Incident Tracking** - Active incident status and response metrics
+
+### Visualization Components
+
+Dashboards support various visualization types:
+
+<CardGroup cols={3}>
+  <Card title="Charts" icon="chart-column">
+    Bar, line, pie, and area charts for metric visualization
+  </Card>
+  <Card title="Tables" icon="table">
+    Detailed data tables with sorting and filtering
+  </Card>
+  <Card title="Metrics" icon="gauge">
+    Single-value metrics and KPIs
+  </Card>
+  <Card title="Heatmaps" icon="table-cells">
+    Time-based activity heatmaps
+  </Card>
+  <Card title="Maps" icon="map">
+    Geographic visualization of threats
+  </Card>
+  <Card title="Timelines" icon="timeline">
+    Event timelines and chronological views
+  </Card>
+</CardGroup>
+
+## Creating Custom Dashboards
+
+<Steps>
+  <Step title="Access Dashboard Creator">
+    Navigate to `/creator` to access the graphic builder interface
+  </Step>
+  <Step title="Select Data Source">
+    Choose your data source from available log sources and integrations at `/integrations`
+  </Step>
+  <Step title="Choose Visualization Type">
+    Select the appropriate visualization component for your data
+  </Step>
+  <Step title="Configure Query">
+    Build your search query using the query builder or custom syntax
+  </Step>
+  <Step title="Customize Appearance">
+    Set colors, labels, axes, and other visual properties
+  </Step>
+  <Step title="Save and Add to Dashboard">
+    Save your visualization and add it to an existing or new dashboard
+  </Step>
+</Steps>
+
+## Dashboard Management Workflow
+
+### For SOC Analysts
+
+<Steps>
+  <Step title="Select Monitoring Dashboard">
+    Navigate to `/dashboard` and select the appropriate operational dashboard
+  </Step>
+  <Step title="Set Time Range">
+    Configure the time range for your monitoring period (last hour, 24 hours, custom)
+  </Step>
+  <Step title="Monitor Metrics">
+    Watch key security metrics and alerts for anomalies
+  </Step>
+  <Step title="Drill Down on Alerts">
+    Click on visualizations to drill down into detailed log data at `/discover`
+  </Step>
+  <Step title="Investigate Events">
+    Use filters and search to investigate suspicious events
+  </Step>
+  <Step title="Create Incident">
+    If threats are confirmed, create an incident at `/incident` for tracking
+  </Step>
+</Steps>
+
+## Dashboard Customization
+
+### Layout Configuration
+
+- **Grid System** - Drag and drop widgets into responsive grid layouts
+- **Widget Sizing** - Resize visualizations to emphasize critical metrics
+- **Panel Organization** - Group related visualizations into collapsible panels
+- **Full-screen Mode** - Expand dashboards for NOC/SOC display monitors
+
+### Filtering and Interactions
+
+<CardGroup cols={2}>
+  <Card title="Global Filters" icon="filter">
+    Apply filters across all dashboard visualizations simultaneously
+  </Card>
+  <Card title="Time Controls" icon="clock">
+    Unified time range selection for all dashboard widgets
+  </Card>
+  <Card title="Click-through Actions" icon="arrow-pointer">
+    Click on data points to drill down to raw logs
+  </Card>
+  <Card title="Auto-refresh" icon="arrows-rotate">
+    Configure automatic dashboard refresh intervals
+  </Card>
+</CardGroup>
+
+## Common Dashboard Use Cases
+
+### Threat Monitoring Dashboard
+
+Monitor active threats and security alerts:
+
+- Alert volume trends over time
+- Top alert categories and severity distribution
+- Recently triggered alerts from `/iframe` (alert management)
+- Geographic distribution of threat sources
+- Asset risk scores from `/data-sources`
+
+### Compliance Dashboard
+
+Track compliance status for regulatory frameworks:
+
+- Compliance score by framework (accessible at `/compliance`)
+- Failed compliance checks and remediation status
+- Audit log activity and policy violations
+- Asset compliance status
+- Control effectiveness metrics
+
+### Operations Dashboard
+
+Monitor SOC operational metrics:
+
+- Mean time to detect (MTTD) and respond (MTTR)
+- Incident queue and response status from `/incident`
+- Alert triage metrics
+- Analyst workload distribution
+- SOAR automation execution from `/soar`
+
+## Dashboard Best Practices
+
+<Warning>
+  Avoid overloading dashboards with too many visualizations. Focus on 6-8 key metrics per dashboard for optimal readability.
+</Warning>
+
+### Design Guidelines
+
+1. **Purpose-driven** - Create dashboards for specific roles or use cases
+2. **Prioritize Metrics** - Place most critical visualizations in top-left position
+3. **Consistent Layouts** - Use similar layouts across related dashboards
+4. **Color Coding** - Use red for critical, yellow for warning, green for healthy
+5. **Meaningful Names** - Use descriptive dashboard and widget names
+
+### Performance Optimization
+
+- Limit time ranges for heavy queries
+- Use data sampling for large datasets
+- Schedule dashboard pre-computation for complex queries
+- Cache frequently accessed dashboard data
+
+## Exporting and Sharing
+
+### Export Options
+
+- **PDF Reports** - Export dashboard snapshots as PDF documents
+- **PNG/JPEG** - Export individual visualizations as images
+- **CSV Data** - Export underlying data for offline analysis
+- **Dashboard JSON** - Export dashboard configuration for backup or migration
+
+### Sharing Dashboards
+
+<Steps>
+  <Step title="Configure Permissions">
+    Set view or edit permissions for specific users or roles in `/management`
+  </Step>
+  <Step title="Create Dashboard Link">
+    Generate shareable links with optional time-limited access
+  </Step>
+  <Step title="Schedule Reports">
+    Configure automated dashboard reports via email
+  </Step>
+  <Step title="Embed Dashboards">
+    Embed dashboards in external applications using iframe integration
+  </Step>
+</Steps>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Graphic Builder" icon="wand-magic-sparkles" href="/creator">
+    Create custom visualizations and dashboards
+  </Card>
+  <Card title="Log Discovery" icon="magnifying-glass" href="/discover">
+    Explore and analyze log data
+  </Card>
+  <Card title="Data Sources" icon="database" href="/data-sources">
+    Manage assets and data sources
+  </Card>
+  <Card title="Alert Management" icon="bell" href="/iframe">
+    View and manage security alerts
+  </Card>
+</CardGroup>

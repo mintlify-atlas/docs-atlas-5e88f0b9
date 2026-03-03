@@ -1,0 +1,183 @@
+---
+title: Office 365 Integration
+description: Integrate UTMStack with Microsoft Office 365
+---
+
+## Overview
+
+The UTMStack Office 365 plugin is a connector developed in Golang that synchronizes and processes logs from Office 365 and sends them to the UTMStack processing server for comprehensive security monitoring of your Microsoft 365 environment.
+
+## How It Works
+
+The Office 365 integration:
+
+- Uses the **Office 365 Management Activity API** to obtain logs
+- Authenticates via **OAuth2**
+- Manages subscriptions for various log types
+- Connects to UTMStack via **GRPC** through a Unix socket
+
+<Note>
+**Prerequisites**
+
+You need a valid Office 365 account with:
+- Global Administrator or Security Administrator role
+- An Azure AD application registered for API access
+- Office 365 Management Activity API enabled
+</Note>
+
+## Supported Log Types
+
+The integration collects the following audit log types:
+
+- **Audit.AzureActiveDirectory**: Azure AD authentication and user management events
+- **Audit.Exchange**: Exchange mailbox activities and email flow
+- **Audit.SharePoint**: SharePoint and OneDrive file activities
+- **Audit.General**: General Office 365 activities
+- **DLP.All**: Data Loss Prevention policy events
+
+## Configuration Steps
+
+### 1. Register an Application in Azure AD
+
+1. Navigate to **Azure Active Directory** in the Azure portal
+2. Go to **App registrations** and click **New registration**
+3. Enter a name (e.g., "UTMStack O365 Integration")
+4. Select **Accounts in this organizational directory only**
+5. Click **Register**
+
+### 2. Configure API Permissions
+
+1. In your registered application, go to **API permissions**
+2. Click **Add a permission**
+3. Select **Office 365 Management APIs**
+4. Choose **Application permissions**
+5. Add the following permissions:
+   - `ActivityFeed.Read`
+   - `ActivityFeed.ReadDlp`
+   - `ServiceHealth.Read`
+6. Click **Add permissions**
+7. Click **Grant admin consent** for your organization
+
+### 3. Create a Client Secret
+
+1. Go to **Certificates & secrets**
+2. Click **New client secret**
+3. Add a description and select expiration period
+4. Click **Add**
+5. Copy the secret value immediately (you won't see it again)
+
+### 4. Enable Office 365 Audit Logging
+
+1. Go to the **Microsoft 365 Compliance Center**
+2. Navigate to **Audit**
+3. Ensure **Start recording user and admin activities** is enabled
+4. Wait up to 24 hours for audit logging to become fully active
+
+### 5. Gather Required Information
+
+Collect the following information:
+
+- **Tenant ID**: Found in Azure Active Directory > Overview
+- **Client ID**: Found in your App registration > Overview  
+- **Client Secret**: The secret value created earlier
+- **Publisher ID**: Your Office 365 tenant domain (e.g., contoso.onmicrosoft.com)
+
+### 6. Configure in UTMStack
+
+1. Navigate to **Integrations** in the UTMStack console
+2. Select **Office 365**
+3. Enter the required credentials:
+   - Tenant ID
+   - Client ID
+   - Client Secret
+   - Publisher ID (tenant domain)
+4. Select which log types to collect
+5. Click **Save** to activate the integration
+
+### 7. Verify Integration
+
+Once configured, the plugin will:
+
+1. Authenticate with Office 365 using OAuth2
+2. Create subscriptions for selected audit log types
+3. Begin collecting audit events
+4. Forward events to UTMStack for processing
+
+Verify the integration by:
+
+- Checking the integration status in UTMStack console
+- Viewing incoming Office 365 events in the Events dashboard
+- Monitoring the plugin logs for subscription status
+
+## Event Types Collected
+
+### Azure Active Directory
+- User sign-ins (success and failures)
+- User and group management
+- Role assignments
+- Application consent
+- Conditional access policy changes
+
+### Exchange
+- Mailbox access
+- Email send/receive
+- Mailbox rule creation
+- Email forwarding configuration
+- Mailbox permission changes
+
+### SharePoint/OneDrive
+- File uploads, downloads, and deletions
+- File sharing activities
+- Permission changes
+- Site collection creation
+
+### Data Loss Prevention
+- DLP policy matches
+- Policy rule evaluations
+- Sensitive information detection
+
+## Troubleshooting
+
+### Authentication Errors
+
+- Verify Tenant ID, Client ID, and Client Secret are correct
+- Ensure the client secret has not expired
+- Check that admin consent was granted for API permissions
+
+### No Data Received
+
+- Verify Office 365 audit logging is enabled
+- Wait 24 hours after enabling audit logging for data to appear
+- Ensure users are actively using Office 365 services
+- Check that the selected log types have activity
+- Review plugin logs for subscription errors
+
+### Permission Issues
+
+- Ensure the application has the required API permissions
+- Verify admin consent was granted
+- Check if conditional access policies are blocking the app
+
+### Subscription Errors
+
+- The plugin automatically manages subscriptions
+- If subscriptions fail, check API permission grants
+- Review the Office 365 Service Communications for any service issues
+
+## Data Retention
+
+Office 365 audit logs are retained based on your license:
+
+- **E3/E5**: 90 days (E5 can extend to 1 year)
+- **Business Premium**: 90 days
+
+UTMStack stores and retains all collected logs according to your configured retention policy.
+
+## Security Best Practices
+
+- Regularly rotate client secrets before expiration
+- Use a dedicated service account for the integration
+- Enable conditional access policies for the service principal
+- Monitor the application's sign-in activity
+- Review API permissions periodically
+- Enable MFA for admin accounts managing the integration

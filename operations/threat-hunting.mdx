@@ -1,0 +1,598 @@
+---
+title: 'Threat Hunting'
+description: 'Proactively hunt for threats, analyze security data, and uncover hidden adversaries'
+icon: 'crosshairs'
+---
+
+## Overview
+
+Threat hunting is the proactive process of searching for cyber threats that may have evaded automated detection systems. UTMStack provides comprehensive tools for threat hunters to explore data, test hypotheses, and discover advanced threats. Primary hunting capabilities are available through `/discover` (log analysis), `/threat-intelligence` (threat intel), and `/data` (data management).
+
+<CardGroup cols={2}>
+  <Card title="Hypothesis-Driven" icon="lightbulb">
+    Develop and test threat hypotheses based on TTPs
+  </Card>
+  <Card title="Data Exploration" icon="magnifying-glass">
+    Query and analyze security data at `/discover`
+  </Card>
+  <Card title="Threat Intelligence" icon="shield-halved">
+    Leverage threat intel from `/threat-intelligence`
+  </Card>
+  <Card title="Pattern Recognition" icon="diagram-project">
+    Identify anomalous patterns and behaviors
+  </Card>
+</CardGroup>
+
+## Threat Hunting Methodology
+
+### Hunting Approaches
+
+<CardGroup cols={3}>
+  <Card title="Hypothesis-Driven" icon="flask">
+    Start with specific threat hypothesis based on intelligence or experience
+  </Card>
+  <Card title="Baseline-Driven" icon="chart-line">
+    Identify deviations from established baselines of normal activity
+  </Card>
+  <Card title="Model-Driven" icon="brain">
+    Use behavioral models and analytics to detect anomalies
+  </Card>
+</CardGroup>
+
+### The Hunting Loop
+
+<Steps>
+  <Step title="Develop Hypothesis">
+    Create a testable hypothesis about potential threat activity based on:
+    - Threat intelligence from `/threat-intelligence`
+    - Known attack techniques (MITRE ATT&CK)
+    - Environment-specific risks
+    - Recent security incidents from `/incident`
+  </Step>
+  <Step title="Collect Data">
+    Identify and access relevant data sources at `/data` and `/data-sources`:
+    - Network traffic logs
+    - Endpoint telemetry
+    - Authentication logs
+    - Cloud service logs
+    - Application logs
+  </Step>
+  <Step title="Analyze Data">
+    Query and explore data using `/discover` to search for indicators:
+    - Apply filters and search queries
+    - Visualize patterns and trends
+    - Correlate across multiple data sources
+  </Step>
+  <Step title="Investigate Findings">
+    Deep dive into suspicious activity:
+    - Gather additional context
+    - Pivot to related events
+    - Timeline reconstruction
+    - Asset and user profiling from `/data-sources`
+  </Step>
+  <Step title="Respond">
+    Take appropriate action based on findings:
+    - Create alert rules at `/alerting-rules` for detection
+    - Create incident at `/incident` if threat confirmed
+    - Trigger SOAR playbook at `/soar` for remediation
+  </Step>
+  <Step title="Document">
+    Record hunt results and share knowledge:
+    - Document hunting methodology
+    - Share IOCs and TTPs with team
+    - Update detection rules
+    - Create dashboards at `/dashboard`
+  </Step>
+</Steps>
+
+## Hunting with Log Discovery
+
+### Using the Discover Interface
+
+The `/discover` interface provides powerful log analysis capabilities:
+
+<CardGroup cols={2}>
+  <Card title="Search Queries" icon="magnifying-glass">
+    Full-text search across all indexed log data
+  </Card>
+  <Card title="Field Filtering" icon="filter">
+    Filter by specific fields and values
+  </Card>
+  <Card title="Time Range" icon="clock">
+    Narrow searches to specific time periods
+  </Card>
+  <Card title="Field Statistics" icon="chart-column">
+    View top values and distributions
+  </Card>
+  <Card title="Pattern Detection" icon="waveform-lines">
+    Identify patterns in log data
+  </Card>
+  <Card title="Export Results" icon="download">
+    Export hunt results for further analysis
+  </Card>
+</CardGroup>
+
+### Advanced Search Techniques
+
+#### Boolean Operators
+
+```
+# Find failed login attempts from external IPs
+event.type:"authentication" AND result:"failure" AND NOT source.ip:10.0.0.0/8
+
+# Detect PowerShell execution with suspicious parameters
+process.name:"powershell.exe" AND (command_line:*"DownloadString"* OR command_line:*"IEX"*)
+
+# Identify lateral movement attempts
+event.category:"network" AND destination.port:(445 OR 3389 OR 5985) AND NOT source.ip:"known_admin_workstation"
+```
+
+#### Field Aggregations
+
+- **Top N Analysis** - Identify most frequent values (e.g., top talking hosts)
+- **Unique Counts** - Count distinct values (e.g., unique users per system)
+- **Rare Item Detection** - Find infrequent values that may be suspicious
+- **Temporal Analysis** - Analyze activity patterns over time
+
+### Common Hunting Queries
+
+<AccordionGroup>
+  <Accordion title="Credential Access Hunting">
+    Hunt for credential theft and abuse:
+    
+    ```
+    # Excessive failed logins (password spraying)
+    event.type:"authentication" AND result:"failure" 
+    | stats count by source.ip, user.name
+    | where count > 10
+    
+    # Successful login after many failures (successful spray)
+    event.type:"authentication"
+    | stats count by result, user.name, source.ip
+    | where result="failure" count > 5 AND result="success" count > 0
+    
+    # Kerberoasting attempts
+    event.code:"4769" AND ticket_encryption_type:"0x17"
+    ```
+  </Accordion>
+  
+  <Accordion title="Lateral Movement Detection">
+    Identify adversary movement across the network:
+    
+    ```
+    # Unusual RDP sessions
+    event.type:"network" AND destination.port:3389
+    AND NOT source.ip:(admin_subnet)
+    
+    # SMB admin share access from workstations
+    event.category:"file" AND file.path:("\\\\*\\C$" OR "\\\\*\\ADMIN$")
+    AND source.device_type:"workstation"
+    
+    # PSExec or WMI execution
+    process.name:("psexec.exe" OR "wmic.exe") 
+    AND process.command_line:*"process call create"*
+    ```
+  </Accordion>
+  
+  <Accordion title="Command and Control (C2)">
+    Detect C2 communications:
+    
+    ```
+    # Beaconing behavior (regular intervals)
+    network.connection_type:"outbound"
+    | stats count by destination.ip, time_bucket(5m)
+    | where count > 10 AND stddev(count) < 2
+    
+    # Suspicious DNS queries
+    dns.question_type:("TXT" OR "NULL") 
+    OR dns.query_length > 50
+    OR dns.subdomain_count > 4
+    
+    # Unusual outbound connections
+    network.direction:"outbound" 
+    AND destination.port:(4444 OR 8080 OR 1337)
+    AND NOT destination.ip:(known_cloud_services)
+    ```
+  </Accordion>
+  
+  <Accordion title="Data Exfiltration">
+    Hunt for data theft activity:
+    
+    ```
+    # Large outbound data transfers
+    network.direction:"outbound" AND network.bytes > 10000000
+    | stats sum(network.bytes) by source.ip, destination.ip
+    
+    # Unusual cloud uploads
+    url.domain:("drive.google.com" OR "dropbox.com" OR "wetransfer.com")
+    AND http.method:"POST" AND http.response_size > 1000000
+    
+    # File compression before transfer
+    process.name:("7z.exe" OR "winrar.exe" OR "zip.exe")
+    AND file.path:*"\\\\Users\\\\*\\\\Documents\\\\"*
+    ```
+  </Accordion>
+  
+  <Accordion title="Persistence Mechanisms">
+    Identify persistence techniques:
+    
+    ```
+    # Registry Run key modifications
+    registry.path:("*\\\\Run\\\\*" OR "*\\\\RunOnce\\\\*")
+    AND registry.operation:("add" OR "modify")
+    
+    # Scheduled task creation
+    event.category:"scheduled_task" 
+    AND event.action:("created" OR "modified")
+    AND task.actions:*
+    
+    # Service installation
+    event.type:"service" AND event.action:"installed"
+    AND NOT service.name:(known_software_services)
+    
+    # Startup folder modifications
+    file.path:*"\\\\StartUp\\\\"* AND file.operation:("create" OR "modify")
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Threat Intelligence Integration
+
+### Leveraging Threat Intel
+
+Use `/threat-intelligence` to enhance hunting:
+
+<Steps>
+  <Step title="Review Current Threats">
+    Navigate to `/threat-intelligence` to review latest threat intelligence:
+    - Active threat campaigns
+    - Known IOCs (IPs, domains, hashes)
+    - Adversary TTPs and behaviors
+  </Step>
+  <Step title="Extract Hunting Leads">
+    Identify specific indicators and behaviors to hunt for:
+    - Extract IOCs for searching
+    - Note adversary TTPs mapped to MITRE ATT&CK
+    - Identify relevant data sources
+  </Step>
+  <Step title="Search for Indicators">
+    Query logs at `/discover` for threat intelligence matches:
+    - Search for specific IOCs
+    - Look for behavioral patterns
+    - Check historical data for past presence
+  </Step>
+  <Step title="Expand Investigation">
+    Pivot from initial findings to uncover full scope:
+    - Related network connections
+    - Associated file activity
+    - Correlated user actions
+  </Step>
+</Steps>
+
+### IOC Hunting
+
+Search for indicators of compromise:
+
+<CardGroup cols={2}>
+  <Card title="IP Addresses" icon="network-wired">
+    Search network logs for connections to malicious IPs
+  </Card>
+  <Card title="Domain Names" icon="globe">
+    Check DNS queries and HTTP traffic for malicious domains
+  </Card>
+  <Card title="File Hashes" icon="hashtag">
+    Look for known malicious file hashes in endpoint data
+  </Card>
+  <Card title="File Paths" icon="folder">
+    Search for suspicious file locations and names
+  </Card>
+  <Card title="Registry Keys" icon="key">
+    Identify malicious registry modifications
+  </Card>
+  <Card title="User Agents" icon="browser">
+    Detect anomalous or malicious user agent strings
+  </Card>
+</CardGroup>
+
+## MITRE ATT&CK Framework
+
+### Hunting by Tactic
+
+Organize hunts around MITRE ATT&CK tactics:
+
+<CardGroup cols={2}>
+  <Card title="Initial Access" icon="door-open">
+    Phishing, exploits, supply chain compromise
+  </Card>
+  <Card title="Execution" icon="play">
+    PowerShell, scripts, command-line tools
+  </Card>
+  <Card title="Persistence" icon="link">
+    Registry, scheduled tasks, services
+  </Card>
+  <Card title="Privilege Escalation" icon="arrow-up">
+    Token manipulation, exploitation
+  </Card>
+  <Card title="Defense Evasion" icon="shield">
+    Obfuscation, disabling security tools
+  </Card>
+  <Card title="Credential Access" icon="key">
+    Credential dumping, keylogging
+  </Card>
+  <Card title="Discovery" icon="binoculars">
+    Network scanning, system enumeration
+  </Card>
+  <Card title="Lateral Movement" icon="right-left">
+    Remote services, internal spear phishing
+  </Card>
+  <Card title="Collection" icon="database">
+    Data staging, screen capture
+  </Card>
+  <Card title="Command & Control" icon="satellite-dish">
+    C2 channels, proxy usage
+  </Card>
+  <Card title="Exfiltration" icon="upload">
+    Data transfer, exfiltration to cloud
+  </Card>
+  <Card title="Impact" icon="bomb">
+    Data destruction, ransomware
+  </Card>
+</CardGroup>
+
+### Technique-Based Hunts
+
+Create hunts for specific ATT&CK techniques:
+
+<Steps>
+  <Step title="Select Technique">
+    Choose a specific MITRE ATT&CK technique (e.g., T1059.001 - PowerShell)
+  </Step>
+  <Step title="Research Detection">
+    Review detection guidance and data sources required
+  </Step>
+  <Step title="Build Query">
+    Create search query at `/discover` to detect technique usage
+  </Step>
+  <Step title="Validate Detection">
+    Test query against known-good and known-bad samples
+  </Step>
+  <Step title="Hunt Historical Data">
+    Search historical logs for past technique usage
+  </Step>
+  <Step title="Create Detection Rule">
+    Convert successful hunt into alert rule at `/alerting-rules`
+  </Step>
+</Steps>
+
+## Asset and User Profiling
+
+### Baseline Normal Behavior
+
+Establish baselines using `/data-sources` and `/discover`:
+
+<CardGroup cols={2}>
+  <Card title="User Baselines" icon="user">
+    - Typical login times and locations
+    - Common accessed resources
+    - Normal network activity patterns
+    - Standard application usage
+  </Card>
+  <Card title="Asset Baselines" icon="server">
+    - Expected network connections
+    - Normal process execution
+    - Typical resource utilization
+    - Standard service configurations
+  </Card>
+</CardGroup>
+
+### Anomaly Detection Workflow
+
+<Steps>
+  <Step title="Define Normal">
+    Query historical data at `/discover` to establish baseline behavior over 30+ days
+  </Step>
+  <Step title="Identify Outliers">
+    Look for activities that deviate from baseline:
+    - Unusual login times or locations
+    - First-time network connections
+    - New processes or services
+    - Abnormal data volumes
+  </Step>
+  <Step title="Investigate Anomalies">
+    Examine outliers for malicious indicators:
+    - Check threat intelligence at `/threat-intelligence`
+    - Review asset context from `/data-sources`
+    - Correlate with other security events
+  </Step>
+  <Step title="Determine Legitimacy">
+    Classify anomalies as:
+    - Benign (new business activity)
+    - Suspicious (requires monitoring)
+    - Malicious (incident response required)
+  </Step>
+</Steps>
+
+## Hunting Frameworks and Methodologies
+
+### Sqrrl Threat Hunting Loop
+
+1. **Create Hypothesis** - Develop educated guess about attacker behavior
+2. **Investigate via Tools** - Use `/discover` and other tools to test hypothesis
+3. **Discover New Patterns** - Uncover new attack patterns and TTPs
+4. **Inform and Enrich Analytics** - Feed findings into detection systems
+
+### TaHiTI Framework
+
+Threat Hunting Maturity Model levels:
+
+| Level | Description | Characteristics |
+|-------|-------------|----------------|
+| TH0   | Initial     | Ad-hoc, reactive hunting based on alerts |
+| TH1   | Minimal     | Routine collections, basic hypothesis testing |
+| TH2   | Procedural  | Data analysis procedures, hunt procedures |
+| TH3   | Innovative  | Novel techniques, custom analytics |
+| TH4   | Leading     | Automate successful hunts, create new TTPs |
+
+## Hunt Documentation
+
+### Recording Hunt Results
+
+<Warning>
+  Always document your hunts, even if they don't find threats. Negative results are valuable for tracking coverage.
+</Warning>
+
+Document the following:
+
+1. **Hypothesis** - What you were hunting for and why
+2. **Data Sources** - Which logs and systems were analyzed
+3. **Queries Used** - Specific search queries from `/discover`
+4. **Findings** - What was discovered (threats or absence of threats)
+5. **IOCs Identified** - Any indicators found during the hunt
+6. **Actions Taken** - Rules created, incidents opened, etc.
+7. **Recommendations** - Improvements to detection or security posture
+8. **Time Investment** - Hours spent on the hunt
+
+### Creating Hunting Dashboards
+
+<Steps>
+  <Step title="Identify Key Metrics">
+    Determine what metrics help monitor hunt targets
+  </Step>
+  <Step title="Build Visualizations">
+    Create charts at `/creator` for monitoring hunt areas
+  </Step>
+  <Step title="Create Dashboard">
+    Compile visualizations into hunting dashboard at `/dashboard`
+  </Step>
+  <Step title="Schedule Reviews">
+    Regularly review hunting dashboards for anomalies
+  </Step>
+</Steps>
+
+## Converting Hunts to Detections
+
+### Hunt to Alert Workflow
+
+<Steps>
+  <Step title="Validate Hunt Findings">
+    Confirm the hunt query reliably detects the threat
+  </Step>
+  <Step title="Optimize Query">
+    Refine search to minimize false positives while maintaining detection
+  </Step>
+  <Step title="Test Against Benign">
+    Verify query doesn't trigger on legitimate activity
+  </Step>
+  <Step title="Create Alert Rule">
+    Navigate to `/alerting-rules` and create detection rule from hunt query
+  </Step>
+  <Step title="Configure Actions">
+    Set appropriate severity, notifications, and SOAR actions at `/soar`
+  </Step>
+  <Step title="Enable and Monitor">
+    Activate rule and track false positive rate
+  </Step>
+  <Step title="Document Hunt Source">
+    Note that rule originated from hunt for future reference
+  </Step>
+</Steps>
+
+## Hunting Tools and Techniques
+
+### Statistical Analysis
+
+<CardGroup cols={2}>
+  <Card title="Frequency Analysis" icon="chart-column">
+    Identify rarely occurring events that may be suspicious
+  </Card>
+  <Card title="Stack Ranking" icon="ranking-star">
+    Compare similar items to find outliers (e.g., processes by hash)
+  </Card>
+  <Card title="Time Series" icon="chart-line">
+    Detect temporal anomalies and patterns
+  </Card>
+  <Card title="Clustering" icon="circle-nodes">
+    Group similar behaviors to identify outliers
+  </Card>
+</CardGroup>
+
+### Data Pivoting
+
+Pivot from initial findings to expand investigation:
+
+1. **IP Pivot** - Find all activity from suspicious IP
+2. **User Pivot** - Investigate all actions by suspicious user
+3. **Hash Pivot** - Locate all instances of suspicious file
+4. **Domain Pivot** - Find related domain infrastructure
+5. **Time Pivot** - Examine activity in time window around event
+6. **Process Pivot** - Track parent-child process relationships
+
+## Collaboration and Sharing
+
+### Hunt Team Coordination
+
+<CardGroup cols={2}>
+  <Card title="Hunt Calendar" icon="calendar">
+    Schedule regular hunt missions and assign responsibilities
+  </Card>
+  <Card title="Hypothesis Sharing" icon="share-nodes">
+    Share hunt ideas and collaborate on hypothesis development
+  </Card>
+  <Card title="Results Review" icon="comments">
+    Regular meetings to review hunt findings and share techniques
+  </Card>
+  <Card title="Knowledge Base" icon="book">
+    Maintain repository of hunt queries and methodologies
+  </Card>
+</CardGroup>
+
+### Threat Intelligence Sharing
+
+Share hunt findings:
+
+- **Internal** - Update `/threat-intelligence` with discovered IOCs and TTPs
+- **External** - Contribute to ISACs and threat intelligence communities
+- **Detection Rules** - Share successful hunt-derived rules at `/alerting-rules`
+- **Hunt Reports** - Document and share hunt methodologies
+
+## Best Practices
+
+### Effective Hunting
+
+1. **Start with Intelligence** - Use threat intel from `/threat-intelligence` to guide hunts
+2. **Document Everything** - Record all hunts, findings, and queries
+3. **Focus on High-Value** - Hunt in areas with greatest risk or visibility gaps
+4. **Regular Cadence** - Schedule recurring hunts (weekly, monthly)
+5. **Convert to Detection** - Turn successful hunts into automated rules
+6. **Share Knowledge** - Collaborate with team and broader community
+7. **Measure Progress** - Track hunts conducted, threats found, rules created
+
+### Common Pitfalls to Avoid
+
+<Warning>
+  Avoid these common hunting mistakes:
+</Warning>
+
+- **Over-reliance on IOCs** - Focus on behaviors, not just indicators
+- **Analysis Paralysis** - Set time limits for hunt missions
+- **Ignoring Negative Results** - Document hunts that find nothing
+- **Poor Documentation** - Always record methodology and findings
+- **Hunting in Isolation** - Collaborate with team members
+- **Forgetting to Close Loop** - Convert findings to automated detection
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Log Discovery" icon="magnifying-glass" href="/discover">
+    Primary interface for hunting in log data
+  </Card>
+  <Card title="Threat Intelligence" icon="shield-halved" href="/threat-intelligence">
+    Leverage threat intel for hunt hypotheses
+  </Card>
+  <Card title="Alerting Rules" icon="bell" href="/alerting-rules">
+    Convert hunts to automated detection
+  </Card>
+  <Card title="Data Sources" icon="database" href="/data-sources">
+    Understand available data for hunting
+  </Card>
+</CardGroup>

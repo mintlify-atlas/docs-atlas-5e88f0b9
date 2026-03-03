@@ -1,0 +1,262 @@
+---
+title: Update Alert
+description: PUT endpoints to update alert status, notes, and tags
+icon: "pen-to-square"
+---
+
+Update alert properties including status, notes, and tags.
+
+## Update Alert Status
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alerts/status</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Update the status of one or more alerts.
+
+### Request Body
+
+<ParamField body="alertIds" type="array" required>
+  Array of alert IDs to update
+</ParamField>
+
+<ParamField body="status" type="integer" required>
+  New status code (1=Auto Review, 2=Open, 3=In Progress, 4=Completed, 5=Incident Created)
+</ParamField>
+
+<ParamField body="statusObservation" type="string">
+  Notes describing the status change
+</ParamField>
+
+<ParamField body="addFalsePositiveTag" type="boolean" default="false">
+  Whether to add a false positive tag (only applicable when status=4)
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/utm-alerts/status \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "alertIds": ["abc123", "def456"],
+    "status": 3,
+    "statusObservation": "Investigating suspicious activity",
+    "addFalsePositiveTag": false
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-alerts/status"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "alertIds": ["abc123", "def456"],
+    "status": 3,
+    "statusObservation": "Investigating suspicious activity",
+    "addFalsePositiveTag": False
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.status_code)
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+
+```json 500 Error
+{
+  "status": 500,
+  "error": "Internal Server Error",
+  "message": "Failed to update alert status"
+}
+```
+</ResponseExample>
+
+## Update Alert Notes
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alerts/notes</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Add or update notes for a specific alert.
+
+### Query Parameters
+
+<ParamField query="alertId" type="string" required>
+  The ID of the alert to update
+</ParamField>
+
+### Request Body
+
+Plain text string containing the notes.
+
+<RequestExample>
+```bash cURL
+curl -X POST "https://your-utmstack-instance.com/api/utm-alerts/notes?alertId=abc123" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: text/plain" \
+  -d "User confirmed this was legitimate activity. Closing as false positive."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-alerts/notes"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "text/plain"
+}
+params = {"alertId": "abc123"}
+data = "User confirmed this was legitimate activity. Closing as false positive."
+
+response = requests.post(url, headers=headers, params=params, data=data)
+print(response.status_code)
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+</ResponseExample>
+
+## Update Alert Tags
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alerts/tags</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Add or update tags for one or more alerts.
+
+### Request Body
+
+<ParamField body="alertIds" type="array" required>
+  Array of alert IDs to tag
+</ParamField>
+
+<ParamField body="tags" type="array" required>
+  Array of tag names to apply
+</ParamField>
+
+<ParamField body="createRule" type="boolean" default="false">
+  Whether to create an automatic tagging rule based on these tags
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/utm-alerts/tags \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "alertIds": ["abc123", "def456"],
+    "tags": ["false-positive", "vpn-access"],
+    "createRule": false
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-alerts/tags"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "alertIds": ["abc123", "def456"],
+    "tags": ["false-positive", "vpn-access"],
+    "createRule": False
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.status_code)
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+</ResponseExample>
+
+## Convert to Incident
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-alerts/convert-to-incident</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Convert one or more alerts into an incident for investigation.
+
+### Request Body
+
+<ParamField body="eventIds" type="array" required>
+  Array of alert/event IDs to include in the incident
+</ParamField>
+
+<ParamField body="incidentName" type="string" required>
+  Name for the new incident
+</ParamField>
+
+<ParamField body="incidentId" type="integer">
+  ID of existing incident to add alerts to (optional)
+</ParamField>
+
+<ParamField body="incidentSource" type="string">
+  Source/origin of the incident
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/utm-alerts/convert-to-incident \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "eventIds": ["abc123", "def456", "ghi789"],
+    "incidentName": "Potential Ransomware Attack",
+    "incidentSource": "SOC Analysis"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-alerts/convert-to-incident"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "eventIds": ["abc123", "def456", "ghi789"],
+    "incidentName": "Potential Ransomware Attack",
+    "incidentSource": "SOC Analysis"
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.status_code)
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+</ResponseExample>

@@ -1,0 +1,259 @@
+---
+title: Linux Agent
+description: Install and manage the UTMStack Agent on Linux systems
+---
+
+The UTMStack Linux Agent enables comprehensive security monitoring and log collection on Linux servers and systems.
+
+## Prerequisites
+
+Before installing the Linux agent, ensure you have:
+
+- Root or sudo privileges
+- Network connectivity to the UTMStack server
+- UTMStack server hostname or IP address
+- Agent registration key from your UTMStack deployment
+
+## Supported Distributions
+
+The agent supports major Linux distributions including:
+
+- Ubuntu/Debian
+- RHEL/CentOS/Rocky Linux
+- Amazon Linux
+- Other systemd-based distributions
+
+## Installation
+
+<Steps>
+  <Step title="Download the Agent">
+    Download the Linux agent binary (`utmstack_agent`) from your UTMStack server or deployment package.
+  </Step>
+
+  <Step title="Make the Binary Executable">
+    ```bash
+    chmod +x utmstack_agent
+    ```
+  </Step>
+
+  <Step title="Run the Installation Command">
+    Execute the installer with root privileges:
+
+    ```bash
+    sudo ./utmstack_agent install
+    ```
+
+    The installer will prompt you for:
+    - UTMStack server address
+    - Agent registration key
+  </Step>
+
+  <Step title="Installation Process">
+    The agent will automatically:
+
+    - Check server connection and verify port accessibility
+    - Download required dependencies from the server
+    - Register the agent with the UTMStack server
+    - Configure collectors and log retention settings
+    - Install the systemd service
+
+    You'll see output like:
+
+    ```bash
+    Installing UTMStackAgent service ...
+    Checking server connection ... [OK]
+    Downloading dependencies ... [OK]
+    Configuring agent ... [OK]
+    Creating service ... [OK]
+    UTMStackAgent service installed correctly
+    ```
+  </Step>
+
+  <Step title="Verify Installation">
+    Check that the UTMStackAgent service is running:
+
+    ```bash
+    sudo systemctl status UTMStackAgent
+    ```
+  </Step>
+</Steps>
+
+## Service Management
+
+### Start the Service
+
+```bash
+sudo systemctl start UTMStackAgent
+```
+
+### Stop the Service
+
+```bash
+sudo systemctl stop UTMStackAgent
+```
+
+### Restart the Service
+
+```bash
+sudo systemctl restart UTMStackAgent
+```
+
+### Check Service Status
+
+```bash
+sudo systemctl status UTMStackAgent
+```
+
+### Enable Auto-Start on Boot
+
+```bash
+sudo systemctl enable UTMStackAgent
+```
+
+## Common Tasks
+
+### Enable Syslog Integration
+
+Enable syslog over UDP:
+
+```bash
+sudo ./utmstack_agent enable-integration syslog udp
+```
+
+Enable syslog over TCP:
+
+```bash
+sudo ./utmstack_agent enable-integration syslog tcp
+```
+
+Enable syslog over TCP with TLS:
+
+```bash
+sudo ./utmstack_agent enable-integration syslog tcp --tls
+```
+
+### Load Custom TLS Certificates
+
+For production environments, load your own TLS certificates:
+
+```bash
+sudo ./utmstack_agent load-tls-certs /path/to/server.crt /path/to/server.key /path/to/ca.crt
+```
+
+Without CA certificate:
+
+```bash
+sudo ./utmstack_agent load-tls-certs /path/to/server.crt /path/to/server.key
+```
+
+### Check TLS Certificate Status
+
+```bash
+sudo ./utmstack_agent check-tls-certs
+```
+
+### Change Integration Port
+
+Change the syslog TCP port to 5140:
+
+```bash
+sudo ./utmstack_agent change-port syslog tcp 5140
+```
+
+### Change Log Retention
+
+Set log retention to 100 MB:
+
+```bash
+sudo ./utmstack_agent change-retention 100
+```
+
+### Clean Old Logs
+
+Manually clean old logs based on retention policy:
+
+```bash
+sudo ./utmstack_agent clean-logs
+```
+
+## Uninstalling the Agent
+
+To completely remove the agent:
+
+```bash
+sudo ./utmstack_agent uninstall
+```
+
+This will:
+- Stop the service
+- Uninstall collectors
+- Delete the agent from the server
+- Remove the systemd service
+- Clean up configuration files
+
+## Troubleshooting
+
+### Installation Fails
+
+If installation fails, check:
+
+1. **Network connectivity**: Ensure the server is reachable
+   ```bash
+   ping your-utmstack-server
+   ```
+
+2. **Firewall rules**: Verify required ports are open
+   ```bash
+   sudo firewall-cmd --list-all  # For firewalld
+   sudo ufw status              # For ufw
+   ```
+
+3. **Permissions**: Ensure you're running with sudo or as root
+
+### Service Won't Start
+
+Check the service logs:
+
+```bash
+sudo journalctl -u UTMStackAgent -n 50 --no-pager
+```
+
+Or check the agent log file directly at `/opt/utmstack/agent/logs/service.log`
+
+### Agent Not Appearing in Console
+
+Verify the agent is registered:
+- Check network connectivity to the server
+- Ensure the correct server address and key were used during installation
+- Review the agent log files
+
+### Permission Denied Errors
+
+Ensure you're running all agent commands with `sudo` or as the root user.
+
+## Log Files
+
+Agent logs are typically stored at:
+
+```
+/opt/utmstack/agent/logs/service.log
+```
+
+View recent logs:
+
+```bash
+sudo tail -f /opt/utmstack/agent/logs/service.log
+```
+
+## File Locations
+
+- **Agent binary**: `/opt/utmstack/agent/utmstack_agent`
+- **Configuration**: `/opt/utmstack/agent/config.yml`
+- **Logs**: `/opt/utmstack/agent/logs/`
+- **Database**: `/opt/utmstack/agent/data/`
+
+## Next Steps
+
+<Card title="Agent Commands" icon="terminal" href="/agents/agent-commands">
+  Explore all available CLI commands
+</Card>

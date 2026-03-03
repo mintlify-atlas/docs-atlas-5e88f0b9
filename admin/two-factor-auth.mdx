@@ -1,0 +1,408 @@
+---
+title: Two-Factor Authentication
+description: Configure and manage TOTP-based two-factor authentication in UTMStack
+---
+
+## Overview
+
+UTMStack implements Time-based One-Time Password (TOTP) two-factor authentication using industry-standard libraries including Google Authenticator and ZXing for QR code generation. 2FA adds an additional security layer beyond passwords, protecting against credential compromise.
+
+<Warning>
+Two-factor authentication significantly reduces the risk of unauthorized access. It is strongly recommended to enable 2FA for all users, especially those with administrative privileges.
+</Warning>
+
+## 2FA Implementation
+
+UTMStack's 2FA system is built on:
+- **totp-spring-boot-starter** (v1.7.1): Spring Boot integration for TOTP
+- **googleauth** (v1.4.0): Google Authenticator compatibility
+- **ZXing** (v3.4.1): QR code generation for easy setup
+
+Supported authenticator apps:
+- Google Authenticator
+- Microsoft Authenticator
+- Authy
+- 1Password
+- Any RFC 6238 compliant TOTP app
+
+## Enabling 2FA for Users
+
+### Administrator Enrollment for Users
+
+<Steps>
+  <Step title="Navigate to User Settings">
+    Go to **Settings > Users** and select a user account.
+  </Step>
+  
+  <Step title="Enable 2FA Requirement">
+    Click **Security Settings** and toggle **Require Two-Factor Authentication**.
+  </Step>
+  
+  <Step title="Notify User">
+    The user will be prompted to set up 2FA on their next login.
+  </Step>
+</Steps>
+
+### User Self-Enrollment
+
+<Steps>
+  <Step title="Access Account Settings">
+    Users navigate to their profile and select **Security**.
+  </Step>
+  
+  <Step title="Enable Two-Factor Authentication">
+    Click **Enable 2FA** to begin the enrollment process.
+  </Step>
+  
+  <Step title="Scan QR Code">
+    A QR code is displayed containing the TOTP secret:
+    - Open your authenticator app
+    - Scan the QR code with your device camera
+    - The account will be added to your authenticator app
+  </Step>
+  
+  <Step title="Verify Setup">
+    Enter the 6-digit code displayed in your authenticator app to verify setup.
+  </Step>
+  
+  <Step title="Save Recovery Codes">
+    Download and securely store the recovery codes. These are needed if you lose access to your authenticator device.
+  </Step>
+</Steps>
+
+<Warning>
+Recovery codes are shown only once during setup. Store them securely in a password manager or encrypted location. Each code can only be used once.
+</Warning>
+
+## 2FA Login Process
+
+Once 2FA is enabled, the login process requires two steps:
+
+<Steps>
+  <Step title="Enter Credentials">
+    User enters their username and password as usual.
+  </Step>
+  
+  <Step title="Enter TOTP Code">
+    After successful password authentication, a second screen prompts for the 6-digit TOTP code.
+  </Step>
+  
+  <Step title="Submit Code">
+    User opens their authenticator app and enters the current code.
+  </Step>
+  
+  <Step title="Access Granted">
+    Upon successful verification, the user is logged into UTMStack.
+  </Step>
+</Steps>
+
+**TOTP Code Details:**
+- 6-digit numeric code
+- Refreshes every 30 seconds
+- Time-synchronized between server and authenticator
+- Small time drift tolerance (±1 time window)
+
+## System-Wide 2FA Policies
+
+Administrators can enforce 2FA policies:
+
+### Mandatory 2FA
+
+<Steps>
+  <Step title="Access Global Security Settings">
+    Navigate to **Settings > Security > Two-Factor Authentication**.
+  </Step>
+  
+  <Step title="Enable Enforcement Policy">
+    Toggle **Require 2FA for All Users**.
+  </Step>
+  
+  <Step title="Set Grace Period">
+    Define a grace period (e.g., 14 days) for users to enroll before enforcement.
+  </Step>
+  
+  <Step title="Configure Exemptions">
+    Optionally exempt specific service accounts or roles (not recommended).
+  </Step>
+  
+  <Step title="Activate Policy">
+    Save the policy. Users without 2FA will be prompted to enroll on next login.
+  </Step>
+</Steps>
+
+<Warning>
+Before enforcing mandatory 2FA system-wide, ensure all administrators have successfully enrolled and tested their 2FA setup to prevent complete lockout.
+</Warning>
+
+### Role-Based 2FA Requirements
+
+Require 2FA for specific roles:
+
+1. Navigate to **Settings > Roles**
+2. Edit a role (e.g., Administrator)
+3. Enable **Require Two-Factor Authentication**
+4. Save the role configuration
+
+Users assigned this role must enroll in 2FA regardless of system-wide policies.
+
+## Managing 2FA for Users
+
+### Viewing 2FA Status
+
+Check which users have 2FA enabled:
+
+1. Go to **Settings > Users**
+2. Add the **2FA Status** column to the user list
+3. Filter by "2FA Enabled" or "2FA Disabled"
+
+### Disabling 2FA for a User
+
+Administrators can disable 2FA for troubleshooting:
+
+<Steps>
+  <Step title="Select User">
+    Navigate to **Settings > Users** and select the user account.
+  </Step>
+  
+  <Step title="Access Security Settings">
+    Click **Security Settings** in the user details panel.
+  </Step>
+  
+  <Step title="Disable 2FA">
+    Click **Disable Two-Factor Authentication** and confirm.
+  </Step>
+  
+  <Step title="Log Action">
+    The action is logged in the audit trail. Notify the user of the change.
+  </Step>
+</Steps>
+
+<Warning>
+Disabling 2FA reduces account security. Only disable temporarily for troubleshooting and require immediate re-enrollment.
+</Warning>
+
+### Resetting 2FA for a User
+
+If a user loses access to their authenticator device:
+
+<Steps>
+  <Step title="Verify User Identity">
+    Confirm the user's identity through an alternative secure channel (phone call, in-person verification).
+  </Step>
+  
+  <Step title="Reset 2FA">
+    Navigate to **Settings > Users**, select the user, and click **Reset Two-Factor Authentication**.
+  </Step>
+  
+  <Step title="Generate New Secret">
+    The system generates a new TOTP secret and invalidates the old one.
+  </Step>
+  
+  <Step title="User Re-enrollment">
+    User must re-enroll with their authenticator app using the new QR code on next login.
+  </Step>
+</Steps>
+
+## Recovery Codes
+
+Recovery codes provide backup access if the authenticator device is unavailable.
+
+### Using Recovery Codes
+
+If a user cannot access their authenticator app:
+
+1. On the 2FA prompt, click **Use Recovery Code**
+2. Enter one of the saved recovery codes
+3. The code is validated and the user is logged in
+4. Used codes are immediately invalidated
+
+<Warning>
+Each recovery code is single-use. After using a recovery code, the user should set up their authenticator app immediately or generate new recovery codes.
+</Warning>
+
+### Generating New Recovery Codes
+
+Users can regenerate recovery codes:
+
+<Steps>
+  <Step title="Access Security Settings">
+    Navigate to profile settings and select **Security**.
+  </Step>
+  
+  <Step title="View Recovery Codes">
+    Click **View Recovery Codes** (requires 2FA verification).
+  </Step>
+  
+  <Step title="Generate New Codes">
+    Click **Generate New Recovery Codes**.
+  </Step>
+  
+  <Step title="Download and Store">
+    Save the new codes securely. Old codes are invalidated immediately.
+  </Step>
+</Steps>
+
+## TOTP Configuration
+
+Technical parameters for TOTP implementation:
+
+**Default Settings:**
+```yaml
+totp:
+  time-step: 30 seconds
+  code-digits: 6
+  algorithm: SHA1
+  issuer: UTMStack
+  window-size: 1  # Allows ±30 seconds time drift
+```
+
+### Time Synchronization
+
+TOTP requires accurate time synchronization:
+
+- Server time should be synchronized with NTP
+- Client device time should be accurate (automatic time sync recommended)
+- Maximum time drift tolerance: ±30 seconds (1 time window)
+
+<Warning>
+Time synchronization issues are the most common cause of 2FA failures. Ensure both server and client devices use NTP or automatic time synchronization.
+</Warning>
+
+## 2FA for API Access
+
+When users with 2FA access APIs:
+
+### API Key Authentication
+
+- API keys bypass 2FA for automated processes
+- API keys should have limited permissions
+- Rotate API keys regularly
+
+### Personal Access Tokens
+
+For interactive API access:
+
+<Steps>
+  <Step title="Generate Token">
+    Navigate to profile settings and select **Personal Access Tokens**.
+  </Step>
+  
+  <Step title="Verify with 2FA">
+    Enter your current TOTP code to authorize token creation.
+  </Step>
+  
+  <Step title="Configure Token">
+    Set token name, expiration, and permissions.
+  </Step>
+  
+  <Step title="Copy Token">
+    Copy and securely store the token (shown only once).
+  </Step>
+</Steps>
+
+## Monitoring 2FA Activity
+
+All 2FA events are logged in the audit trail:
+
+**Logged Events:**
+- 2FA enrollment
+- 2FA verification success/failure
+- 2FA reset by administrator
+- Recovery code usage
+- Failed verification attempts
+
+Access at **Settings > Audit Logs** filtered by "Two-Factor Authentication".
+
+### Failed 2FA Alerts
+
+Configure alerts for suspicious 2FA activity:
+
+1. Navigate to **Settings > Alerts**
+2. Create a new alert rule
+3. Set condition: "Failed 2FA attempts > 3 in 5 minutes"
+4. Configure notification channels
+5. Save the alert rule
+
+<Warning>
+Multiple failed 2FA attempts may indicate:
+- User lost access to authenticator device
+- Compromised username/password (attacker has credentials but not 2FA)
+- Automated attack attempt
+
+Investigate immediately and contact the user through an alternative channel.
+</Warning>
+
+## Best Practices
+
+<Warning>
+Follow these 2FA best practices:
+
+- **Mandatory for Administrators**: Require 2FA for all admin accounts without exception
+- **Regular Audits**: Review 2FA enrollment status monthly
+- **Secure Recovery Codes**: Store recovery codes in encrypted password managers
+- **Multiple Administrators**: Ensure multiple admins have working 2FA to prevent lockout
+- **User Training**: Educate users on setting up and using 2FA properly
+- **Time Synchronization**: Monitor server NTP sync status
+- **Backup Authenticator**: Enroll the same account in multiple authenticator apps/devices
+- **Emergency Access Procedure**: Document the process for 2FA reset verification
+- **Monitor Failed Attempts**: Alert on repeated failed 2FA verifications
+- **Regular Testing**: Periodically test 2FA login process and recovery procedures
+</Warning>
+
+## Troubleshooting
+
+### "Invalid Code" Errors
+
+**Common Causes:**
+- Time synchronization issues (most common)
+- User entering expired code
+- User reading code from wrong account in authenticator app
+- Code already used (TOTP codes are single-use)
+
+**Solutions:**
+1. Verify server time with NTP
+2. Verify user device time is accurate
+3. Ensure user is viewing the correct account in authenticator
+4. Wait for code to refresh and try again
+
+### Lost Authenticator Device
+
+**Recovery Process:**
+1. User contacts administrator through verified channel
+2. Administrator verifies user identity
+3. User provides recovery code if available
+4. If no recovery code: Administrator resets 2FA after identity verification
+5. User re-enrolls with new device
+
+### Administrator Locked Out
+
+**Emergency Access:**
+If all administrators are locked out of 2FA:
+
+1. Access server via SSH/console
+2. Run emergency 2FA bypass command (documented in installation guide)
+3. Log in and reset 2FA for affected accounts
+4. Re-enroll administrators immediately
+5. Review security procedures to prevent recurrence
+
+<Warning>
+Emergency 2FA bypass should only be used as a last resort and is logged in audit trails for compliance purposes.
+</Warning>
+
+## Compliance Considerations
+
+2FA helps meet compliance requirements:
+
+- **PCI DSS**: Multi-factor authentication for administrative access
+- **HIPAA**: Additional authentication for PHI access
+- **SOC 2**: Strong authentication controls
+- **GDPR**: Technical measures to ensure data security
+
+Document 2FA policies and audit trails for compliance reporting.
+
+## Related Topics
+
+- [Authentication Configuration](/admin/authentication) - Configure authentication methods
+- [User Management](/admin/user-management) - Manage user accounts
+- [SAML SSO Configuration](/admin/saml-sso) - Enterprise SSO with MFA integration
+- [Roles and Permissions](/admin/roles-permissions) - Configure access control

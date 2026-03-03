@@ -1,0 +1,75 @@
+---
+title: API Introduction
+description: Overview of the UTMStack REST API, base URL, and versioning
+icon: "rocket"
+---
+
+The UTMStack API provides programmatic access to security operations, alert management, data sources, user management, and integrations. All endpoints are RESTful and return JSON responses.
+
+## Base URL
+
+All API requests should be made to:
+
+```
+https://your-utmstack-instance.com/api
+```
+
+Replace `your-utmstack-instance.com` with your actual UTMStack server domain.
+
+## API Versioning
+
+The current API version is integrated into the base path. All endpoints are prefixed with `/api`.
+
+## Response Format
+
+All API responses are returned in JSON format with appropriate HTTP status codes:
+
+- `200 OK` - Request succeeded
+- `201 Created` - Resource successfully created
+- `400 Bad Request` - Invalid request parameters
+- `401 Unauthorized` - Authentication required or failed
+- `403 Forbidden` - Insufficient permissions
+- `404 Not Found` - Resource not found
+- `500 Internal Server Error` - Server error occurred
+
+## Pagination
+
+List endpoints support pagination using query parameters:
+
+<ParamField query="page" type="integer" default="0">
+  Page number (zero-based)
+</ParamField>
+
+<ParamField query="size" type="integer" default="20">
+  Number of items per page
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort field and direction (e.g., `id,desc`)
+</ParamField>
+
+Paginated responses include headers:
+
+- `X-Total-Count` - Total number of items
+- `Link` - Pagination links (first, last, next, prev)
+
+## Error Handling
+
+Error responses include a message describing the issue:
+
+```json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Invalid parameter value",
+  "path": "/api/utm-alerts"
+}
+```
+
+## Authentication
+
+Most endpoints require authentication using JWT tokens. See [Authentication](/api/authentication) for details.
+
+## Rate Limiting
+
+API requests are subject to rate limits to ensure system stability. See [Rate Limits](/api/rate-limits) for details.

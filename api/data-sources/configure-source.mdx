@@ -1,0 +1,290 @@
+---
+title: Configure Data Source
+description: Endpoints to create and update data sources
+icon: "sliders"
+---
+
+## Create Data Source
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>POST</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-data-input-statuses</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Create a new data source status entry.
+
+### Request Body
+
+<ParamField body="id" type="string">
+  Unique identifier (auto-generated if not provided)
+</ParamField>
+
+<ParamField body="dataType" type="string" required>
+  Type of data source (e.g., "windows", "linux", "firewall")
+</ParamField>
+
+<ParamField body="dataTypeName" type="string" required>
+  Human-readable name of the data source
+</ParamField>
+
+<ParamField body="status" type="boolean" required>
+  Whether the data source is active
+</ParamField>
+
+<ParamField body="timestamp" type="string">
+  Last data received timestamp (ISO 8601 format)
+</ParamField>
+
+<ParamField body="eventsCount" type="integer">
+  Number of events received
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://your-utmstack-instance.com/api/utm-data-input-statuses \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dataType": "firewall",
+    "dataTypeName": "Palo Alto Firewall",
+    "status": true,
+    "eventsCount": 0
+  }'
+```
+
+```python Python
+import requests
+from datetime import datetime
+
+url = "https://your-utmstack-instance.com/api/utm-data-input-statuses"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "dataType": "firewall",
+    "dataTypeName": "Palo Alto Firewall",
+    "status": True,
+    "timestamp": datetime.utcnow().isoformat() + "Z",
+    "eventsCount": 0
+}
+
+response = requests.post(url, headers=headers, json=data)
+source = response.json()
+print(f"Created source: {source['id']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201 Created
+{
+  "id": "firewall-logs-002",
+  "dataType": "firewall",
+  "dataTypeName": "Palo Alto Firewall",
+  "status": true,
+  "timestamp": "2024-01-15T10:35:00Z",
+  "eventsCount": 0
+}
+```
+
+```json 400 Bad Request
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "A new utmDataInputStatus cannot already have an ID"
+}
+```
+</ResponseExample>
+
+## Update Data Source
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>PUT</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-data-input-statuses</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Update an existing data source.
+
+### Request Body
+
+<ParamField body="id" type="string" required>
+  Data source identifier to update
+</ParamField>
+
+<ParamField body="dataType" type="string" required>
+  Type of data source
+</ParamField>
+
+<ParamField body="dataTypeName" type="string" required>
+  Human-readable name
+</ParamField>
+
+<ParamField body="status" type="boolean" required>
+  Active status
+</ParamField>
+
+<ParamField body="timestamp" type="string">
+  Last data timestamp
+</ParamField>
+
+<ParamField body="eventsCount" type="integer">
+  Events count
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT https://your-utmstack-instance.com/api/utm-data-input-statuses \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "firewall-logs-002",
+    "dataType": "firewall",
+    "dataTypeName": "Palo Alto Firewall - Updated",
+    "status": true,
+    "eventsCount": 1250
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-data-input-statuses"
+headers = {
+    "Authorization": "Bearer YOUR_TOKEN",
+    "Content-Type": "application/json"
+}
+data = {
+    "id": "firewall-logs-002",
+    "dataType": "firewall",
+    "dataTypeName": "Palo Alto Firewall - Updated",
+    "status": True,
+    "eventsCount": 1250
+}
+
+response = requests.put(url, headers=headers, json=data)
+source = response.json()
+print(f"Updated source: {source['dataTypeName']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": "firewall-logs-002",
+  "dataType": "firewall",
+  "dataTypeName": "Palo Alto Firewall - Updated",
+  "status": true,
+  "timestamp": "2024-01-15T10:40:00Z",
+  "eventsCount": 1250
+}
+```
+
+```json 400 Bad Request
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Invalid id"
+}
+```
+</ResponseExample>
+
+## Delete Data Source
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>DELETE</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-data-input-statuses/{id}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Delete a data source status entry.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  Data source identifier to delete
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE https://your-utmstack-instance.com/api/utm-data-input-statuses/firewall-logs-002 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-data-input-statuses/firewall-logs-002"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.delete(url, headers=headers)
+print(response.status_code)
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+</ResponseExample>
+
+## Configuration Best Practices
+
+### Status Updates
+
+Update data source status regularly to monitor health:
+
+```python Python
+import requests
+from datetime import datetime
+
+def update_source_heartbeat(source_id, events_count):
+    url = f"https://your-utmstack-instance.com/api/utm-data-input-statuses"
+    headers = {
+        "Authorization": "Bearer YOUR_TOKEN",
+        "Content-Type": "application/json"
+    }
+    
+    # Get current source
+    response = requests.get(f"{url}/{source_id}", headers=headers)
+    source = response.json()
+    
+    # Update timestamp and event count
+    source["timestamp"] = datetime.utcnow().isoformat() + "Z"
+    source["eventsCount"] = events_count
+    source["status"] = True
+    
+    # Save update
+    response = requests.put(url, headers=headers, json=source)
+    return response.json()
+```
+
+### Monitoring
+
+Monitor data sources for inactivity:
+
+```python Python
+from datetime import datetime, timedelta
+
+def get_inactive_sources(inactive_threshold_minutes=15):
+    url = "https://your-utmstack-instance.com/api/utm-data-input-statuses"
+    headers = {"Authorization": "Bearer YOUR_TOKEN"}
+    params = {"size": 1000}
+    
+    response = requests.get(url, headers=headers, params=params)
+    sources = response.json()
+    
+    threshold = datetime.utcnow() - timedelta(minutes=inactive_threshold_minutes)
+    inactive = []
+    
+    for source in sources:
+        last_seen = datetime.fromisoformat(source["timestamp"].replace("Z", "+00:00"))
+        if last_seen < threshold:
+            inactive.append(source)
+    
+    return inactive
+```

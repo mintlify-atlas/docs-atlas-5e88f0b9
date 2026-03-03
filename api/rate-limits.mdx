@@ -1,0 +1,137 @@
+---
+title: Rate Limits
+description: API rate limiting policies and best practices
+icon: "gauge-high"
+---
+
+UTMStack implements rate limiting to protect the API from abuse and ensure fair usage for all users.
+
+## Rate Limit Policy
+
+Rate limits are applied per IP address and user account:
+
+### Login Attempts
+
+- **Limit**: Maximum number of failed login attempts from a single IP
+- **Window**: 15 minutes
+- **Action**: IP is temporarily blocked after exceeding threshold
+
+When blocked, authentication requests return:
+
+```json
+{
+  "status": 429,
+  "error": "Too Many Requests",
+  "message": "Authentication blocked: IP 192.168.1.100 exceeded login attempt threshold"
+}
+```
+
+### General API Requests
+
+- **Limit**: Varies by endpoint and user role
+- **Window**: Typically per minute or hour
+- **Action**: 429 Too Many Requests response
+
+## Rate Limit Headers
+
+API responses include rate limit information in headers:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1609459200
+```
+
+<ResponseField name="X-RateLimit-Limit" type="integer">
+  Maximum requests allowed in the current window
+</ResponseField>
+
+<ResponseField name="X-RateLimit-Remaining" type="integer">
+  Number of requests remaining in the current window
+</ResponseField>
+
+<ResponseField name="X-RateLimit-Reset" type="integer">
+  Unix timestamp when the rate limit window resets
+</ResponseField>
+
+## Handling Rate Limits
+
+### Retry After
+
+When rate limited, the response includes a `Retry-After` header indicating when to retry:
+
+```
+Retry-After: 60
+```
+
+### Best Practices
+
+1. **Monitor Headers**: Check rate limit headers in responses
+2. **Implement Backoff**: Use exponential backoff when receiving 429 responses
+3. **Cache Responses**: Cache data when possible to reduce API calls
+4. **Batch Requests**: Use pagination and filtering to minimize requests
+5. **Optimize Queries**: Request only the data you need
+
+### Example: Rate Limit Handling
+
+```python Python
+import requests
+import time
+
+def make_request_with_retry(url, headers, max_retries=3):
+    for attempt in range(max_retries):
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 429:
+            retry_after = int(response.headers.get('Retry-After', 60))
+            print(f"Rate limited. Retrying after {retry_after} seconds...")
+            time.sleep(retry_after)
+            continue
+            
+        return response
+    
+    raise Exception("Max retries exceeded")
+```
+
+```javascript JavaScript
+async function makeRequestWithRetry(url, headers, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await fetch(url, { headers });
+    
+    if (response.status === 429) {
+      const retryAfter = parseInt(response.headers.get('Retry-After') || '60');
+      console.log(`Rate limited. Retrying after ${retryAfter} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+      continue;
+    }
+    
+    return response;
+  }
+  
+  throw new Error('Max retries exceeded');
+}
+```
+
+## Exempt Endpoints
+
+Certain critical endpoints may have different or no rate limits:
+
+- System health checks
+- Emergency alert endpoints
+- Webhook receivers
+
+## Increasing Limits
+
+If you consistently hit rate limits for legitimate use cases:
+
+1. Review your integration to optimize API usage
+2. Contact your UTMStack administrator for custom limits
+3. Consider upgrading your UTMStack deployment for higher capacity
+
+## Monitoring Usage
+
+Administrators can monitor API usage through:
+
+- Application event logs
+- User audit trails
+- System metrics dashboards

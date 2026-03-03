@@ -1,0 +1,157 @@
+---
+title: Get Alert
+description: GET endpoint to retrieve a specific alert by ID
+icon: "magnifying-glass"
+---
+
+<Note>
+UTMStack stores alerts in Elasticsearch. Use the Elasticsearch API to retrieve individual alerts by their ID.
+</Note>
+
+## Get Alert by ID
+
+To retrieve a specific alert, use the Elasticsearch get endpoint:
+
+```bash
+GET /api/elasticsearch/{index}/_doc/{alertId}
+```
+
+Where:
+- `{index}` is the alert index name (e.g., `alert-*`)
+- `{alertId}` is the unique alert identifier
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/elasticsearch/alert-2024.01/_doc/abc123 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/elasticsearch/alert-2024.01/_doc/abc123"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.get(url, headers=headers)
+alert = response.json()
+print(alert)
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "_index": "alert-2024.01",
+  "_id": "abc123",
+  "_version": 1,
+  "_source": {
+    "id": "abc123",
+    "name": "Suspicious Login Attempt",
+    "status": 2,
+    "severity": 3,
+    "category": "Authentication",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "source": "Windows Event Logs",
+    "dataType": "windows-authentication",
+    "tags": ["brute-force", "failed-login"],
+    "notes": "Multiple failed login attempts detected",
+    "statusObservation": null,
+    "destination": {
+      "ip": "192.168.1.100",
+      "port": 3389
+    },
+    "source": {
+      "ip": "10.0.0.50",
+      "user": "admin"
+    }
+  }
+}
+```
+
+```json 404 Not Found
+{
+  "_index": "alert-2024.01",
+  "_id": "abc123",
+  "found": false
+}
+```
+</ResponseExample>
+
+## Alert Fields
+
+<ResponseField name="_index" type="string">
+  Elasticsearch index containing the alert
+</ResponseField>
+
+<ResponseField name="_id" type="string">
+  Unique alert identifier
+</ResponseField>
+
+<ResponseField name="_version" type="integer">
+  Document version (increments on updates)
+</ResponseField>
+
+<ResponseField name="_source" type="object">
+  Alert document containing all alert fields
+</ResponseField>
+
+### Source Fields
+
+<ResponseField name="_source.id" type="string">
+  Alert ID
+</ResponseField>
+
+<ResponseField name="_source.name" type="string">
+  Alert name/title
+</ResponseField>
+
+<ResponseField name="_source.status" type="integer">
+  Status: 1=Auto Review, 2=Open, 3=In Progress, 4=Completed, 5=Incident Created
+</ResponseField>
+
+<ResponseField name="_source.severity" type="integer">
+  Severity: 1=Low, 2=Medium, 3=High, 4=Critical
+</ResponseField>
+
+<ResponseField name="_source.category" type="string">
+  Alert category
+</ResponseField>
+
+<ResponseField name="_source.timestamp" type="string">
+  ISO 8601 timestamp when alert was created
+</ResponseField>
+
+<ResponseField name="_source.dataType" type="string">
+  Type of data source that generated the alert
+</ResponseField>
+
+<ResponseField name="_source.tags" type="array">
+  Array of tag strings
+</ResponseField>
+
+<ResponseField name="_source.notes" type="string">
+  Analyst notes
+</ResponseField>
+
+<ResponseField name="_source.statusObservation" type="string">
+  Notes added when status was changed
+</ResponseField>
+
+## Bulk Retrieval
+
+To retrieve multiple alerts efficiently, use the Elasticsearch multi-get endpoint:
+
+```bash
+POST /api/elasticsearch/_mget
+```
+
+With a body specifying the alert IDs:
+
+```json
+{
+  "docs": [
+    { "_index": "alert-2024.01", "_id": "abc123" },
+    { "_index": "alert-2024.01", "_id": "def456" }
+  ]
+}
+```

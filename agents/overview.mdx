@@ -1,0 +1,75 @@
+---
+title: Agent Overview
+description: Understanding the UTMStack Agent system and its capabilities
+---
+
+The UTMStack Agent is a lightweight application designed for installation on both Windows and Linux systems to provide comprehensive security monitoring and log collection capabilities.
+
+## What Agents Do
+
+The UTMStack Agent performs several critical functions:
+
+- **Log Collection**: Collects and forwards logs from your systems to the UTMStack server
+- **Integration Management**: Enables integrations with various log sources (syslog, network devices, etc.)
+- **Command Execution**: Executes commands and tasks remotely from the UTMStack server
+- **Data Retention**: Manages local log storage and retention policies
+- **Security Monitoring**: Provides real-time monitoring of system security events
+
+## Architecture
+
+The agent communicates with the UTMStack server through multiple ports:
+
+- **Agent Manager Port**: Primary communication channel for agent management
+- **Log Auth Proxy Port**: Secure log transmission
+- **Dependencies Port**: Downloads updates and dependencies
+
+## Key Features
+
+### Automatic Registration
+
+During installation, the agent automatically registers with the UTMStack server using a unique key, establishing a secure connection.
+
+### Integration Support
+
+The agent supports multiple integration types:
+
+- Syslog (UDP/TCP/TLS)
+- Network device integrations
+- Application-specific collectors
+
+### Local Data Storage
+
+The agent maintains a local database for:
+
+- Buffering logs before transmission
+- Storing configuration data
+- Managing retention policies
+
+### TLS Certificate Management
+
+For production environments, the agent supports loading custom TLS certificates to secure integrations.
+
+## Agent Components
+
+- **Service Manager**: Handles service installation, start/stop operations
+- **Collector Modules**: Gathers logs from various sources
+- **Configuration Manager**: Manages agent settings and server connection
+- **Update Manager**: Downloads and applies agent updates
+- **Database**: Local SQLite storage for logs and configuration
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Windows Agent" icon="windows" href="/agents/windows-agent">
+    Install and configure the agent on Windows systems
+  </Card>
+  <Card title="Linux Agent" icon="linux" href="/agents/linux-agent">
+    Install and configure the agent on Linux systems
+  </Card>
+  <Card title="Configuration" icon="gear" href="/agents/agent-configuration">
+    Learn about agent configuration options
+  </Card>
+  <Card title="CLI Commands" icon="terminal" href="/agents/agent-commands">
+    Reference for all agent CLI commands
+  </Card>
+</CardGroup>

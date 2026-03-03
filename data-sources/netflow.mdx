@@ -1,0 +1,386 @@
+---
+title: NetFlow configuration
+description: Configure NetFlow and IPFIX data collection for network traffic analysis in UTMStack
+icon: network-wired
+---
+
+NetFlow is a network protocol for collecting IP traffic information. UTMStack supports NetFlow v5, v9, and IPFIX (NetFlow v10) for network traffic visibility and analysis.
+
+## NetFlow overview
+
+NetFlow provides visibility into:
+
+- **Traffic patterns**: Who is talking to whom, on which ports
+- **Bandwidth utilization**: Top talkers, protocols, and applications
+- **Anomaly detection**: Unusual traffic spikes or patterns
+- **Threat detection**: Command and control traffic, data exfiltration
+- **Compliance**: Network activity logs for audit requirements
+
+<Info>
+  NetFlow data complements log data by providing network flow information even when devices don't generate detailed logs.
+</Info>
+
+## Supported protocols
+
+| Protocol | Version | Features |
+|----------|---------|----------|
+| NetFlow | v5 | Basic flow data (src/dst IP, ports, protocol, bytes, packets) |
+| NetFlow | v9 | Flexible templates, application awareness, MPLS support |
+| IPFIX | v10 | Enhanced v9, international standard, variable-length fields |
+| sFlow | v5 | Packet sampling, multi-vendor support |
+
+## UTMStack NetFlow collector
+
+UTMStack listens for NetFlow on these ports:
+
+```
+UDP 2055  # NetFlow v5/v9/IPFIX (default)
+UDP 6343  # sFlow
+```
+
+<Warning>
+  Ensure these ports are open in your firewall between NetFlow exporters and UTMStack.
+</Warning>
+
+## Configure NetFlow exporters
+
+### Cisco routers and switches
+
+Configure Cisco IOS devices:
+
+```cisco
+! Configure NetFlow v9 export
+ip flow-export version 9
+ip flow-export destination utm-server.company.com 2055
+ip flow-export source GigabitEthernet0/0
+
+! Enable NetFlow on interfaces
+interface GigabitEthernet0/1
+ ip flow ingress
+ ip flow egress
+
+interface GigabitEthernet0/2
+ ip flow ingress
+ ip flow egress
+
+! Configure cache parameters
+ip flow-cache timeout active 1
+ip flow-cache timeout inactive 15
+```
+
+**Cisco ASA firewall NetFlow**:
+```cisco
+flow-export destination inside utm-server.company.com 2055
+flow-export template timeout-rate 1
+flow-export delay flow-create 10
+
+! Enable on interface
+interface GigabitEthernet0/0
+ nameif inside
+ security-level 100
+ ip address 192.168.1.1 255.255.255.0
+ flow-export event-type all destination utm-server
+```
+
+### Fortinet FortiGate
+
+Configure FortiGate NetFlow export:
+
+```fortinet
+config system netflow
+    set collector-ip utm-server.company.com
+    set collector-port 2055
+    set source-ip 192.168.1.1
+    set active-flow-timeout 1
+    set inactive-flow-timeout 15
+    set template-tx-timeout 1
+end
+
+config system interface
+    edit "port1"
+        set netflow-sampler tx-only
+    next
+end
+```
+
+### Palo Alto Networks
+
+Configure Palo Alto firewalls:
+
+<Steps>
+  <Step title="Enable NetFlow/IPFIX">
+    Navigate to Device → Server Profiles → NetFlow Profile
+    
+    Create new profile:
+    - **Name**: UTMStack-NetFlow
+    - **NetFlow Server**: utm-server.company.com:2055
+    - **Source IP**: Management interface IP
+    - **Template Refresh**: 60 seconds
+    - **Active Timeout**: 60 seconds  
+    - **Inactive Timeout**: 30 seconds
+  </Step>
+  <Step title="Apply to zones">
+    Navigate to Network → Network Profiles → Zone Protection
+    
+    Edit zone protection profile and enable:
+    - **NetFlow Profile**: UTMStack-NetFlow
+  </Step>
+  <Step title="Apply to security policies">
+    Edit security policies:
+    - Profile Settings → NetFlow Profile → UTMStack-NetFlow
+  </Step>
+</Steps>
+
+### Juniper routers
+
+Configure Juniper NetFlow:
+
+```junos
+# Configure flow monitoring
+set services flow-monitoring version9 template ipv4
+set services flow-monitoring version9 template ipv4 flow-active-timeout 60
+set services flow-monitoring version9 template ipv4 flow-inactive-timeout 30
+
+# Configure collector
+set forwarding-options sampling instance utm-flow family inet output flow-server utm-server.company.com port 2055
+set forwarding-options sampling instance utm-flow family inet output flow-server utm-server.company.com version9 template ipv4
+
+# Apply to interfaces
+set interfaces ge-0/0/0 unit 0 family inet sampling input
+set interfaces ge-0/0/0 unit 0 family inet sampling output
+```
+
+### Mikrotik routers
+
+Configure Mikrotik NetFlow:
+
+```routeros
+/ip traffic-flow
+set enabled=yes interfaces=ether1,ether2
+
+/ip traffic-flow target
+add address=utm-server.company.com:2055 version=9
+```
+
+### Linux with softflowd
+
+Collect NetFlow from Linux systems:
+
+```bash
+# Install softflowd
+sudo apt-get install softflowd  # Debian/Ubuntu
+sudo yum install softflowd      # RHEL/CentOS
+
+# Configure softflowd
+sudo vim /etc/default/softflowd
+```
+
+```bash /etc/default/softflowd
+INTERFACE="eth0"
+OPTIONS="-n utm-server.company.com:2055 -v 9 -t maxlife=60 -T full"
+```
+
+```bash
+# Start softflowd
+sudo systemctl enable softflowd
+sudo systemctl start softflowd
+```
+
+## NetFlow sampling
+
+For high-traffic networks, use sampling to reduce NetFlow volume:
+
+### Cisco sampling
+
+```cisco
+! Configure 1:100 sampling (1 in 100 packets)
+flow-sampler-map SAMPLER-MAP
+ mode random one-out-of 100
+exit
+
+interface GigabitEthernet0/1
+ ip flow ingress sampler SAMPLER-MAP
+ ip flow egress sampler SAMPLER-MAP
+```
+
+### FortiGate sampling
+
+```fortinet
+config system netflow
+    set collector-ip utm-server.company.com
+    set collector-port 2055
+end
+
+config system interface
+    edit "port1"
+        set netflow-sampler both
+        set sample-rate 100
+    next
+end
+```
+
+<Note>
+  **Sampling trade-offs**:
+  - Reduces NetFlow volume and processing load
+  - May miss small/short-lived flows
+  - Bandwidth calculations need adjustment
+  - Recommended ratio: 1:100 to 1:1000 based on traffic volume
+</Note>
+
+## NetFlow analysis in UTMStack
+
+Once NetFlow is configured, UTMStack provides:
+
+### Traffic dashboards
+
+- Top talkers (by source IP, destination IP, protocol)
+- Bandwidth utilization over time
+- Protocol distribution
+- Application visibility
+- Geographic traffic maps
+
+### Threat detection
+
+UTMStack correlates NetFlow with threat intelligence:
+
+- **C2 communication**: Detect connections to known malicious IPs
+- **Data exfiltration**: Identify unusual outbound traffic volumes
+- **Port scanning**: Detect reconnaissance activity
+- **DDoS attacks**: Identify traffic floods
+- **Lateral movement**: Unusual internal traffic patterns
+
+### Network forensics
+
+Investigate security incidents:
+
+```
+1. Navigate to Discover → Select netflow-* index
+2. Filter by time range and criteria:
+   - source.ip: 192.168.1.100
+   - destination.port: 443
+   - network.bytes: > 1000000
+3. Visualize flow data:
+   - Timeline of connections
+   - Destination IPs contacted
+   - Total bytes transferred
+```
+
+## NetFlow data fields
+
+UTMStack normalizes NetFlow data to these fields:
+
+```json
+{
+  "@timestamp": "2024-03-03T12:34:56.000Z",
+  "source.ip": "192.168.1.100",
+  "source.port": 54321,
+  "destination.ip": "203.0.113.50",
+  "destination.port": 443,
+  "network.protocol": "tcp",
+  "network.bytes": 1048576,
+  "network.packets": 728,
+  "flow.duration_ms": 5420,
+  "flow.exporter": "firewall-01",
+  "flow.start": "2024-03-03T12:34:50.580Z",
+  "flow.end": "2024-03-03T12:34:56.000Z"
+}
+```
+
+## Performance considerations
+
+### NetFlow volume estimation
+
+| Network Size | Flows/Second | Daily Volume | Storage/Month |
+|--------------|-------------|--------------|---------------|
+| Small (100 users) | 500 | 43M flows | 5 GB |
+| Medium (1000 users) | 5,000 | 432M flows | 50 GB |
+| Large (10,000 users) | 50,000 | 4.3B flows | 500 GB |
+
+### Optimization tips
+
+<Accordion title="Reduce NetFlow volume">
+  1. **Use sampling**: 1:100 or 1:1000 for large networks
+  2. **Adjust timeouts**: Increase inactive timeout to reduce flows
+  3. **Filter internal traffic**: Export only Internet-bound traffic
+  4. **Aggregate**: Use NetFlow v9/IPFIX aggregation features
+</Accordion>
+
+<Accordion title="Improve collection performance">
+  1. **Dedicated collector**: Separate NetFlow from log collection
+  2. **Buffer sizing**: Increase UDP receive buffer
+     ```bash
+     sysctl -w net.core.rmem_max=134217728
+     sysctl -w net.core.rmem_default=134217728
+     ```
+  3. **Multiple collectors**: Distribute load across collectors
+  4. **SSD storage**: Use SSDs for NetFlow index storage
+</Accordion>
+
+## Troubleshooting
+
+<Accordion title="No NetFlow data received">
+  1. **Verify exporter configuration**:
+     ```cisco
+     show ip flow export
+     show flow exporter
+     ```
+  
+  2. **Check network connectivity**:
+     ```bash
+     # From exporter to UTMStack
+     ping utm-server.company.com
+     traceroute utm-server.company.com
+     ```
+  
+  3. **Verify firewall rules allow UDP 2055**
+  
+  4. **Check UTMStack listener**:
+     ```bash
+     sudo netstat -tulpn | grep 2055
+     sudo tcpdump -i any udp port 2055 -n
+     ```
+</Accordion>
+
+<Accordion title="NetFlow received but not displayed">
+  1. Check NetFlow index exists: `netflow-*`
+  2. Verify time range in searches
+  3. Review parsing errors in UTMStack logs
+  4. Check index mapping for field conflicts
+</Accordion>
+
+<Accordion title="Incorrect traffic statistics">
+  1. **Verify sampling ratio**: Adjust bandwidth calculations
+  2. **Check clock synchronization**: Use NTP on exporters and UTMStack
+  3. **Review timeout settings**: Short timeouts may split long flows
+</Accordion>
+
+## Best practices
+
+<Tip>
+  **NetFlow deployment best practices**:
+  - Enable NetFlow on Internet-facing interfaces first
+  - Use NetFlow v9 or IPFIX for better features
+  - Synchronize clocks with NTP on all exporters
+  - Start with 1:100 sampling for high-traffic networks
+  - Monitor UDP packet loss on collector
+  - Document sampling ratios for analysis
+  - Configure appropriate active/inactive timeouts
+  - Use source IP to identify flow exporters
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Traffic dashboards" href="/operations/dashboards">
+    Visualize NetFlow data
+  </Card>
+  <Card title="Threat hunting" href="/operations/threat-hunting">
+    Hunt for threats in NetFlow
+  </Card>
+  <Card title="Alert rules" href="/operations/alerts">
+    Create NetFlow-based alerts
+  </Card>
+  <Card title="Integrations" href="/integrations/overview">
+    Combine with other data sources
+  </Card>
+</CardGroup>

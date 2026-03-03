@@ -1,0 +1,127 @@
+---
+title: ISO Installation
+description: Deploy UTMStack using the pre-configured ISO image
+---
+
+The ISO installation method provides a streamlined deployment of UTMStack with a pre-configured Ubuntu Server environment.
+
+## Prerequisites
+
+- Physical server or virtual machine platform (VMware, VirtualBox, Hyper-V, etc.)
+- System resources meeting [deployment requirements](/deployment/overview#required-resources)
+- ISO image downloaded from [utmstack.com/install](https://utmstack.com/install)
+
+## Installation Process
+
+<Steps>
+  <Step title="Download the ISO Image">
+    Download the UTMStack ISO image from the official website:
+
+    [Download UTMStack ISO](https://utmstack.com/install)
+  </Step>
+
+  <Step title="Create Installation Media">
+    For physical servers:
+    - Burn the ISO to a USB drive or DVD
+    - Use tools like Rufus, balenaEtcher, or dd
+
+    For virtual machines:
+    - Mount the ISO directly in your virtualization platform
+    - Configure VM settings according to resource requirements
+  </Step>
+
+  <Step title="Boot from ISO">
+    Boot your server or virtual machine from the ISO image:
+
+    - Configure BIOS/UEFI to boot from USB/DVD (physical servers)
+    - Start the VM with the ISO mounted (virtual machines)
+  </Step>
+
+  <Step title="Complete Installation">
+    Follow the on-screen prompts to complete the Ubuntu Server installation.
+
+    The ISO includes a pre-configured UTMStack installation that will be set up automatically.
+  </Step>
+
+  <Step title="Initial System Access">
+    After installation completes and the system reboots, log in using the default Ubuntu Server credentials.
+  </Step>
+</Steps>
+
+## Default Credentials
+
+### Ubuntu Server Access
+
+The default Ubuntu Server credentials are:
+
+- **Username**: `utmstack`
+- **Password**: `utmstack`
+
+<Warning>
+**Security Recommendation**: Change the default Ubuntu credentials immediately after first login using the `passwd` command.
+</Warning>
+
+### UTMStack Web Interface
+
+Once the system is fully configured:
+
+- **Username**: `admin`
+- **Password**: Generated during installation (found in `/root/utmstack.yml`)
+
+## Accessing the System
+
+### SSH Access
+
+Connect to your UTMStack server via SSH:
+
+```bash
+ssh utmstack@your-server-ip
+```
+
+### Web Interface
+
+Access the UTMStack web interface using HTTPS:
+
+```
+https://your-server-ip-or-hostname
+```
+
+<Note>
+Always use HTTPS (not HTTP) to access the login page for secure communication.
+</Note>
+
+## Post-Installation Security
+
+<Steps>
+  <Step title="Change Default Passwords">
+    Update both the Ubuntu system password and UTMStack admin password:
+
+    ```bash
+    # Change Ubuntu user password
+    passwd
+    ```
+
+    Change the UTMStack admin password through the web interface after logging in.
+  </Step>
+
+  <Step title="Configure Firewall">
+    Review and configure [firewall rules](/deployment/ports-firewall) according to your security requirements.
+  </Step>
+
+  <Step title="Secure Configuration File">
+    Protect the configuration file containing sensitive information:
+
+    ```bash
+    sudo chmod 600 /root/utmstack.yml
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+After successful installation:
+
+1. [Configure network settings](/deployment/network-configuration)
+2. [Set up firewall rules](/deployment/ports-firewall)
+3. Configure your first data sources
+4. Review security settings

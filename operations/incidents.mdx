@@ -1,0 +1,475 @@
+---
+title: 'Incident Response'
+description: 'Manage security incidents, coordinate response efforts, and track remediation'
+icon: 'fire'
+---
+
+## Overview
+
+UTMStack's incident management system provides comprehensive capabilities for tracking, investigating, and responding to security incidents. The incident response workflow is accessible at `/incident` and integrates with alerts, SOAR automation, and threat intelligence to streamline security operations.
+
+<CardGroup cols={2}>
+  <Card title="Incident Tracking" icon="list-check">
+    Centralized tracking of all security incidents
+  </Card>
+  <Card title="Response Coordination" icon="users">
+    Collaborate with team members on incident response
+  </Card>
+  <Card title="Automated Workflows" icon="gears">
+    Leverage SOAR playbooks at `/soar` for automated response
+  </Card>
+  <Card title="Evidence Collection" icon="folder-open">
+    Document and preserve incident evidence
+  </Card>
+</CardGroup>
+
+## Incident Lifecycle
+
+### Incident Phases
+
+Incidents in UTMStack follow a structured lifecycle:
+
+<Steps>
+  <Step title="Detection">
+    Incident identified through alerts at `/iframe`, threat hunting, or external notification
+  </Step>
+  <Step title="Triage">
+    Initial assessment to determine severity, scope, and response priority
+  </Step>
+  <Step title="Investigation">
+    Deep analysis to understand attack vectors, impact, and root cause
+  </Step>
+  <Step title="Containment">
+    Actions to limit incident spread and prevent further damage
+  </Step>
+  <Step title="Eradication">
+    Remove threat actors and malicious artifacts from environment
+  </Step>
+  <Step title="Recovery">
+    Restore systems and services to normal operations
+  </Step>
+  <Step title="Post-Incident">
+    Document lessons learned and implement improvements
+  </Step>
+</Steps>
+
+### Incident Statuses
+
+<CardGroup cols={3}>
+  <Card title="New" icon="circle-plus">
+    Incident created but not yet assigned
+  </Card>
+  <Card title="Assigned" icon="user-check">
+    Incident assigned to analyst for triage
+  </Card>
+  <Card title="Investigating" icon="magnifying-glass">
+    Active investigation in progress
+  </Card>
+  <Card title="Contained" icon="shield-check">
+    Threat contained, eradication in progress
+  </Card>
+  <Card title="Resolved" icon="circle-check">
+    Incident fully remediated and closed
+  </Card>
+  <Card title="False Positive" icon="circle-xmark">
+    Determined to be benign activity
+  </Card>
+</CardGroup>
+
+## Incident Attributes
+
+### Core Information
+
+Each incident includes:
+
+- **Incident ID** - Unique identifier (e.g., INC-2024-0001)
+- **Title** - Brief descriptive name
+- **Severity** - Critical, High, Medium, Low
+- **Status** - Current phase in incident lifecycle
+- **Priority** - Response priority (P1-P5)
+- **Category** - Incident type (Malware, Phishing, Data Breach, etc.)
+- **Created Date** - Incident creation timestamp
+- **Assigned To** - Primary incident responder
+- **Related Alerts** - Source alerts from `/iframe`
+- **Affected Assets** - Impacted systems from `/data-sources`
+- **Description** - Detailed incident summary
+
+### Classification
+
+#### Incident Categories
+
+<CardGroup cols={2}>
+  <Card title="Malware Infection" icon="virus">
+    Malware, ransomware, or trojan detections
+  </Card>
+  <Card title="Phishing Attack" icon="envelope-circle-check">
+    Email-based social engineering attempts
+  </Card>
+  <Card title="Unauthorized Access" icon="user-lock">
+    Credential compromise or unauthorized login
+  </Card>
+  <Card title="Data Exfiltration" icon="download">
+    Potential data theft or unauthorized transfer
+  </Card>
+  <Card title="Denial of Service" icon="ban">
+    DoS/DDoS attacks affecting availability
+  </Card>
+  <Card title="Policy Violation" icon="gavel">
+    Security policy or compliance violations
+  </Card>
+  <Card title="Insider Threat" icon="user-shield">
+    Malicious or negligent insider activity
+  </Card>
+  <Card title="Web Attack" icon="globe">
+    Web application exploitation attempts
+  </Card>
+</CardGroup>
+
+#### Severity Levels
+
+| Severity | Definition | Response Time | Examples |
+|----------|------------|---------------|----------|
+| Critical | Severe business impact, active breach | 15 minutes | Ransomware outbreak, active data breach |
+| High | Significant impact, confirmed compromise | 1 hour | Confirmed malware on critical server |
+| Medium | Moderate impact, potential compromise | 4 hours | Suspicious user activity, policy violation |
+| Low | Limited impact, informational | 24 hours | Failed login attempts, minor violations |
+
+## Incident Response Workflow
+
+### Creating an Incident
+
+<Steps>
+  <Step title="Navigate to Incident Management">
+    Go to `/incident` to access the incident interface
+  </Step>
+  <Step title="Create New Incident">
+    Click "Create Incident" or escalate from alert at `/iframe`
+  </Step>
+  <Step title="Enter Incident Details">
+    - Title and description
+    - Category and severity
+    - Affected assets from `/data-sources`
+    - Related alerts
+  </Step>
+  <Step title="Assign Responder">
+    Assign to appropriate analyst or response team
+  </Step>
+  <Step title="Set Priority">
+    Determine response priority based on severity and business impact
+  </Step>
+  <Step title="Notify Stakeholders">
+    Alert relevant team members and management as required
+  </Step>
+</Steps>
+
+### Investigation Process
+
+<Steps>
+  <Step title="Review Initial Information">
+    Examine incident details, related alerts, and source events
+  </Step>
+  <Step title="Gather Context">
+    - Check threat intelligence at `/threat-intelligence`
+    - Review asset information at `/data-sources`
+    - Query logs at `/discover` for related activity
+  </Step>
+  <Step title="Identify Indicators">
+    Document IOCs (IPs, domains, hashes, file paths)
+  </Step>
+  <Step title="Determine Scope">
+    - Timeline of attacker activity
+    - Full list of affected systems
+    - Data or systems accessed
+    - Persistence mechanisms
+  </Step>
+  <Step title="Assess Impact">
+    - Business systems affected
+    - Data potentially compromised
+    - Regulatory notification requirements
+  </Step>
+  <Step title="Document Findings">
+    Update incident with investigation notes and evidence
+  </Step>
+</Steps>
+
+### Containment Actions
+
+Common containment measures:
+
+<CardGroup cols={2}>
+  <Card title="Network Isolation" icon="network-wired">
+    Isolate affected systems at network or host level
+  </Card>
+  <Card title="Account Suspension" icon="user-slash">
+    Disable compromised accounts via `/active-directory`
+  </Card>
+  <Card title="Block IOCs" icon="shield">
+    Add malicious indicators to blocklists via integrations
+  </Card>
+  <Card title="Endpoint Quarantine" icon="laptop-medical">
+    Quarantine endpoints through EDR integration
+  </Card>
+  <Card title="Access Revocation" icon="key">
+    Revoke access tokens and force re-authentication
+  </Card>
+  <Card title="Traffic Blocking" icon="ban">
+    Block malicious IPs/domains at firewall or proxy
+  </Card>
+</CardGroup>
+
+### Eradication and Recovery
+
+<Steps>
+  <Step title="Remove Malicious Artifacts">
+    - Delete malware files
+    - Remove backdoors and persistence
+    - Clean registry keys and scheduled tasks
+  </Step>
+  <Step title="Patch Vulnerabilities">
+    Apply security patches that enabled the compromise
+  </Step>
+  <Step title="Reset Credentials">
+    Force password resets for affected accounts
+  </Step>
+  <Step title="Restore from Backup">
+    Restore affected systems from known-good backups if needed
+  </Step>
+  <Step title="Verify Clean State">
+    Scan systems to confirm complete removal of threats
+  </Step>
+  <Step title="Return to Service">
+    Gradually restore systems and monitor for reinfection
+  </Step>
+</Steps>
+
+## SOAR Integration
+
+### Automated Response Playbooks
+
+Trigger automated workflows from `/soar` for common incident types:
+
+<CardGroup cols={2}>
+  <Card title="Malware Response" icon="shield-virus">
+    - Isolate host
+    - Collect forensic artifacts
+    - Submit samples for analysis
+    - Block IOCs across infrastructure
+  </Card>
+  <Card title="Phishing Response" icon="envelope">
+    - Delete malicious emails
+    - Disable sender
+    - Extract and block IOCs
+    - Notify affected users
+  </Card>
+  <Card title="Account Compromise" icon="user-lock">
+    - Force password reset
+    - Revoke active sessions
+    - Review account activity logs
+    - Enable enhanced monitoring
+  </Card>
+  <Card title="Data Breach" icon="database">
+    - Identify exfiltrated data
+    - Block egress channels
+    - Preserve evidence
+    - Initiate notification workflow
+  </Card>
+</CardGroup>
+
+### Manual Playbook Execution
+
+<Steps>
+  <Step title="Select Incident">
+    Open the incident at `/incident` requiring automated response
+  </Step>
+  <Step title="Choose Playbook">
+    Navigate to `/soar` and select appropriate response playbook
+  </Step>
+  <Step title="Configure Parameters">
+    Provide incident-specific information (IOCs, affected systems)
+  </Step>
+  <Step title="Review Actions">
+    Verify the automated actions before execution
+  </Step>
+  <Step title="Execute Playbook">
+    Run the playbook and monitor progress
+  </Step>
+  <Step title="Document Results">
+    Add playbook results and outputs to incident notes
+  </Step>
+</Steps>
+
+## Evidence Management
+
+### Collecting Evidence
+
+<Warning>
+  Maintain proper chain of custody for evidence that may be used in legal proceedings or regulatory investigations.
+</Warning>
+
+Types of evidence to collect:
+
+- **Log Files** - Export relevant logs from `/discover`
+- **Network Captures** - PCAPs of malicious traffic
+- **Disk Images** - Forensic images of affected systems
+- **Memory Dumps** - RAM captures for malware analysis
+- **Screenshots** - Visual documentation of findings
+- **IOC Lists** - Documented indicators of compromise
+- **Timeline** - Chronological sequence of events
+
+### Evidence Documentation
+
+<Steps>
+  <Step title="Identify Evidence">
+    Determine what data is relevant to the incident
+  </Step>
+  <Step title="Preserve Original">
+    Create forensic copies, never work on originals
+  </Step>
+  <Step title="Calculate Hashes">
+    Document MD5/SHA256 hashes for integrity verification
+  </Step>
+  <Step title="Document Collection">
+    Record who collected evidence, when, and how
+  </Step>
+  <Step title="Secure Storage">
+    Store evidence securely with access controls
+  </Step>
+  <Step title="Attach to Incident">
+    Link evidence files to incident record at `/incident`
+  </Step>
+</Steps>
+
+## Collaboration and Communication
+
+### Team Coordination
+
+<CardGroup cols={2}>
+  <Card title="Incident Notes" icon="note-sticky">
+    Real-time updates and investigation findings
+  </Card>
+  <Card title="Task Assignment" icon="list-check">
+    Distribute response tasks among team members
+  </Card>
+  <Card title="Status Updates" icon="rss">
+    Regular updates to stakeholders and management
+  </Card>
+  <Card title="Handoff Documentation" icon="right-left">
+    Clear documentation for shift changes
+  </Card>
+</CardGroup>
+
+### Stakeholder Communication
+
+Maintain communication with:
+
+1. **Executive Management** - High-level status and business impact
+2. **Legal/Compliance** - Regulatory notification requirements
+3. **IT Operations** - Technical coordination and system access
+4. **Business Units** - Affected department notifications
+5. **External Parties** - Law enforcement, vendors, customers (if required)
+
+## Metrics and Reporting
+
+### Incident Metrics
+
+Track key performance indicators:
+
+- **Mean Time to Detect (MTTD)** - Time from incident start to detection
+- **Mean Time to Respond (MTTR)** - Time from detection to containment
+- **Mean Time to Recover** - Time from containment to full recovery
+- **Incident Volume** - Total incidents by period
+- **Incident by Severity** - Distribution across severity levels
+- **Incident by Category** - Common incident types
+- **Response Effectiveness** - Successful containment rate
+
+### Incident Reporting
+
+Generate reports for:
+
+<CardGroup cols={2}>
+  <Card title="Executive Summary" icon="chart-pie">
+    High-level overview for management from `/dashboard`
+  </Card>
+  <Card title="Technical Report" icon="file-lines">
+    Detailed technical findings for security team
+  </Card>
+  <Card title="Compliance Report" icon="scale-balanced">
+    Regulatory reporting via `/compliance`
+  </Card>
+  <Card title="Lessons Learned" icon="lightbulb">
+    Post-incident review and recommendations
+  </Card>
+</CardGroup>
+
+## Post-Incident Activities
+
+### Post-Incident Review
+
+<Steps>
+  <Step title="Schedule Review Meeting">
+    Convene incident response team within 1-2 weeks of closure
+  </Step>
+  <Step title="Review Timeline">
+    Walk through incident timeline and response actions
+  </Step>
+  <Step title="Identify Successes">
+    Document what worked well during response
+  </Step>
+  <Step title="Identify Gaps">
+    Determine areas for improvement in detection, response, or recovery
+  </Step>
+  <Step title="Develop Action Items">
+    Create specific tasks to address identified gaps
+  </Step>
+  <Step title="Update Procedures">
+    Revise runbooks, playbooks at `/soar`, and documentation
+  </Step>
+  <Step title="Document Lessons">
+    Add findings to knowledge base for future reference
+  </Step>
+</Steps>
+
+### Continuous Improvement
+
+Apply lessons learned:
+
+1. **Detection Enhancement** - Add new rules at `/alerting-rules` for similar threats
+2. **Response Automation** - Create SOAR playbooks at `/soar` for recurring scenarios
+3. **Tool Improvements** - Deploy new integrations at `/integrations` to fill gaps
+4. **Training** - Conduct tabletop exercises based on real incidents
+5. **Documentation** - Update response procedures and runbooks
+
+## Best Practices
+
+### During Incidents
+
+1. **Document Everything** - Real-time notes are critical for post-incident analysis
+2. **Communicate Frequently** - Keep stakeholders informed of status
+3. **Follow Procedures** - Adhere to established runbooks and playbooks
+4. **Preserve Evidence** - Follow forensic best practices
+5. **Think Before Acting** - Rushed actions can destroy evidence or worsen impact
+
+### Incident Management
+
+1. **Clear Ownership** - Every incident has a designated owner
+2. **Status Updates** - Update incident status as it progresses through lifecycle
+3. **Consistent Categorization** - Use standard categories and severities
+4. **Link Related Items** - Associate alerts, assets, and evidence
+5. **Close Loop** - Always complete post-incident review
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Alert Management" icon="bell" href="/iframe">
+    View and triage security alerts
+  </Card>
+  <Card title="SOAR Automation" icon="robot" href="/soar">
+    Automate incident response actions
+  </Card>
+  <Card title="Threat Intelligence" icon="shield-halved" href="/threat-intelligence">
+    Enrich incidents with threat intel
+  </Card>
+  <Card title="Log Discovery" icon="magnifying-glass" href="/discover">
+    Investigate events and gather evidence
+  </Card>
+</CardGroup>

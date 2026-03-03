@@ -1,0 +1,338 @@
+---
+title: Authentication Configuration
+description: Configure authentication methods and security settings in UTMStack
+---
+
+## Overview
+
+UTMStack provides multiple authentication mechanisms built on Spring Security, including local authentication with JWT tokens, two-factor authentication (TOTP), and SAML-based single sign-on. All authentication methods encrypt credentials in the database and protect against brute force attacks using fail2ban integration.
+
+## Authentication Methods
+
+UTMStack supports the following authentication methods:
+
+- **Local Authentication**: Username/password with JWT tokens
+- **Two-Factor Authentication (2FA)**: TOTP-based authenticator apps
+- **SAML SSO**: Enterprise single sign-on integration
+- **API Key Authentication**: For programmatic access
+
+## Local Authentication
+
+Local authentication uses Spring Security with JWT (JSON Web Token) for session management.
+
+### Configuring Local Authentication
+
+<Steps>
+  <Step title="Access Authentication Settings">
+    Navigate to **Settings > Authentication** in the UTMStack interface.
+  </Step>
+  
+  <Step title="Configure Password Policy">
+    Set password requirements:
+    - Minimum length (default: 12 characters)
+    - Complexity requirements
+    - Password expiration (default: 90 days)
+    - Password history (default: 5 previous passwords)
+  </Step>
+  
+  <Step title="Set Session Parameters">
+    Configure JWT session settings:
+    - Session timeout (default: 24 hours)
+    - Remember me duration (default: 7 days)
+    - Maximum concurrent sessions per user (default: 3)
+  </Step>
+  
+  <Step title="Configure Lockout Policy">
+    Set account lockout parameters:
+    - Failed login attempts threshold (default: 5)
+    - Lockout duration (default: 30 minutes)
+    - Permanent lockout after attempts (optional)
+  </Step>
+  
+  <Step title="Save Configuration">
+    Apply the authentication settings. Changes take effect for new login sessions.
+  </Step>
+</Steps>
+
+<Warning>
+Changing session timeout values will not affect existing active sessions. Users must re-authenticate for new settings to apply.
+</Warning>
+
+### JWT Token Configuration
+
+UTMStack uses JWT tokens for stateless authentication:
+
+**Token Properties:**
+- Signed using HS512 algorithm
+- Contains user ID, username, and roles
+- Includes expiration timestamp
+- Refresh tokens for extended sessions
+
+**Security Features:**
+- Tokens are cryptographically signed
+- Token blacklist on logout
+- Automatic token refresh before expiration
+- Token revocation on password change
+
+JWT settings are configured in the application properties:
+```yaml
+jwt:
+  secret: <generated-secret-key>
+  token-validity-in-seconds: 86400
+  token-validity-in-seconds-for-remember-me: 604800
+```
+
+<Warning>
+Never share or expose the JWT secret key. The key is automatically generated during installation and stored securely.
+</Warning>
+
+## Password Security
+
+### Password Hashing
+
+UTMStack uses bcrypt for password hashing:
+- Industry-standard adaptive hashing
+- Configurable work factor (default: 12)
+- Salt generated per password
+- Credentials encrypted in database
+
+### Password Requirements
+
+Enforce strong password policies:
+
+**Minimum Requirements:**
+- At least 12 characters
+- Mix of uppercase and lowercase letters
+- At least one number
+- At least one special character
+
+**Additional Options:**
+- Dictionary word checking
+- Username/email exclusion
+- Common password blacklist
+- Maximum password age
+
+### Password Reset Flow
+
+<Steps>
+  <Step title="User Requests Reset">
+    User clicks "Forgot Password" on the login page and enters their email address.
+  </Step>
+  
+  <Step title="Token Generation">
+    System generates a secure, time-limited reset token (valid for 1 hour).
+  </Step>
+  
+  <Step title="Email Delivery">
+    Reset link is sent to the user's registered email address.
+  </Step>
+  
+  <Step title="Password Reset">
+    User clicks the link, enters a new password meeting policy requirements.
+  </Step>
+  
+  <Step title="Verification">
+    System validates the token, updates the password, and invalidates all existing sessions.
+  </Step>
+</Steps>
+
+<Warning>
+Password reset tokens are single-use and expire after 1 hour. Multiple reset requests will invalidate previous tokens.
+</Warning>
+
+## Account Lockout Protection
+
+UTMStack integrates with fail2ban to prevent brute force attacks:
+
+### Lockout Configuration
+
+**Default Settings:**
+- Lock after 5 failed login attempts
+- Lockout duration: 30 minutes
+- Automatic unlock after duration
+- IP-based blocking in fail2ban
+
+### Manual Account Unlock
+
+Administrators can manually unlock accounts:
+
+<Steps>
+  <Step title="Identify Locked Account">
+    Navigate to **Settings > Users** and filter by "Locked" status.
+  </Step>
+  
+  <Step title="Unlock Account">
+    Select the locked user and click **Unlock Account**.
+  </Step>
+  
+  <Step title="Verify Identity">
+    Confirm the user's identity before unlocking (contact via alternative channel).
+  </Step>
+  
+  <Step title="Notify User">
+    Inform the user that their account has been unlocked and advise password reset if compromise is suspected.
+  </Step>
+</Steps>
+
+### IP Blocking
+
+Fail2ban automatically blocks IPs with repeated failed authentication:
+- Block duration: 1 hour (configurable)
+- Persistent blocks after multiple violations
+- Whitelist for trusted IP ranges
+- Audit trail of all blocked IPs
+
+Manage IP blocks at **Settings > Security > IP Blocking**.
+
+<Warning>
+Be cautious when blocking IP ranges. Ensure administrator IPs are whitelisted to prevent self-lockout.
+</Warning>
+
+## Session Management
+
+### Active Session Monitoring
+
+View and manage active user sessions:
+- Current session count per user
+- Session start time and last activity
+- IP address and user agent
+- Geographic location (if available)
+
+Access at **Settings > Active Sessions**.
+
+### Session Termination
+
+Administrators can terminate active sessions:
+
+1. Navigate to **Settings > Active Sessions**
+2. Select the session to terminate
+3. Click **Terminate Session**
+4. User must re-authenticate to continue
+
+**Bulk Termination:**
+- Terminate all sessions for a specific user
+- Terminate all sessions system-wide
+- Useful during security incidents
+
+### Session Security Settings
+
+<Steps>
+  <Step title="Configure Session Timeout">
+    Set the inactivity timeout period (default: 24 hours).
+  </Step>
+  
+  <Step title="Set Concurrent Session Limit">
+    Limit the number of simultaneous sessions per user (default: 3).
+  </Step>
+  
+  <Step title="Enable Session Binding">
+    Optionally bind sessions to IP addresses for additional security.
+  </Step>
+  
+  <Step title="Configure Remember Me">
+    Set the duration for "Remember Me" tokens (default: 7 days).
+  </Step>
+</Steps>
+
+## API Authentication
+
+### API Key Management
+
+For programmatic access to UTMStack APIs:
+
+<Steps>
+  <Step title="Generate API Key">
+    Navigate to **Settings > API Keys** and click **Create Key**.
+  </Step>
+  
+  <Step title="Configure Permissions">
+    Assign permissions to the API key (read-only, read-write, admin).
+  </Step>
+  
+  <Step title="Set Expiration">
+    Define key expiration date (recommended: 90 days maximum).
+  </Step>
+  
+  <Step title="Copy and Store">
+    Copy the generated API key immediately. It will not be shown again.
+  </Step>
+</Steps>
+
+<Warning>
+API keys provide the same access level as user sessions. Store keys securely and rotate regularly. Never commit API keys to version control.
+</Warning>
+
+### API Key Usage
+
+Include the API key in request headers:
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://your-utmstack-instance.com/api/v1/events
+```
+
+**Best Practices:**
+- Use separate keys for different applications
+- Implement key rotation every 90 days
+- Revoke keys immediately if compromised
+- Monitor API key usage in audit logs
+
+## Authentication Audit Trail
+
+All authentication events are logged:
+
+**Logged Events:**
+- Successful logins
+- Failed login attempts
+- Password changes
+- Password reset requests
+- Account lockouts
+- Session terminations
+- API key usage
+- 2FA enrollment and verification
+
+Access logs at **Settings > Audit Logs** and filter by "Authentication Events".
+
+## Security Best Practices
+
+<Warning>
+Follow these authentication security best practices:
+
+- **Enable Multi-Factor Authentication**: Require 2FA for all users, especially administrators (see [Two-Factor Authentication](/admin/two-factor-auth))
+- **Use Strong Passwords**: Enforce password complexity and regular rotation
+- **Monitor Failed Logins**: Alert on repeated failed authentication attempts
+- **Regular Session Review**: Periodically review active sessions for anomalies
+- **Principle of Least Privilege**: Grant API keys minimal required permissions
+- **Implement IP Whitelisting**: Restrict administrative access to known IP ranges
+- **Use SAML SSO**: Leverage enterprise identity providers for centralized authentication (see [SAML SSO Configuration](/admin/saml-sso))
+- **Regular Audits**: Review authentication logs weekly for suspicious activity
+- **Secure Password Resets**: Verify user identity through multiple channels before manual resets
+</Warning>
+
+## Troubleshooting
+
+### Users Cannot Log In
+
+1. Check if account is locked (failed login attempts)
+2. Verify password has not expired
+3. Ensure user account is active
+4. Check fail2ban IP block status
+5. Review authentication logs for specific error messages
+
+### JWT Token Issues
+
+- **Token Expired**: User needs to log in again
+- **Invalid Token**: Clear browser cache and cookies
+- **Token Refresh Failing**: Check system time synchronization
+
+### Session Timeout Too Aggressive
+
+- Increase timeout value in **Settings > Authentication**
+- Consider enabling "Remember Me" for trusted devices
+- Review activity patterns to set appropriate timeout
+
+## Related Topics
+
+- [User Management](/admin/user-management) - Create and manage user accounts
+- [Two-Factor Authentication](/admin/two-factor-auth) - Enable TOTP-based 2FA
+- [SAML SSO Configuration](/admin/saml-sso) - Configure enterprise single sign-on
+- [Roles and Permissions](/admin/roles-permissions) - Control access through RBAC

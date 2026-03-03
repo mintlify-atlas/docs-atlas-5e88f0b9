@@ -1,0 +1,387 @@
+---
+title: Integration Status
+description: Monitor integration health and configuration
+icon: "heart-pulse"
+---
+
+## Get Integration Configurations
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integration-confs</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Retrieve configuration parameters for integrations.
+
+### Query Parameters
+
+<ParamField query="page" type="integer" default="0">
+  Page number
+</ParamField>
+
+<ParamField query="size" type="integer" default="20">
+  Page size
+</ParamField>
+
+<ParamField query="integrationId.equals" type="integer">
+  Filter by integration ID
+</ParamField>
+
+<ParamField query="confName.contains" type="string">
+  Filter by configuration name
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-integration-confs?integrationId.equals=15" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/utm-integration-confs"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+params = {"integrationId.equals": 15}
+
+response = requests.get(url, headers=headers, params=params)
+configs = response.json()
+for config in configs:
+    print(f"{config['confName']}: {config['confValue']}")
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+[
+  {
+    "id": 50,
+    "integration": {
+      "id": 15,
+      "name": "Office 365 Logs"
+    },
+    "confName": "tenant_id",
+    "confValue": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "confDescription": "Microsoft 365 Tenant ID"
+  },
+  {
+    "id": 51,
+    "integration": {
+      "id": 15,
+      "name": "Office 365 Logs"
+    },
+    "confName": "client_id",
+    "confValue": "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+    "confDescription": "Application Client ID"
+  }
+]
+```
+</ResponseExample>
+
+## Get Configuration by ID
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integration-confs/{id}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Get a specific configuration parameter.
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  Configuration ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/utm-integration-confs/50 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+{
+  "id": 50,
+  "integration": {
+    "id": 15,
+    "name": "Office 365 Logs"
+  },
+  "confName": "tenant_id",
+  "confValue": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "confDescription": "Microsoft 365 Tenant ID"
+}
+```
+</ResponseExample>
+
+## Count Configurations
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>GET</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integration-confs/count</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Count integration configurations.
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://your-utmstack-instance.com/api/utm-integration-confs/count?integrationId.equals=15" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 Success
+3
+```
+</ResponseExample>
+
+## Delete Configuration
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>DELETE</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/utm-integration-confs/{id}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Delete a configuration parameter.
+
+### Path Parameters
+
+<ParamField path="id" type="integer" required>
+  Configuration ID to delete
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE https://your-utmstack-instance.com/api/utm-integration-confs/50 \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+</ResponseExample>
+
+## Monitor Integration Health
+
+### Check Active Integrations
+
+```python Python
+import requests
+
+def check_integration_health(api_url, token):
+    """
+    Check health of all integrations.
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Get all integrations
+    response = requests.get(
+        f"{api_url}/utm-integrations",
+        headers=headers,
+        params={"size": 1000}
+    )
+    integrations = response.json()
+    
+    health_report = {
+        "total": len(integrations),
+        "active": 0,
+        "inactive": 0,
+        "needs_restart": 0,
+        "details": []
+    }
+    
+    for integration in integrations:
+        status = "active" if integration["active"] else "inactive"
+        needs_restart = False
+        
+        if integration.get("module") and integration["module"].get("needsRestart"):
+            needs_restart = True
+            health_report["needs_restart"] += 1
+        
+        if integration["active"]:
+            health_report["active"] += 1
+        else:
+            health_report["inactive"] += 1
+        
+        health_report["details"].append({
+            "id": integration["id"],
+            "name": integration["name"],
+            "type": integration["integrationType"],
+            "status": status,
+            "needsRestart": needs_restart
+        })
+    
+    return health_report
+
+# Usage
+api_url = "https://your-utmstack-instance.com/api"
+token = "YOUR_TOKEN"
+
+health = check_integration_health(api_url, token)
+print(f"Integration Health Report:")
+print(f"  Total: {health['total']}")
+print(f"  Active: {health['active']}")
+print(f"  Inactive: {health['inactive']}")
+print(f"  Needs Restart: {health['needs_restart']}")
+
+if health['needs_restart'] > 0:
+    print("\nIntegrations requiring restart:")
+    for detail in health['details']:
+        if detail['needsRestart']:
+            print(f"  - {detail['name']}")
+```
+
+### Validate Integration Configuration
+
+```python Python
+import requests
+
+def validate_integration_config(api_url, token, integration_id, required_params):
+    """
+    Validate that an integration has all required configuration parameters.
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Get integration configs
+    response = requests.get(
+        f"{api_url}/utm-integration-confs",
+        headers=headers,
+        params={
+            "integrationId.equals": integration_id,
+            "size": 1000
+        }
+    )
+    
+    configs = response.json()
+    config_names = {conf["confName"] for conf in configs}
+    
+    # Check for missing parameters
+    missing = set(required_params) - config_names
+    
+    if missing:
+        return {
+            "valid": False,
+            "missing": list(missing),
+            "message": f"Missing required parameters: {', '.join(missing)}"
+        }
+    
+    # Check for empty values
+    empty = [
+        conf["confName"] 
+        for conf in configs 
+        if conf["confName"] in required_params and not conf.get("confValue")
+    ]
+    
+    if empty:
+        return {
+            "valid": False,
+            "empty": empty,
+            "message": f"Empty parameter values: {', '.join(empty)}"
+        }
+    
+    return {
+        "valid": True,
+        "message": "All required parameters configured"
+    }
+
+# Example: Validate Office 365 integration
+required_params = ["tenant_id", "client_id", "client_secret"]
+
+result = validate_integration_config(
+    "https://your-utmstack-instance.com/api",
+    "YOUR_TOKEN",
+    integration_id=15,
+    required_params=required_params
+)
+
+if result["valid"]:
+    print("✓ Integration configuration is valid")
+else:
+    print(f"✗ {result['message']}")
+```
+
+### Export Integration Configuration
+
+```python Python
+import requests
+import json
+
+def export_integration_config(api_url, token, integration_id, output_file):
+    """
+    Export an integration and its configuration to a file.
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Get integration
+    response = requests.get(
+        f"{api_url}/utm-integrations/{integration_id}",
+        headers=headers
+    )
+    integration = response.json()
+    
+    # Get configurations
+    response = requests.get(
+        f"{api_url}/utm-integration-confs",
+        headers=headers,
+        params={
+            "integrationId.equals": integration_id,
+            "size": 1000
+        }
+    )
+    configs = response.json()
+    
+    # Prepare export data
+    export_data = {
+        "integration": {
+            "name": integration["name"],
+            "shortName": integration["shortName"],
+            "description": integration["description"],
+            "integrationType": integration["integrationType"],
+            "active": integration["active"]
+        },
+        "configurations": [
+            {
+                "name": conf["confName"],
+                "value": conf["confValue"],
+                "description": conf.get("confDescription", "")
+            }
+            for conf in configs
+        ]
+    }
+    
+    # Save to file
+    with open(output_file, 'w') as f:
+        json.dump(export_data, f, indent=2)
+    
+    print(f"Exported integration to {output_file}")
+    return export_data
+
+# Usage
+export_integration_config(
+    "https://your-utmstack-instance.com/api",
+    "YOUR_TOKEN",
+    integration_id=15,
+    output_file="office365-integration.json"
+)
+```
+
+## Best Practices
+
+1. **Validate Configs**: Ensure all required parameters are set before activating
+2. **Monitor Restart Status**: Check `needsRestart` flag after configuration changes
+3. **Secure Secrets**: Use secure methods to store sensitive configuration values
+4. **Export Backups**: Regularly export integration configurations
+5. **Test Before Activate**: Configure and test integrations before setting active=true
+6. **Document Parameters**: Use confDescription to document each parameter's purpose

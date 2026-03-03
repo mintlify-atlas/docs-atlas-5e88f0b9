@@ -1,0 +1,249 @@
+---
+title: Bitdefender GravityZone Integration
+description: Integrate UTMStack with Bitdefender GravityZone Cloud
+---
+
+## Overview
+
+The UTMStack Bitdefender plugin is a connector developed in Golang that receives logs from Bitdefender GravityZone Cloud and forwards them to UTMStack. This integration uses the POST method to receive authenticated and protected messages from the GravityZone event push service.
+
+## How It Works
+
+The Bitdefender integration:
+
+- Receives **push events** from Bitdefender GravityZone via HTTPS POST
+- Uses Bitdefender's **Push Event API** for real-time event delivery
+- Parses incoming JSON-RPC messages from GravityZone
+- Forwards parsed events to the UTMStack syslog server
+- Automatically configures push settings in GravityZone
+
+<Note>
+**Prerequisites**
+
+You need a valid Bitdefender GravityZone account with:
+- **Access URL**: Your GravityZone Control Center URL
+- **API Key**: GravityZone API authentication key
+- **Company IDs**: Organization identifiers in GravityZone (for multi-tenant setups)
+- Network access for GravityZone to reach UTMStack endpoint
+</Note>
+
+## Architecture
+
+Unlike pull-based integrations, Bitdefender uses a push mechanism:
+
+1. UTMStack creates an HTTPS endpoint (default port: 8000)
+2. The plugin configures GravityZone with this endpoint URL
+3. GravityZone pushes events to UTMStack in real-time
+4. Events are authenticated and parsed
+5. Parsed events are forwarded to UTMStack for processing
+
+## Configuration Steps
+
+### 1. Obtain API Credentials from GravityZone
+
+1. Log in to **Bitdefender GravityZone Control Center**
+2. Navigate to **Configuration** > **API Keys**
+3. Click **Add** to create a new API key
+4. Configure the API key:
+   - **Name**: "UTMStack Integration"
+   - **Type**: Select API key type based on your license
+   - **Permissions**: Enable required permissions:
+     - Push event configuration
+     - Read endpoints
+     - Read events
+5. Click **Save** and copy the generated **API Key**
+
+### 2. Identify Your Access URL
+
+Your GravityZone Access URL depends on your deployment:
+
+- **Cloud Console**: `https://cloud.gravityzone.bitdefender.com`
+- **Regional Instances**: Check your login URL
+- **On-Premises**: Your custom GravityZone URL
+
+### 3. Determine Company IDs
+
+For multi-tenant GravityZone deployments:
+
+1. Navigate to **Accounts** in GravityZone
+2. Select each company/account you want to monitor
+3. Note the **Company ID** from the account details
+4. Collect all relevant Company IDs
+
+For single-tenant deployments, use your primary Company ID.
+
+### 4. Configure Network Access
+
+Ensure GravityZone can reach your UTMStack instance:
+
+1. Identify your UTMStack server's **public IP address or hostname**
+2. Ensure **port 8000** (or your configured port) is accessible from the internet
+3. Configure firewall rules to allow incoming HTTPS from Bitdefender IP ranges:
+   - Check Bitdefender documentation for current IP ranges
+4. If using a load balancer, configure it to forward port 8000 to UTMStack
+
+### 5. Configure in UTMStack
+
+1. Navigate to **Integrations** in the UTMStack console
+2. Select **Bitdefender GravityZone**
+3. Enter the required information:
+   - **Access URL**: Your GravityZone Control Center URL
+   - **API Key**: Your GravityZone API key
+   - **Company IDs**: Comma-separated list of company IDs to monitor
+   - **Server IP/Hostname**: Your UTMStack server's public address
+   - **Port**: HTTPS port for receiving events (default: 8000)
+4. Click **Test Connection** to verify API access
+5. Click **Save** to activate the integration
+
+### 6. Plugin Auto-Configuration
+
+Once saved, the plugin will automatically:
+
+1. Connect to GravityZone API using the provided credentials
+2. Configure push event settings for each Company ID
+3. Set the push destination to your UTMStack endpoint
+4. Verify the configuration by sending a test event
+5. Begin receiving real-time events from GravityZone
+
+### 7. Verify Integration
+
+Verify the integration is working:
+
+- Check the integration status in UTMStack console shows "Connected"
+- Look for the test event in UTMStack Events dashboard
+- Monitor the plugin logs for incoming push events
+- Verify events appear within a few minutes of activity in GravityZone
+- Check GravityZone > Configuration > Push for successful push status
+
+## Event Types Collected
+
+The Bitdefender integration receives various security events:
+
+### Malware Events
+- Malware detections
+- Virus/spyware findings
+- Potentially unwanted applications (PUA)
+- Malware quarantine actions
+- On-demand scan results
+
+### Exploit Events
+- Exploit prevention triggers
+- Attempted exploits blocked
+- Vulnerability exploitation attempts
+
+### Network Events
+- Network attack prevention
+- Intrusion detection events
+- Blocked connections
+- Firewall rule hits
+
+### Endpoint Events
+- Endpoint status changes
+- Policy updates
+- Agent installation/uninstallation
+- Update successes/failures
+
+### Module Events
+- Antimalware module status
+- Firewall status
+- Content Control events
+- Device Control events
+- Encryption status
+
+## Security Configuration
+
+The push endpoint uses several security mechanisms:
+
+### Authentication
+- GravityZone authenticates using a shared secret
+- The plugin validates the authentication header
+- Invalid authentication attempts are rejected and logged
+
+### Encryption
+- All communication uses HTTPS/TLS
+- The plugin automatically generates self-signed certificates
+- For production, consider using valid SSL certificates
+
+### Authorization
+- Only configured Company IDs can send events
+- Events from unknown sources are rejected
+
+## Troubleshooting
+
+### No Events Received
+
+- Verify GravityZone can reach your UTMStack public IP/hostname
+- Check firewall rules allow incoming HTTPS on port 8000
+- Confirm the push configuration in GravityZone shows "Active"
+- Review GravityZone push logs for delivery errors
+- Check UTMStack plugin logs for connection attempts
+
+### Authentication Errors
+
+- Verify the API Key is correct and not expired
+- Ensure the API Key has push configuration permissions
+- Check if the API Key has been revoked in GravityZone
+- Confirm the Access URL is correct
+
+### SSL/TLS Errors
+
+- GravityZone validates SSL certificates
+- If using self-signed certificates, check GravityZone SSL settings
+- Consider using a valid SSL certificate for production
+- Review certificate expiration dates
+
+### Configuration Errors
+
+- Verify all Company IDs are correct
+- Ensure the Master IP/hostname is publicly accessible
+- Check that port 8000 is not blocked by firewall
+- Review plugin logs for configuration API errors
+
+### Performance Issues
+
+- High event volumes may require increased resources
+- Monitor network bandwidth for event delivery
+- Check UTMStack syslog ingestion capacity
+- Consider filtering events in GravityZone if needed
+
+## Push Configuration Details
+
+The plugin automatically configures the following in GravityZone:
+
+```json
+{
+  "serviceType": "JsonRPC",
+  "subscribeToAllAvailableTypes": true,
+  "requireValidSslCertificate": false,
+  "url": "https://<your-utmstack-ip>:8000",
+  "authorization": "<generated-secret>"
+}
+```
+
+## Data Flow
+
+1. Security event occurs on protected endpoint
+2. Endpoint reports to GravityZone Control Center
+3. GravityZone processes and categorizes the event
+4. GravityZone pushes event via HTTPS POST to UTMStack
+5. UTMStack plugin receives and validates the event
+6. Plugin parses JSON-RPC payload
+7. Parsed event is sent to UTMStack syslog
+8. UTMStack processes and correlates the event
+
+## Security Best Practices
+
+- Use strong, unique API keys for the integration
+- Rotate API keys regularly (recommended every 90 days)
+- Restrict API key permissions to minimum required
+- Use firewall rules to limit incoming connections to known Bitdefender IPs
+- Enable SSL certificate validation in production
+- Monitor API key usage in GravityZone
+- Review push event logs regularly
+- Delete or disable unused API keys
+
+## Additional Resources
+
+- [Bitdefender GravityZone API Documentation](https://www.bitdefender.com/business/support/en/77209-370020-api.html)
+- [GravityZone Push Event Service](https://www.bitdefender.com/business/support/en/77209-370020-push.html)
+- [API Keys Management](https://www.bitdefender.com/business/support/en/77209-370020-apikeys.html)

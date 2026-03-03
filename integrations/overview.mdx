@@ -1,0 +1,56 @@
+---
+title: Integrations Overview
+description: Connect UTMStack with your security infrastructure
+---
+
+UTMStack provides seamless integrations with major cloud platforms and security solutions to consolidate your security monitoring and threat detection capabilities.
+
+## Available Integrations
+
+<CardGroup cols={2}>
+  <Card title="AWS" icon="aws" href="/integrations/aws">
+    Integrate with Amazon Web Services CloudWatch for comprehensive cloud security monitoring
+  </Card>
+  
+  <Card title="Azure" icon="microsoft" href="/integrations/azure">
+    Connect to Microsoft Azure Monitor Log Analytics for Azure environment visibility
+  </Card>
+  
+  <Card title="Google Cloud Platform" icon="google" href="/integrations/gcp">
+    Collect logs from Google Cloud Platform services for cloud security monitoring
+  </Card>
+  
+  <Card title="Office 365" icon="microsoft" href="/integrations/office365">
+    Monitor Office 365 audit logs including Azure AD, Exchange, and SharePoint
+  </Card>
+  
+  <Card title="CrowdStrike Falcon" icon="shield-halved" href="/integrations/crowdstrike">
+    Stream real-time security events from CrowdStrike Falcon platform
+  </Card>
+  
+  <Card title="Sophos Central" icon="shield" href="/integrations/sophos">
+    Integrate with Sophos Central SIEM service for endpoint protection data
+  </Card>
+  
+  <Card title="Bitdefender GravityZone" icon="shield-check" href="/integrations/bitdefender">
+    Receive push events from Bitdefender GravityZone Cloud
+  </Card>
+</CardGroup>
+
+## Integration Architecture
+
+All UTMStack integrations use a plugin-based architecture:
+
+- **GRPC Communication**: Plugins communicate with the UTMStack processing server via GRPC over Unix sockets
+- **Real-time Processing**: Events are processed and enriched in real-time
+- **Automated Configuration**: Plugins automatically sync configuration from the UTMStack server
+- **Resilient Design**: Built-in retry mechanisms and error handling ensure reliable data collection
+
+## Getting Started
+
+1. Navigate to the specific integration page for detailed setup instructions
+2. Gather the required credentials from your platform
+3. Configure the integration in UTMStack
+4. Verify data collection is working properly
+
+Each integration has unique requirements and configuration steps detailed in its respective documentation page.

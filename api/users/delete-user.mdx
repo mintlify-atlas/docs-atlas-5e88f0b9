@@ -1,0 +1,291 @@
+---
+title: Delete User
+description: DELETE endpoint to remove a user account
+icon: "user-xmark"
+---
+
+## Delete User
+
+<api-endpoint>
+  <api-endpoint-request>
+    <api-endpoint-request-method>DELETE</api-endpoint-request-method>
+    <api-endpoint-request-url>/api/users/{login}</api-endpoint-request-url>
+  </api-endpoint-request>
+</api-endpoint>
+
+Delete a user account by login name.
+
+<Note>
+This endpoint requires `ROLE_ADMIN` permissions.
+</Note>
+
+<Warning>
+Deleting a user is permanent and cannot be undone. The user's data and access will be removed immediately.
+</Warning>
+
+### Path Parameters
+
+<ParamField path="login" type="string" required>
+  Username of the account to delete
+</ParamField>
+
+### Response
+
+Returns status 200 with no body on successful deletion.
+
+<RequestExample>
+```bash cURL
+curl -X DELETE https://your-utmstack-instance.com/api/users/jdoe \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+```python Python
+import requests
+
+url = "https://your-utmstack-instance.com/api/users/jdoe"
+headers = {"Authorization": "Bearer YOUR_TOKEN"}
+
+response = requests.delete(url, headers=headers)
+if response.status_code == 200:
+    print("User deleted successfully")
+else:
+    print(f"Failed to delete user: {response.text}")
+```
+</RequestExample>
+
+<ResponseExample>
+```text 200 Success
+
+```
+
+```json 400 Bad Request - Last Admin
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Cannot delete the last remaining admin user"
+}
+```
+
+```json 404 Not Found
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "User not found"
+}
+```
+
+```json 403 Forbidden
+{
+  "status": 403,
+  "error": "Forbidden",
+  "message": "Access denied"
+}
+```
+</ResponseExample>
+
+## Deletion Restrictions
+
+### Admin Protection
+
+The system prevents deletion of the last remaining admin user:
+
+- If the user has `ROLE_ADMIN`
+- And they are the only admin in the system
+- The deletion will fail with a 400 error
+
+This ensures there's always at least one administrator who can manage the system.
+
+### Active Sessions
+
+Deleting a user does not immediately invalidate their active sessions. Consider:
+
+1. Deactivating the user first
+2. Waiting for session expiration
+3. Then deleting the account
+
+## Safe Deletion Workflow
+
+### Step 1: Verify User Exists
+
+```bash cURL
+curl -X GET https://your-utmstack-instance.com/api/users/jdoe \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+### Step 2: Deactivate User (Optional)
+
+```bash cURL
+curl -X PUT https://your-utmstack-instance.com/api/users \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 5,
+    "login": "jdoe",
+    "email": "jdoe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "authorities": ["ROLE_USER"],
+    "activated": false
+  }'
+```
+
+### Step 3: Delete User
+
+```bash cURL
+curl -X DELETE https://your-utmstack-instance.com/api/users/jdoe \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..."
+```
+
+## Python Example: Safe Delete
+
+```python Python
+import requests
+
+def safe_delete_user(api_url, token, login):
+    """
+    Safely delete a user with validation and deactivation.
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Step 1: Check if user exists
+    response = requests.get(f"{api_url}/users/{login}", headers=headers)
+    if response.status_code != 200:
+        return {"success": False, "error": "User not found"}
+    
+    user = response.json()
+    
+    # Step 2: Check if last admin
+    if "ROLE_ADMIN" in user["authorities"]:
+        # Get all users to count admins
+        response = requests.get(
+            f"{api_url}/users",
+            headers=headers,
+            params={"size": 1000}
+        )
+        all_users = response.json()
+        admin_count = sum(
+            1 for u in all_users 
+            if "ROLE_ADMIN" in u["authorities"]
+        )
+        
+        if admin_count <= 1:
+            return {
+                "success": False,
+                "error": "Cannot delete last admin user"
+            }
+    
+    # Step 3: Deactivate first
+    user["activated"] = False
+    headers["Content-Type"] = "application/json"
+    response = requests.put(f"{api_url}/users", headers=headers, json=user)
+    
+    if response.status_code != 200:
+        return {
+            "success": False,
+            "error": "Failed to deactivate user"
+        }
+    
+    # Step 4: Delete user
+    del headers["Content-Type"]
+    response = requests.delete(f"{api_url}/users/{login}", headers=headers)
+    
+    if response.status_code == 200:
+        return {"success": True, "message": f"User {login} deleted"}
+    else:
+        return {
+            "success": False,
+            "error": response.text
+        }
+
+# Usage
+api_url = "https://your-utmstack-instance.com/api"
+token = "YOUR_TOKEN"
+
+result = safe_delete_user(api_url, token, "jdoe")
+if result["success"]:
+    print(result["message"])
+else:
+    print(f"Error: {result['error']}")
+```
+
+## Bulk Delete Users
+
+```python Python
+import requests
+
+def delete_multiple_users(api_url, token, logins):
+    """
+    Delete multiple users with error handling.
+    """
+    results = {
+        "deleted": [],
+        "failed": []
+    }
+    
+    for login in logins:
+        result = safe_delete_user(api_url, token, login)
+        
+        if result["success"]:
+            results["deleted"].append(login)
+            print(f"✓ Deleted: {login}")
+        else:
+            results["failed"].append({
+                "login": login,
+                "error": result["error"]
+            })
+            print(f"✗ Failed: {login} - {result['error']}")
+    
+    return results
+
+# Example
+users_to_delete = ["user1", "user2", "user3"]
+results = delete_multiple_users(
+    "https://your-utmstack-instance.com/api",
+    "YOUR_TOKEN",
+    users_to_delete
+)
+
+print(f"\nDeleted: {len(results['deleted'])}")
+print(f"Failed: {len(results['failed'])}")
+```
+
+## Alternative: Deactivation
+
+Instead of deleting users, consider deactivating them:
+
+**Advantages:**
+- Preserves user data and audit trails
+- Can be reversed if needed
+- Maintains referential integrity
+
+**Deactivate a User:**
+
+```bash cURL
+curl -X PUT https://your-utmstack-instance.com/api/users \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 5,
+    "login": "jdoe",
+    "email": "jdoe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "authorities": ["ROLE_USER"],
+    "activated": false
+  }'
+```
+
+Deactivated users:
+- Cannot log in
+- Don't appear in active user lists
+- Can be reactivated later
+
+## Best Practices
+
+1. **Verify First**: Always check if user exists before deletion
+2. **Admin Count**: Ensure at least one admin remains
+3. **Deactivate First**: Deactivate before deleting for safety
+4. **Audit Trail**: Log all user deletions
+5. **Consider Deactivation**: Use deactivation instead of deletion when possible
+6. **Bulk Operations**: Implement proper error handling for bulk deletes
+7. **Backup**: Backup user data before mass deletions

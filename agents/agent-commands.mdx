@@ -1,0 +1,459 @@
+---
+title: Agent CLI Commands
+description: Complete reference for UTMStack Agent command-line interface
+---
+
+The UTMStack Agent provides a comprehensive command-line interface for installation, configuration, and management.
+
+## Command Syntax
+
+```bash
+./utmstack_agent <command> [arguments] [flags]
+```
+
+<Note>
+All commands require administrative privileges (root/sudo on Linux, administrator on Windows).
+</Note>
+
+## Installation Commands
+
+### install
+
+Install the UTMStack Agent service.
+
+```bash
+./utmstack_agent install
+```
+
+**Installation Flow:**
+
+<Steps>
+  <Step title="Display Banner">
+    Shows UTMStack Agent version and information
+  </Step>
+
+  <Step title="Collect Configuration">
+    Prompts for:
+    - UTMStack server address
+    - Agent registration key
+  </Step>
+
+  <Step title="Check Server Connection">
+    Verifies connectivity to required ports:
+    - Agent Manager Port
+    - Log Auth Proxy Port
+    - Dependencies Port
+
+    ```
+    Checking server connection ... [OK]
+    ```
+  </Step>
+
+  <Step title="Download Dependencies">
+    Downloads required components from the server:
+
+    ```
+    Downloading dependencies ... [OK]
+    ```
+  </Step>
+
+  <Step title="Configure Agent">
+    - Registers agent with the server
+    - Saves configuration file
+    - Configures collectors
+    - Installs Beat collectors
+    - Sets default data retention
+
+    ```
+    Configuring agent ... [OK]
+    ```
+  </Step>
+
+  <Step title="Create Service">
+    Installs the system service:
+
+    ```
+    Creating service ... [OK]
+    UTMStackAgent service installed correctly
+    ```
+  </Step>
+</Steps>
+
+**Example:**
+
+```bash
+sudo ./utmstack_agent install
+```
+
+### uninstall
+
+Completely remove the UTMStack Agent.
+
+```bash
+./utmstack_agent uninstall
+```
+
+**Uninstallation Process:**
+
+1. Stops the UTMStackUpdater service
+2. Deletes agent registration from server
+3. Uninstalls all collectors
+4. Removes configuration files
+5. Uninstalls system service
+
+**Example:**
+
+```bash
+sudo ./utmstack_agent uninstall
+```
+
+## Service Commands
+
+### run
+
+Run the agent service (typically used by the system service manager).
+
+```bash
+./utmstack_agent run
+```
+
+## Integration Commands
+
+### enable-integration
+
+Enable a log integration for a specific protocol.
+
+```bash
+./utmstack_agent enable-integration <integration> <protocol> [--tls]
+```
+
+**Parameters:**
+- `<integration>`: Integration name (e.g., `syslog`)
+- `<protocol>`: Protocol type (`tcp`, `udp`)
+- `--tls`: (Optional) Enable TLS encryption (TCP only)
+
+**Examples:**
+
+Enable syslog over UDP:
+```bash
+./utmstack_agent enable-integration syslog udp
+```
+
+Enable syslog over TCP:
+```bash
+./utmstack_agent enable-integration syslog tcp
+```
+
+Enable syslog over TCP with TLS:
+```bash
+./utmstack_agent enable-integration syslog tcp --tls
+```
+
+**Output:**
+
+```
+Changing integration status ...
+Integration syslog tcp enabled on port 5140
+```
+
+With TLS:
+```
+Integration syslog tcp enabled with TLS on port 6514
+```
+
+### disable-integration
+
+Disable a log integration.
+
+```bash
+./utmstack_agent disable-integration <integration> <protocol>
+```
+
+**Parameters:**
+- `<integration>`: Integration name (e.g., `syslog`)
+- `<protocol>`: Protocol type (`tcp`, `udp`)
+
+<Note>
+Disabling an integration automatically disables TLS if it was enabled.
+</Note>
+
+**Example:**
+
+```bash
+./utmstack_agent disable-integration syslog tcp
+```
+
+**Output:**
+
+```
+Changing integration status ...
+Integration syslog tcp disabled (port 6514 freed)
+```
+
+## TLS Certificate Commands
+
+### load-tls-certs
+
+Load custom TLS certificates for secure integrations.
+
+```bash
+./utmstack_agent load-tls-certs <certificate_path> <private_key_path> [ca_certificate_path]
+```
+
+**Parameters:**
+- `<certificate_path>`: Path to server certificate (.crt)
+- `<private_key_path>`: Path to private key (.key)
+- `[ca_certificate_path]`: (Optional) Path to CA certificate
+
+**Process:**
+
+1. Validates certificate files
+2. Copies certificates to agent directory
+3. Sets appropriate permissions
+
+**Examples:**
+
+With CA certificate:
+```bash
+./utmstack_agent load-tls-certs /path/to/server.crt /path/to/server.key /path/to/ca.crt
+```
+
+Without CA certificate:
+```bash
+./utmstack_agent load-tls-certs /path/to/server.crt /path/to/server.key
+```
+
+**Output:**
+
+```
+Loading user TLS certificates ...
+Validating certificate files ... [OK]
+Installing certificates ... [OK]
+TLS certificates loaded successfully!
+```
+
+### check-tls-certs
+
+Check the status and validity of loaded TLS certificates.
+
+```bash
+./utmstack_agent check-tls-certs
+```
+
+## Port Management Commands
+
+### change-port
+
+Change the listening port for a specific integration.
+
+```bash
+./utmstack_agent change-port <integration> <protocol> <new_port>
+```
+
+**Parameters:**
+- `<integration>`: Integration name (e.g., `syslog`)
+- `<protocol>`: Protocol type (`tcp`, `udp`)
+- `<new_port>`: New port number
+
+**Example:**
+
+```bash
+./utmstack_agent change-port syslog tcp 5140
+```
+
+**Output:**
+
+```
+Changing integration port ...
+Port changed correctly from 514 to 5140
+```
+
+## Log Management Commands
+
+### change-retention
+
+Change the local log retention limit.
+
+```bash
+./utmstack_agent change-retention <retention_mb>
+```
+
+**Parameters:**
+- `<retention_mb>`: Retention limit in megabytes
+
+**Example:**
+
+Set retention to 100 MB:
+```bash
+./utmstack_agent change-retention 100
+```
+
+**Output:**
+
+```
+Changing log retention ...
+Retention changed correctly to 100
+```
+
+### clean-logs
+
+Manually clean old logs based on the retention policy.
+
+```bash
+./utmstack_agent clean-logs
+```
+
+**Example:**
+
+```bash
+./utmstack_agent clean-logs
+```
+
+**Output:**
+
+```
+Cleaning old logs ...
+Logs cleaned correctly
+```
+
+## Help Command
+
+### help
+
+Display complete help information and usage examples.
+
+```bash
+./utmstack_agent help
+```
+
+**Output includes:**
+- Command syntax for all commands
+- Detailed descriptions
+- TLS certificate management examples
+- TLS integration examples
+- Usage notes and requirements
+
+## Command Reference Table
+
+| Command | Description | Requires Restart |
+|---------|-------------|------------------|
+| `install` | Install the agent service | N/A |
+| `uninstall` | Remove the agent service | N/A |
+| `run` | Run the agent service | N/A |
+| `enable-integration` | Enable a log integration | No |
+| `disable-integration` | Disable a log integration | No |
+| `load-tls-certs` | Load custom TLS certificates | Yes* |
+| `check-tls-certs` | Check TLS certificate status | No |
+| `change-port` | Change integration port | No |
+| `change-retention` | Change log retention limit | No |
+| `clean-logs` | Clean old logs manually | No |
+| `help` | Display help information | N/A |
+
+<Note>
+*Requires enabling/disabling the integration to apply TLS certificates.
+</Note>
+
+## Common Workflows
+
+### Setup Syslog with TLS
+
+<Steps>
+  <Step title="Load TLS Certificates">
+    ```bash
+    ./utmstack_agent load-tls-certs /path/to/cert.crt /path/to/cert.key
+    ```
+  </Step>
+
+  <Step title="Enable Syslog with TLS">
+    ```bash
+    ./utmstack_agent enable-integration syslog tcp --tls
+    ```
+  </Step>
+
+  <Step title="Verify Configuration">
+    ```bash
+    ./utmstack_agent check-tls-certs
+    ```
+  </Step>
+</Steps>
+
+### Change Syslog Port
+
+<Steps>
+  <Step title="Change the Port">
+    ```bash
+    ./utmstack_agent change-port syslog tcp 5140
+    ```
+  </Step>
+
+  <Step title="Update Firewall Rules">
+    Update your firewall to allow the new port:
+
+    **Linux (firewalld):**
+    ```bash
+    sudo firewall-cmd --permanent --add-port=5140/tcp
+    sudo firewall-cmd --reload
+    ```
+
+    **Linux (ufw):**
+    ```bash
+    sudo ufw allow 5140/tcp
+    ```
+  </Step>
+</Steps>
+
+### Manage Log Storage
+
+<Steps>
+  <Step title="Set Retention Policy">
+    ```bash
+    ./utmstack_agent change-retention 200
+    ```
+  </Step>
+
+  <Step title="Monitor Disk Usage">
+    **Linux:**
+    ```bash
+    du -sh /opt/utmstack/agent/data/
+    ```
+
+    **Windows:**
+    ```bash
+    dir "C:\Program Files\UTMStack\Agent\data" | find "bytes"
+    ```
+  </Step>
+
+  <Step title="Clean Logs if Needed">
+    ```bash
+    ./utmstack_agent clean-logs
+    ```
+  </Step>
+</Steps>
+
+## Exit Codes
+
+- `0`: Success
+- `1`: Error (check error message for details)
+
+## Best Practices
+
+1. **Always use administrative privileges**: Run commands with `sudo` (Linux) or as administrator (Windows)
+2. **Check connectivity before installation**: Ensure the server is reachable
+3. **Use TLS in production**: Always enable TLS for TCP integrations in production environments
+4. **Load custom certificates**: Use your own TLS certificates instead of auto-generated ones
+5. **Monitor log retention**: Adjust retention based on your disk space and log volume
+6. **Review help output**: Run `./utmstack_agent help` for detailed usage examples
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Windows Agent" icon="windows" href="/agents/windows-agent">
+    Windows-specific examples and workflows
+  </Card>
+  <Card title="Linux Agent" icon="linux" href="/agents/linux-agent">
+    Linux-specific examples and workflows
+  </Card>
+  <Card title="Configuration" icon="gear" href="/agents/agent-configuration">
+    Detailed configuration options
+  </Card>
+</CardGroup>
